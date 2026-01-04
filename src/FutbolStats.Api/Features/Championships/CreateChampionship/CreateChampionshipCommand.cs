@@ -51,7 +51,7 @@ public class CreateChampionshipValidator : AbstractValidator<CreateChampionshipC
         RuleFor(x => x.Season)
             .NotEmpty().WithMessage("Season is required")
             .MaximumLength(20).WithMessage("Season must not exceed 20 characters")
-            .Matches(@"^\d{4}-\d{4}$").WithMessage("Season must be in format YYYY-YYYY (e.g., 2024-2025)");
+            .Matches(@"^\d{4}(-\d{4})?$").WithMessage("Season must be in format YYYY (e.g., 2024) or YYYY-YYYY (e.g., 2024-2025)");
 
         RuleFor(x => x.StartDate)
             .NotEmpty().WithMessage("Start date is required");
