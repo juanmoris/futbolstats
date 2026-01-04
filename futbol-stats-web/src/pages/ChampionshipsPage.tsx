@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit2, Trash2, Trophy } from 'lucide-react';
+import { Plus, Edit2, Trash2, Trophy, Users, X } from 'lucide-react';
 import { championshipsApi } from '@/api/endpoints/championships.api';
+import { teamsApi } from '@/api/endpoints/teams.api';
 import type { Championship, CreateChampionshipRequest } from '@/api/types/championship.types';
 import { ChampionshipStatus } from '@/api/types/common.types';
 
@@ -9,6 +10,7 @@ export function ChampionshipsPage() {
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingChampionship, setEditingChampionship] = useState<Championship | null>(null);
+  const [teamsModalChampionship, setTeamsModalChampionship] = useState<Championship | null>(null);
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
@@ -136,14 +138,23 @@ export function ChampionshipsPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
+                      onClick={() => setTeamsModalChampionship(championship)}
+                      className="text-blue-600 hover:text-blue-900 mr-4"
+                      title="Gestionar equipos"
+                    >
+                      <Users className="h-4 w-4" />
+                    </button>
+                    <button
                       onClick={() => { setEditingChampionship(championship); createMutation.reset(); setIsModalOpen(true); }}
                       className="text-green-600 hover:text-green-900 mr-4"
+                      title="Editar"
                     >
                       <Edit2 className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(championship.id)}
                       className="text-red-600 hover:text-red-900"
+                      title="Eliminar"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -211,6 +222,17 @@ export function ChampionshipsPage() {
           onSave={handleCreate}
           isLoading={createMutation.isPending}
           error={createMutation.error}
+        />
+      )}
+
+      {/* Teams Modal */}
+      {teamsModalChampionship && (
+        <TeamsModal
+          championship={teamsModalChampionship}
+          onClose={() => {
+            setTeamsModalChampionship(null);
+            queryClient.invalidateQueries({ queryKey: ['championships'] });
+          }}
         />
       )}
     </div>
@@ -332,6 +354,140 @@ function ChampionshipModal({
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+function TeamsModal({
+  championship,
+  onClose,
+}: {
+  championship: Championship;
+  onClose: () => void;
+}) {
+  const [selectedTeamId, setSelectedTeamId] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const { data: championshipDetail } = useQuery({
+    queryKey: ['championship', championship.id],
+    queryFn: () => championshipsApi.getById(championship.id),
+  });
+
+  const { data: allTeams } = useQuery({
+    queryKey: ['teams', 'all'],
+    queryFn: () => teamsApi.getAll({ pageSize: 100 }),
+  });
+
+  const addTeamMutation = useMutation({
+    mutationFn: (teamId: string) => championshipsApi.addTeam(championship.id, teamId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['championship', championship.id] });
+      setSelectedTeamId('');
+      setError(null);
+    },
+    onError: (err: Error) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const axiosError = err as any;
+      if (axiosError.response?.data?.errors) {
+        const errors = axiosError.response.data.errors;
+        setError(Object.values(errors).flat().join(', '));
+      } else if (axiosError.response?.data?.message) {
+        setError(axiosError.response.data.message);
+      } else {
+        setError('Error al agregar el equipo');
+      }
+    },
+  });
+
+  const removeTeamMutation = useMutation({
+    mutationFn: (teamId: string) => championshipsApi.removeTeam(championship.id, teamId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['championship', championship.id] });
+    },
+  });
+
+  const registeredTeamIds = championshipDetail?.teams?.map(t => t.teamId) || [];
+  const availableTeams = allTeams?.items?.filter(t => !registeredTeamIds.includes(t.id)) || [];
+
+  const handleAddTeam = () => {
+    if (selectedTeamId) {
+      addTeamMutation.mutate(selectedTeamId);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[80vh] flex flex-col">
+        <div className="px-6 py-4 border-b flex justify-between items-center">
+          <h3 className="text-lg font-medium text-gray-900">
+            Equipos - {championship.name}
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="px-6 py-4 border-b">
+          {error && (
+            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+              {error}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <select
+              value={selectedTeamId}
+              onChange={(e) => setSelectedTeamId(e.target.value)}
+              className="flex-1 rounded-md border px-3 py-2"
+            >
+              <option value="">Seleccionar equipo...</option>
+              {availableTeams.map((team) => (
+                <option key={team.id} value={team.id}>{team.name}</option>
+              ))}
+            </select>
+            <button
+              onClick={handleAddTeam}
+              disabled={!selectedTeamId || addTeamMutation.isPending}
+              className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50"
+            >
+              {addTeamMutation.isPending ? 'Agregando...' : 'Agregar'}
+            </button>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          <h4 className="text-sm font-medium text-gray-700 mb-3">
+            Equipos registrados ({championshipDetail?.teams?.length || 0})
+          </h4>
+          {championshipDetail?.teams?.length === 0 ? (
+            <p className="text-gray-500 text-sm">No hay equipos registrados</p>
+          ) : (
+            <ul className="space-y-2">
+              {championshipDetail?.teams?.map((team) => (
+                <li key={team.teamId} className="flex items-center justify-between bg-gray-50 px-4 py-3 rounded-md">
+                  <span className="font-medium text-gray-900">{team.teamName}</span>
+                  <button
+                    onClick={() => removeTeamMutation.mutate(team.teamId)}
+                    disabled={removeTeamMutation.isPending}
+                    className="text-red-600 hover:text-red-900 text-sm"
+                  >
+                    Quitar
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="px-6 py-4 border-t">
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            Cerrar
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -34,4 +34,12 @@ export const championshipsApi = {
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/championships/${id}`);
   },
+
+  addTeam: async (championshipId: string, teamId: string): Promise<void> => {
+    await apiClient.post(`/championships/${championshipId}/teams`, { teamId });
+  },
+
+  removeTeam: async (championshipId: string, teamId: string): Promise<void> => {
+    await apiClient.delete(`/championships/${championshipId}/teams/${teamId}`);
+  },
 };
