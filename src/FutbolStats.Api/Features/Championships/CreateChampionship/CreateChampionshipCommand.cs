@@ -45,24 +45,24 @@ public class CreateChampionshipValidator : AbstractValidator<CreateChampionshipC
     public CreateChampionshipValidator(FutbolDbContext db)
     {
         RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Name is required")
-            .MaximumLength(200).WithMessage("Name must not exceed 200 characters");
+            .NotEmpty().WithMessage("El nombre es requerido")
+            .MaximumLength(200).WithMessage("El nombre no debe exceder 200 caracteres");
 
         RuleFor(x => x.Season)
-            .NotEmpty().WithMessage("Season is required")
-            .MaximumLength(20).WithMessage("Season must not exceed 20 characters")
-            .Matches(@"^\d{4}(-\d{4})?$").WithMessage("Season must be in format YYYY (e.g., 2024) or YYYY-YYYY (e.g., 2024-2025)");
+            .NotEmpty().WithMessage("La temporada es requerida")
+            .MaximumLength(20).WithMessage("La temporada no debe exceder 20 caracteres")
+            .Matches(@"^\d{4}(-\d{4})?$").WithMessage("La temporada debe tener formato YYYY (ej: 2024) o YYYY-YYYY (ej: 2024-2025)");
 
         RuleFor(x => x.StartDate)
-            .NotEmpty().WithMessage("Start date is required");
+            .NotEmpty().WithMessage("La fecha de inicio es requerida");
 
         RuleFor(x => x.EndDate)
-            .NotEmpty().WithMessage("End date is required")
-            .GreaterThan(x => x.StartDate).WithMessage("End date must be after start date");
+            .NotEmpty().WithMessage("La fecha de fin es requerida")
+            .GreaterThan(x => x.StartDate).WithMessage("La fecha de fin debe ser posterior a la fecha de inicio");
 
         RuleFor(x => x)
             .MustAsync(async (cmd, ct) =>
                 !await db.Championships.AnyAsync(c => c.Name == cmd.Name && c.Season == cmd.Season, ct))
-            .WithMessage("A championship with this name and season already exists");
+            .WithMessage("Ya existe un campeonato con este nombre y temporada");
     }
 }
