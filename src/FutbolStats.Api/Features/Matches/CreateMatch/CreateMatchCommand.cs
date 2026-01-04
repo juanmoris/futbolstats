@@ -51,29 +51,29 @@ public class CreateMatchValidator : AbstractValidator<CreateMatchCommand>
     public CreateMatchValidator(FutbolDbContext db)
     {
         RuleFor(x => x.ChampionshipId)
-            .NotEmpty().WithMessage("Championship is required")
+            .NotEmpty().WithMessage("El campeonato es requerido")
             .MustAsync(async (id, ct) => await db.Championships.AnyAsync(c => c.Id == id, ct))
-            .WithMessage("Championship does not exist");
+            .WithMessage("El campeonato no existe");
 
         RuleFor(x => x.HomeTeamId)
-            .NotEmpty().WithMessage("Home team is required")
+            .NotEmpty().WithMessage("El equipo local es requerido")
             .MustAsync(async (id, ct) => await db.Teams.AnyAsync(t => t.Id == id, ct))
-            .WithMessage("Home team does not exist");
+            .WithMessage("El equipo local no existe");
 
         RuleFor(x => x.AwayTeamId)
-            .NotEmpty().WithMessage("Away team is required")
-            .NotEqual(x => x.HomeTeamId).WithMessage("Home and away teams must be different")
+            .NotEmpty().WithMessage("El equipo visitante es requerido")
+            .NotEqual(x => x.HomeTeamId).WithMessage("El equipo local y visitante deben ser diferentes")
             .MustAsync(async (id, ct) => await db.Teams.AnyAsync(t => t.Id == id, ct))
-            .WithMessage("Away team does not exist");
+            .WithMessage("El equipo visitante no existe");
 
         RuleFor(x => x.MatchDate)
-            .NotEmpty().WithMessage("Match date is required");
+            .NotEmpty().WithMessage("La fecha del partido es requerida");
 
         RuleFor(x => x.Matchday)
-            .GreaterThan(0).WithMessage("Matchday must be greater than 0");
+            .GreaterThan(0).WithMessage("La jornada debe ser mayor a 0");
 
         RuleFor(x => x.Stadium)
-            .MaximumLength(200).WithMessage("Stadium must not exceed 200 characters")
+            .MaximumLength(200).WithMessage("El estadio no debe exceder 200 caracteres")
             .When(x => !string.IsNullOrEmpty(x.Stadium));
 
         RuleFor(x => x)
@@ -86,6 +86,6 @@ public class CreateMatchValidator : AbstractValidator<CreateMatchCommand>
                     .AnyAsync(ct2 => ct2.ChampionshipId == cmd.ChampionshipId && ct2.TeamId == cmd.AwayTeamId, ct);
                 return homeTeamInChampionship && awayTeamInChampionship;
             })
-            .WithMessage("Both teams must be registered in the championship");
+            .WithMessage("Ambos equipos deben estar registrados en el campeonato");
     }
 }

@@ -1,8 +1,10 @@
 using FutbolStats.Api.Common;
+using FutbolStats.Api.Features.Championships.AddTeamToChampionship;
 using FutbolStats.Api.Features.Championships.CreateChampionship;
 using FutbolStats.Api.Features.Championships.DeleteChampionship;
 using FutbolStats.Api.Features.Championships.GetChampionshipById;
 using FutbolStats.Api.Features.Championships.GetChampionships;
+using FutbolStats.Api.Features.Championships.RemoveTeamFromChampionship;
 using FutbolStats.Api.Features.Championships.UpdateChampionship;
 using MediatR;
 
@@ -74,8 +76,31 @@ public static class ChampionshipsEndpoints
         .WithName("DeleteChampionship")
         .RequireAuthorization()
         .WithOpenApi();
+
+        // POST /api/championships/{id}/teams
+        group.MapPost("/{id:guid}/teams", async (Guid id, AddTeamRequest request, IMediator mediator) =>
+        {
+            var command = new AddTeamToChampionshipCommand(id, request.TeamId);
+            var result = await mediator.Send(command);
+            return Results.Created($"/api/championships/{id}/teams/{request.TeamId}", result);
+        })
+        .WithName("AddTeamToChampionship")
+        .RequireAuthorization()
+        .WithOpenApi();
+
+        // DELETE /api/championships/{id}/teams/{teamId}
+        group.MapDelete("/{id:guid}/teams/{teamId:guid}", async (Guid id, Guid teamId, IMediator mediator) =>
+        {
+            await mediator.Send(new RemoveTeamFromChampionshipCommand(id, teamId));
+            return Results.NoContent();
+        })
+        .WithName("RemoveTeamFromChampionship")
+        .RequireAuthorization()
+        .WithOpenApi();
     }
 }
+
+public record AddTeamRequest(Guid TeamId);
 
 public record UpdateChampionshipRequest(
     string Name,

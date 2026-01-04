@@ -38,6 +38,11 @@ export function MatchesPage() {
     },
   });
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    createMutation.reset();
+  };
+
   const startMutation = useMutation({
     mutationFn: matchesApi.start,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['matches'] }),
@@ -85,7 +90,7 @@ export function MatchesPage() {
           </p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => { createMutation.reset(); setIsModalOpen(true); }}
           className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700"
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -246,9 +251,10 @@ export function MatchesPage() {
       {isModalOpen && (
         <CreateMatchModal
           championships={championships?.items || []}
-          onClose={() => setIsModalOpen(false)}
+          onClose={handleCloseModal}
           onSave={(data) => createMutation.mutate(data)}
           isLoading={createMutation.isPending}
+          error={createMutation.error}
         />
       )}
     </div>
@@ -260,11 +266,13 @@ function CreateMatchModal({
   onClose,
   onSave,
   isLoading,
+  error,
 }: {
   championships: { id: string; name: string }[];
   onClose: () => void;
   onSave: (data: CreateMatchRequest) => void;
   isLoading: boolean;
+  error: Error | null;
 }) {
   const [championshipId, setChampionshipId] = useState('');
   const [homeTeamId, setHomeTeamId] = useState('');
@@ -278,6 +286,22 @@ function CreateMatchModal({
     queryKey: ['teams', 'all'],
     queryFn: () => teamsApi.getAll({ pageSize: 100 }),
   });
+
+  const getErrorMessage = (): string | null => {
+    if (!error) return null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const axiosError = error as any;
+    if (axiosError.response?.data?.errors) {
+      const errors = axiosError.response.data.errors;
+      return Object.values(errors).flat().join(', ');
+    }
+    if (axiosError.response?.data?.message) {
+      return axiosError.response.data.message;
+    }
+    return error.message || 'Error al guardar el partido';
+  };
+
+  const errorMessage = getErrorMessage();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -300,6 +324,11 @@ function CreateMatchModal({
             <h3 className="text-lg font-medium text-gray-900">Nuevo Partido</h3>
           </div>
           <div className="px-6 py-4 space-y-4">
+            {errorMessage && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                {errorMessage}
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700">Campeonato</label>
               <select
