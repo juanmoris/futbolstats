@@ -24,6 +24,11 @@ export function ChampionshipsPage() {
     },
   });
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    createMutation.reset();
+  };
+
   const deleteMutation = useMutation({
     mutationFn: championshipsApi.delete,
     onSuccess: () => {
@@ -69,7 +74,7 @@ export function ChampionshipsPage() {
           </p>
         </div>
         <button
-          onClick={() => { setEditingChampionship(null); setIsModalOpen(true); }}
+          onClick={() => { setEditingChampionship(null); createMutation.reset(); setIsModalOpen(true); }}
           className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -131,7 +136,7 @@ export function ChampionshipsPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
-                      onClick={() => { setEditingChampionship(championship); setIsModalOpen(true); }}
+                      onClick={() => { setEditingChampionship(championship); createMutation.reset(); setIsModalOpen(true); }}
                       className="text-green-600 hover:text-green-900 mr-4"
                     >
                       <Edit2 className="h-4 w-4" />
@@ -202,9 +207,10 @@ export function ChampionshipsPage() {
       {isModalOpen && (
         <ChampionshipModal
           championship={editingChampionship}
-          onClose={() => setIsModalOpen(false)}
+          onClose={handleCloseModal}
           onSave={handleCreate}
           isLoading={createMutation.isPending}
+          error={createMutation.error}
         />
       )}
     </div>
@@ -216,16 +222,34 @@ function ChampionshipModal({
   onClose,
   onSave,
   isLoading,
+  error,
 }: {
   championship: Championship | null;
   onClose: () => void;
   onSave: (data: CreateChampionshipRequest) => void;
   isLoading: boolean;
+  error: Error | null;
 }) {
   const [name, setName] = useState(championship?.name || '');
   const [season, setSeason] = useState(championship?.season || '');
   const [startDate, setStartDate] = useState(championship?.startDate?.split('T')[0] || '');
   const [endDate, setEndDate] = useState(championship?.endDate?.split('T')[0] || '');
+
+  const getErrorMessage = (): string | null => {
+    if (!error) return null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const axiosError = error as any;
+    if (axiosError.response?.data?.errors) {
+      const errors = axiosError.response.data.errors;
+      return Object.values(errors).flat().join(', ');
+    }
+    if (axiosError.response?.data?.message) {
+      return axiosError.response.data.message;
+    }
+    return error.message || 'Error al guardar el campeonato';
+  };
+
+  const errorMessage = getErrorMessage();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -242,6 +266,11 @@ function ChampionshipModal({
             </h3>
           </div>
           <div className="px-6 py-4 space-y-4">
+            {errorMessage && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                {errorMessage}
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700">Nombre</label>
               <input
@@ -258,7 +287,7 @@ function ChampionshipModal({
                 type="text"
                 value={season}
                 onChange={(e) => setSeason(e.target.value)}
-                placeholder="2024-2025"
+                placeholder="2024 o 2024-2025"
                 required
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm border px-3 py-2"
               />
