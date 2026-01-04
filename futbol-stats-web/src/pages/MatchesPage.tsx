@@ -1,0 +1,404 @@
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import { Plus, Play, Pause, StopCircle, Eye } from 'lucide-react';
+import { matchesApi } from '@/api/endpoints/matches.api';
+import { championshipsApi } from '@/api/endpoints/championships.api';
+import { teamsApi } from '@/api/endpoints/teams.api';
+import type { CreateMatchRequest } from '@/api/types/match.types';
+import { MatchStatus } from '@/api/types/common.types';
+
+export function MatchesPage() {
+  const [page, setPage] = useState(1);
+  const [championshipFilter, setChampionshipFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { data: championships } = useQuery({
+    queryKey: ['championships', 'all'],
+    queryFn: () => championshipsApi.getAll({ pageSize: 100 }),
+  });
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['matches', { page, pageSize: 10, championshipId: championshipFilter, status: statusFilter }],
+    queryFn: () => matchesApi.getAll({
+      page,
+      pageSize: 10,
+      championshipId: championshipFilter || undefined,
+      status: statusFilter ? parseInt(statusFilter) as typeof MatchStatus[keyof typeof MatchStatus] : undefined,
+    }),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: matchesApi.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['matches'] });
+      setIsModalOpen(false);
+    },
+  });
+
+  const startMutation = useMutation({
+    mutationFn: matchesApi.start,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['matches'] }),
+  });
+
+  const halftimeMutation = useMutation({
+    mutationFn: matchesApi.halftime,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['matches'] }),
+  });
+
+  const endMutation = useMutation({
+    mutationFn: matchesApi.end,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['matches'] }),
+  });
+
+  const getStatusLabel = (status: number) => {
+    switch (status) {
+      case MatchStatus.Scheduled: return 'Programado';
+      case MatchStatus.Live: return 'En vivo';
+      case MatchStatus.HalfTime: return 'Medio tiempo';
+      case MatchStatus.Finished: return 'Finalizado';
+      case MatchStatus.Postponed: return 'Aplazado';
+      case MatchStatus.Cancelled: return 'Cancelado';
+      default: return 'Desconocido';
+    }
+  };
+
+  const getStatusColor = (status: number) => {
+    switch (status) {
+      case MatchStatus.Live: return 'bg-red-100 text-red-800';
+      case MatchStatus.HalfTime: return 'bg-yellow-100 text-yellow-800';
+      case MatchStatus.Finished: return 'bg-green-100 text-green-800';
+      case MatchStatus.Scheduled: return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Partidos</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Gestiona los partidos y registra eventos en vivo
+          </p>
+        </div>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Nuevo Partido
+        </button>
+      </div>
+
+      {/* Filters */}
+      <div className="mb-6 flex gap-4">
+        <select
+          value={championshipFilter}
+          onChange={(e) => { setChampionshipFilter(e.target.value); setPage(1); }}
+          className="block w-64 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+        >
+          <option value="">Todos los campeonatos</option>
+          {championships?.items?.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
+        <select
+          value={statusFilter}
+          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+          className="block w-48 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+        >
+          <option value="">Todos los estados</option>
+          <option value="0">Programado</option>
+          <option value="1">En vivo</option>
+          <option value="2">Medio tiempo</option>
+          <option value="3">Finalizado</option>
+        </select>
+      </div>
+
+      {isLoading ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500">Cargando...</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {data?.items?.map((match) => (
+            <div key={match.id} className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-gray-500">{match.championshipName} - Jornada {match.matchday}</span>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(match.status)}`}>
+                      {getStatusLabel(match.status)}
+                      {match.status === MatchStatus.Live && match.currentMinute && ` (${match.currentMinute}')`}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-8">
+                    <div className="flex items-center gap-3 flex-1 justify-end">
+                      <span className="font-medium text-gray-900">{match.homeTeamName}</span>
+                      {match.homeTeamLogo && (
+                        <img src={match.homeTeamLogo} alt="" className="h-10 w-10 rounded-full object-cover" />
+                      )}
+                    </div>
+
+                    <div className="text-center px-4">
+                      <div className="text-2xl font-bold text-gray-900">
+                        {match.homeScore} - {match.awayScore}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {new Date(match.matchDate).toLocaleDateString('es', {
+                          weekday: 'short',
+                          day: 'numeric',
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 flex-1">
+                      {match.awayTeamLogo && (
+                        <img src={match.awayTeamLogo} alt="" className="h-10 w-10 rounded-full object-cover" />
+                      )}
+                      <span className="font-medium text-gray-900">{match.awayTeamName}</span>
+                    </div>
+                  </div>
+
+                  {match.stadium && (
+                    <div className="text-center mt-2 text-sm text-gray-500">
+                      {match.stadium}
+                    </div>
+                  )}
+                </div>
+
+                <div className="ml-6 flex items-center gap-2">
+                  <Link
+                    to={`/matches/${match.id}`}
+                    className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md"
+                    title="Ver detalles"
+                  >
+                    <Eye className="h-5 w-5" />
+                  </Link>
+
+                  {match.status === MatchStatus.Scheduled && (
+                    <button
+                      onClick={() => startMutation.mutate(match.id)}
+                      className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-md"
+                      title="Iniciar partido"
+                    >
+                      <Play className="h-5 w-5" />
+                    </button>
+                  )}
+
+                  {match.status === MatchStatus.Live && (
+                    <button
+                      onClick={() => halftimeMutation.mutate(match.id)}
+                      className="p-2 text-yellow-600 hover:text-yellow-900 hover:bg-yellow-50 rounded-md"
+                      title="Medio tiempo"
+                    >
+                      <Pause className="h-5 w-5" />
+                    </button>
+                  )}
+
+                  {(match.status === MatchStatus.Live || match.status === MatchStatus.HalfTime) && (
+                    <button
+                      onClick={() => endMutation.mutate(match.id)}
+                      className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-md"
+                      title="Finalizar partido"
+                    >
+                      <StopCircle className="h-5 w-5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {data && data.totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <p className="text-sm text-gray-700">
+                Mostrando {(page - 1) * 10 + 1} a {Math.min(page * 10, data.totalCount)} de {data.totalCount}
+              </p>
+              <nav className="flex gap-2">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={!data.hasPreviousPage}
+                  className="px-3 py-1 border rounded-md text-sm disabled:opacity-50"
+                >
+                  Anterior
+                </button>
+                <button
+                  onClick={() => setPage(p => p + 1)}
+                  disabled={!data.hasNextPage}
+                  className="px-3 py-1 border rounded-md text-sm disabled:opacity-50"
+                >
+                  Siguiente
+                </button>
+              </nav>
+            </div>
+          )}
+        </div>
+      )}
+
+      {isModalOpen && (
+        <CreateMatchModal
+          championships={championships?.items || []}
+          onClose={() => setIsModalOpen(false)}
+          onSave={(data) => createMutation.mutate(data)}
+          isLoading={createMutation.isPending}
+        />
+      )}
+    </div>
+  );
+}
+
+function CreateMatchModal({
+  championships,
+  onClose,
+  onSave,
+  isLoading,
+}: {
+  championships: { id: string; name: string }[];
+  onClose: () => void;
+  onSave: (data: CreateMatchRequest) => void;
+  isLoading: boolean;
+}) {
+  const [championshipId, setChampionshipId] = useState('');
+  const [homeTeamId, setHomeTeamId] = useState('');
+  const [awayTeamId, setAwayTeamId] = useState('');
+  const [matchDate, setMatchDate] = useState('');
+  const [matchTime, setMatchTime] = useState('');
+  const [stadium, setStadium] = useState('');
+  const [matchday, setMatchday] = useState('1');
+
+  const { data: teams } = useQuery({
+    queryKey: ['teams', 'all'],
+    queryFn: () => teamsApi.getAll({ pageSize: 100 }),
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const dateTime = `${matchDate}T${matchTime}:00`;
+    onSave({
+      championshipId,
+      homeTeamId,
+      awayTeamId,
+      matchDate: dateTime,
+      stadium: stadium || undefined,
+      matchday: parseInt(matchday),
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <form onSubmit={handleSubmit}>
+          <div className="px-6 py-4 border-b">
+            <h3 className="text-lg font-medium text-gray-900">Nuevo Partido</h3>
+          </div>
+          <div className="px-6 py-4 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Campeonato</label>
+              <select
+                value={championshipId}
+                onChange={(e) => setChampionshipId(e.target.value)}
+                required
+                className="mt-1 block w-full rounded-md border px-3 py-2"
+              >
+                <option value="">Seleccionar</option>
+                {championships.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Equipo Local</label>
+                <select
+                  value={homeTeamId}
+                  onChange={(e) => setHomeTeamId(e.target.value)}
+                  required
+                  className="mt-1 block w-full rounded-md border px-3 py-2"
+                >
+                  <option value="">Seleccionar</option>
+                  {teams?.items?.map((t) => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Equipo Visitante</label>
+                <select
+                  value={awayTeamId}
+                  onChange={(e) => setAwayTeamId(e.target.value)}
+                  required
+                  className="mt-1 block w-full rounded-md border px-3 py-2"
+                >
+                  <option value="">Seleccionar</option>
+                  {teams?.items?.filter(t => t.id !== homeTeamId).map((t) => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Fecha</label>
+                <input
+                  type="date"
+                  value={matchDate}
+                  onChange={(e) => setMatchDate(e.target.value)}
+                  required
+                  className="mt-1 block w-full rounded-md border px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Hora</label>
+                <input
+                  type="time"
+                  value={matchTime}
+                  onChange={(e) => setMatchTime(e.target.value)}
+                  required
+                  className="mt-1 block w-full rounded-md border px-3 py-2"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Estadio</label>
+                <input
+                  type="text"
+                  value={stadium}
+                  onChange={(e) => setStadium(e.target.value)}
+                  className="mt-1 block w-full rounded-md border px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Jornada</label>
+                <input
+                  type="number"
+                  value={matchday}
+                  onChange={(e) => setMatchday(e.target.value)}
+                  min={1}
+                  required
+                  className="mt-1 block w-full rounded-md border px-3 py-2"
+                />
+              </div>
+            </div>
+          </div>
+          <div className="px-6 py-4 border-t flex justify-end space-x-3">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-700 bg-white border rounded-md">
+              Cancelar
+            </button>
+            <button type="submit" disabled={isLoading} className="px-4 py-2 text-sm text-white bg-orange-600 rounded-md disabled:opacity-50">
+              {isLoading ? 'Guardando...' : 'Guardar'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

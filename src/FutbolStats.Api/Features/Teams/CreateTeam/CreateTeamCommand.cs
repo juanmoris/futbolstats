@@ -1,0 +1,73 @@
+using FluentValidation;
+using FutbolStats.Api.Features.Teams.Entities;
+using FutbolStats.Api.Infrastructure.Data;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+
+namespace FutbolStats.Api.Features.Teams.CreateTeam;
+
+public record CreateTeamCommand(
+    string Name,
+    string ShortName,
+    string? LogoUrl,
+    int? FoundedYear,
+    string? Stadium
+) : IRequest<CreateTeamResponse>;
+
+public record CreateTeamResponse(Guid Id, string Name, string ShortName);
+
+public class CreateTeamHandler(FutbolDbContext db)
+    : IRequestHandler<CreateTeamCommand, CreateTeamResponse>
+{
+    public async Task<CreateTeamResponse> Handle(
+        CreateTeamCommand request,
+        CancellationToken cancellationToken)
+    {
+        var team = new Team
+        {
+            Id = Guid.NewGuid(),
+            Name = request.Name,
+            ShortName = request.ShortName.ToUpperInvariant(),
+            LogoUrl = request.LogoUrl,
+            FoundedYear = request.FoundedYear,
+            Stadium = request.Stadium
+        };
+
+        db.Teams.Add(team);
+        await db.SaveChangesAsync(cancellationToken);
+
+        return new CreateTeamResponse(team.Id, team.Name, team.ShortName);
+    }
+}
+
+public class CreateTeamValidator : AbstractValidator<CreateTeamCommand>
+{
+    public CreateTeamValidator(FutbolDbContext db)
+    {
+        RuleFor(x => x.Name)
+            .NotEmpty().WithMessage("Name is required")
+            .MaximumLength(200).WithMessage("Name must not exceed 200 characters")
+            .MustAsync(async (name, ct) => !await db.Teams.AnyAsync(t => t.Name == name, ct))
+            .WithMessage("A team with this name already exists");
+
+        RuleFor(x => x.ShortName)
+            .NotEmpty().WithMessage("Short name is required")
+            .MaximumLength(5).WithMessage("Short name must not exceed 5 characters")
+            .MustAsync(async (shortName, ct) =>
+                !await db.Teams.AnyAsync(t => t.ShortName == shortName.ToUpperInvariant(), ct))
+            .WithMessage("A team with this short name already exists");
+
+        RuleFor(x => x.LogoUrl)
+            .MaximumLength(500).WithMessage("Logo URL must not exceed 500 characters")
+            .When(x => !string.IsNullOrEmpty(x.LogoUrl));
+
+        RuleFor(x => x.Stadium)
+            .MaximumLength(200).WithMessage("Stadium must not exceed 200 characters")
+            .When(x => !string.IsNullOrEmpty(x.Stadium));
+
+        RuleFor(x => x.FoundedYear)
+            .InclusiveBetween(1800, DateTime.UtcNow.Year)
+            .WithMessage($"Founded year must be between 1800 and {DateTime.UtcNow.Year}")
+            .When(x => x.FoundedYear.HasValue);
+    }
+}

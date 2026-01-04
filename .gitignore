@@ -1,0 +1,39 @@
+# .NET
+bin/
+obj/
+*.user
+*.userosscache
+*.suo
+*.cache
+*.log
+
+# Visual Studio
+.vs/
+*.vsidx
+*.lock.json
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+appsettings.Development.json
+appsettings.Local.json
+*.pfx
+*.p12
+
+# Node (frontend)
+node_modules/
+dist/
+.env
+.env.local
+.env.*.local
+
+# Misc
+*.tmp
+*.temp
