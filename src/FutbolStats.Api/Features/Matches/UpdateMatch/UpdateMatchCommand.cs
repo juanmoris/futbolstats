@@ -28,10 +28,14 @@ public class UpdateMatchHandler(FutbolDbContext db)
 
         if (match.Status != Common.MatchStatus.Scheduled)
         {
-            throw new InvalidOperationException("Can only update scheduled matches");
+            throw new InvalidOperationException("Solo se pueden editar partidos programados");
         }
 
-        match.MatchDate = request.MatchDate;
+        var matchDate = request.MatchDate.Kind == DateTimeKind.Unspecified
+            ? DateTime.SpecifyKind(request.MatchDate, DateTimeKind.Utc)
+            : request.MatchDate.ToUniversalTime();
+
+        match.MatchDate = matchDate;
         match.Stadium = request.Stadium;
         match.Matchday = request.Matchday;
 
@@ -46,16 +50,16 @@ public class UpdateMatchValidator : AbstractValidator<UpdateMatchCommand>
     public UpdateMatchValidator()
     {
         RuleFor(x => x.Id)
-            .NotEmpty().WithMessage("Id is required");
+            .NotEmpty().WithMessage("El ID es requerido");
 
         RuleFor(x => x.MatchDate)
-            .NotEmpty().WithMessage("Match date is required");
+            .NotEmpty().WithMessage("La fecha del partido es requerida");
 
         RuleFor(x => x.Matchday)
-            .GreaterThan(0).WithMessage("Matchday must be greater than 0");
+            .GreaterThan(0).WithMessage("La jornada debe ser mayor a 0");
 
         RuleFor(x => x.Stadium)
-            .MaximumLength(200).WithMessage("Stadium must not exceed 200 characters")
+            .MaximumLength(200).WithMessage("El estadio no debe exceder 200 caracteres")
             .When(x => !string.IsNullOrEmpty(x.Stadium));
     }
 }

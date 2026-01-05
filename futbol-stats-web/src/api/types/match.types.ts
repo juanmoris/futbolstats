@@ -53,6 +53,12 @@ export interface CreateMatchRequest {
   matchday: number;
 }
 
+export interface UpdateMatchRequest {
+  matchDate: string;
+  stadium?: string;
+  matchday: number;
+}
+
 export interface RecordGoalRequest {
   scorerId: string;
   teamId: string;

@@ -4,6 +4,7 @@ import type {
   Match,
   MatchDetail,
   CreateMatchRequest,
+  UpdateMatchRequest,
   SetLineupRequest,
   RecordGoalRequest,
   RecordCardRequest,
@@ -36,6 +37,14 @@ export const matchesApi = {
   create: async (data: CreateMatchRequest): Promise<{ id: string }> => {
     const response = await apiClient.post('/matches', data);
     return response.data;
+  },
+
+  update: async (id: string, data: UpdateMatchRequest): Promise<void> => {
+    await apiClient.put(`/matches/${id}`, data);
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await apiClient.delete(`/matches/${id}`);
   },
 
   start: async (id: string): Promise<void> => {

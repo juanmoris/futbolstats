@@ -1,5 +1,6 @@
 using FutbolStats.Api.Common;
 using FutbolStats.Api.Features.Matches.CreateMatch;
+using FutbolStats.Api.Features.Matches.DeleteMatch;
 using FutbolStats.Api.Features.Matches.EndMatch;
 using FutbolStats.Api.Features.Matches.GetMatchById;
 using FutbolStats.Api.Features.Matches.GetMatches;
@@ -72,6 +73,16 @@ public static class MatchesEndpoints
             return Results.Ok(result);
         })
         .WithName("UpdateMatch")
+        .RequireAuthorization()
+        .WithOpenApi();
+
+        // DELETE /api/matches/{id}
+        group.MapDelete("/{id:guid}", async (Guid id, IMediator mediator) =>
+        {
+            await mediator.Send(new DeleteMatchCommand(id));
+            return Results.NoContent();
+        })
+        .WithName("DeleteMatch")
         .RequireAuthorization()
         .WithOpenApi();
 

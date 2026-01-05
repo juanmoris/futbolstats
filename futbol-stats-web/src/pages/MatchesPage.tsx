@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Plus, Play, Pause, StopCircle, Eye } from 'lucide-react';
+import { Plus, Play, Pause, StopCircle, Eye, Pencil, Trash2 } from 'lucide-react';
 import { matchesApi } from '@/api/endpoints/matches.api';
 import { championshipsApi } from '@/api/endpoints/championships.api';
 import { teamsApi } from '@/api/endpoints/teams.api';
-import type { CreateMatchRequest } from '@/api/types/match.types';
+import type { Match, CreateMatchRequest, UpdateMatchRequest } from '@/api/types/match.types';
 import { MatchStatus } from '@/api/types/common.types';
 
 export function MatchesPage() {
@@ -13,6 +13,8 @@ export function MatchesPage() {
   const [championshipFilter, setChampionshipFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingMatch, setEditingMatch] = useState<Match | null>(null);
+  const [deletingMatch, setDeletingMatch] = useState<Match | null>(null);
   const queryClient = useQueryClient();
 
   const { data: championships } = useQuery({
@@ -38,9 +40,30 @@ export function MatchesPage() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateMatchRequest }) => matchesApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['matches'] });
+      setEditingMatch(null);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: matchesApi.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['matches'] });
+      setDeletingMatch(null);
+    },
+  });
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     createMutation.reset();
+  };
+
+  const handleCloseEditModal = () => {
+    setEditingMatch(null);
+    updateMutation.reset();
   };
 
   const startMutation = useMutation({
@@ -189,13 +212,22 @@ export function MatchesPage() {
                   </Link>
 
                   {match.status === MatchStatus.Scheduled && (
-                    <button
-                      onClick={() => startMutation.mutate(match.id)}
-                      className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-md"
-                      title="Iniciar partido"
-                    >
-                      <Play className="h-5 w-5" />
-                    </button>
+                    <>
+                      <button
+                        onClick={() => setEditingMatch(match)}
+                        className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-md"
+                        title="Editar partido"
+                      >
+                        <Pencil className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={() => startMutation.mutate(match.id)}
+                        className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-md"
+                        title="Iniciar partido"
+                      >
+                        <Play className="h-5 w-5" />
+                      </button>
+                    </>
                   )}
 
                   {match.status === MatchStatus.Live && (
@@ -215,6 +247,16 @@ export function MatchesPage() {
                       title="Finalizar partido"
                     >
                       <StopCircle className="h-5 w-5" />
+                    </button>
+                  )}
+
+                  {(match.status === MatchStatus.Scheduled || match.status === MatchStatus.Finished) && (
+                    <button
+                      onClick={() => setDeletingMatch(match)}
+                      className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-md"
+                      title="Eliminar partido"
+                    >
+                      <Trash2 className="h-5 w-5" />
                     </button>
                   )}
                 </div>
@@ -255,6 +297,26 @@ export function MatchesPage() {
           onSave={(data) => createMutation.mutate(data)}
           isLoading={createMutation.isPending}
           error={createMutation.error}
+        />
+      )}
+
+      {editingMatch && (
+        <EditMatchModal
+          match={editingMatch}
+          onClose={handleCloseEditModal}
+          onSave={(data) => updateMutation.mutate({ id: editingMatch.id, data })}
+          isLoading={updateMutation.isPending}
+          error={updateMutation.error}
+        />
+      )}
+
+      {deletingMatch && (
+        <DeleteMatchModal
+          match={deletingMatch}
+          onClose={() => setDeletingMatch(null)}
+          onConfirm={() => deleteMutation.mutate(deletingMatch.id)}
+          isLoading={deleteMutation.isPending}
+          error={deleteMutation.error}
         />
       )}
     </div>
@@ -427,6 +489,198 @@ function CreateMatchModal({
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+function EditMatchModal({
+  match,
+  onClose,
+  onSave,
+  isLoading,
+  error,
+}: {
+  match: Match;
+  onClose: () => void;
+  onSave: (data: UpdateMatchRequest) => void;
+  isLoading: boolean;
+  error: Error | null;
+}) {
+  const matchDateTime = new Date(match.matchDate);
+  const [matchDate, setMatchDate] = useState(matchDateTime.toISOString().split('T')[0]);
+  const [matchTime, setMatchTime] = useState(matchDateTime.toTimeString().slice(0, 5));
+  const [stadium, setStadium] = useState(match.stadium || '');
+  const [matchday, setMatchday] = useState(match.matchday.toString());
+
+  const getErrorMessage = (): string | null => {
+    if (!error) return null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const axiosError = error as any;
+    if (axiosError.response?.data?.errors) {
+      const errors = axiosError.response.data.errors;
+      return Object.values(errors).flat().join(', ');
+    }
+    if (axiosError.response?.data?.message) {
+      return axiosError.response.data.message;
+    }
+    return error.message || 'Error al guardar el partido';
+  };
+
+  const errorMessage = getErrorMessage();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const dateTime = `${matchDate}T${matchTime}:00`;
+    onSave({
+      matchDate: dateTime,
+      stadium: stadium || undefined,
+      matchday: parseInt(matchday),
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <form onSubmit={handleSubmit}>
+          <div className="px-6 py-4 border-b">
+            <h3 className="text-lg font-medium text-gray-900">Editar Partido</h3>
+            <p className="text-sm text-gray-500 mt-1">
+              {match.homeTeamName} vs {match.awayTeamName}
+            </p>
+          </div>
+          <div className="px-6 py-4 space-y-4">
+            {errorMessage && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                {errorMessage}
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Fecha</label>
+                <input
+                  type="date"
+                  value={matchDate}
+                  onChange={(e) => setMatchDate(e.target.value)}
+                  required
+                  className="mt-1 block w-full rounded-md border px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Hora</label>
+                <input
+                  type="time"
+                  value={matchTime}
+                  onChange={(e) => setMatchTime(e.target.value)}
+                  required
+                  className="mt-1 block w-full rounded-md border px-3 py-2"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Estadio</label>
+                <input
+                  type="text"
+                  value={stadium}
+                  onChange={(e) => setStadium(e.target.value)}
+                  className="mt-1 block w-full rounded-md border px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Jornada</label>
+                <input
+                  type="number"
+                  value={matchday}
+                  onChange={(e) => setMatchday(e.target.value)}
+                  min={1}
+                  required
+                  className="mt-1 block w-full rounded-md border px-3 py-2"
+                />
+              </div>
+            </div>
+          </div>
+          <div className="px-6 py-4 border-t flex justify-end space-x-3">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-700 bg-white border rounded-md">
+              Cancelar
+            </button>
+            <button type="submit" disabled={isLoading} className="px-4 py-2 text-sm text-white bg-orange-600 rounded-md disabled:opacity-50">
+              {isLoading ? 'Guardando...' : 'Guardar'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function DeleteMatchModal({
+  match,
+  onClose,
+  onConfirm,
+  isLoading,
+  error,
+}: {
+  match: Match;
+  onClose: () => void;
+  onConfirm: () => void;
+  isLoading: boolean;
+  error: Error | null;
+}) {
+  const getErrorMessage = (): string | null => {
+    if (!error) return null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const axiosError = error as any;
+    if (axiosError.response?.data?.message) {
+      return axiosError.response.data.message;
+    }
+    return error.message || 'Error al eliminar el partido';
+  };
+
+  const errorMessage = getErrorMessage();
+
+  return (
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div className="px-6 py-4 border-b">
+          <h3 className="text-lg font-medium text-gray-900">Eliminar Partido</h3>
+        </div>
+        <div className="px-6 py-4">
+          {errorMessage && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm mb-4">
+              {errorMessage}
+            </div>
+          )}
+          <p className="text-gray-700">
+            ¿Estás seguro de que deseas eliminar el partido?
+          </p>
+          <p className="text-gray-900 font-medium mt-2">
+            {match.homeTeamName} vs {match.awayTeamName}
+          </p>
+          <p className="text-sm text-gray-500 mt-1">
+            {match.championshipName} - Jornada {match.matchday}
+          </p>
+          <p className="text-sm text-red-600 mt-4">
+            Esta acción no se puede deshacer.
+          </p>
+        </div>
+        <div className="px-6 py-4 border-t flex justify-end space-x-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 text-sm text-gray-700 bg-white border rounded-md hover:bg-gray-50"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={isLoading}
+            className="px-4 py-2 text-sm text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
+          >
+            {isLoading ? 'Eliminando...' : 'Eliminar'}
+          </button>
+        </div>
       </div>
     </div>
   );
