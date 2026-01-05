@@ -119,7 +119,8 @@ export function MatchDetailPage() {
 
   const isMatchActive = match?.status === MatchStatus.Live || match?.status === MatchStatus.HalfTime;
   const canStartMatch = match?.status === MatchStatus.Scheduled || match?.status === MatchStatus.HalfTime;
-  const canRecordEvents = isMatchActive;
+  const canRecordEvents = isMatchActive || match?.status === MatchStatus.Finished;
+  const canEditLineup = match?.status === MatchStatus.Scheduled || match?.status === MatchStatus.Finished;
 
   if (isLoading) {
     return (
@@ -254,7 +255,7 @@ export function MatchDetailPage() {
 
         {/* Event Recording Buttons */}
         {canRecordEvents && (
-          <div className="mt-4 flex justify-center gap-3">
+          <div className="mt-4 flex justify-center gap-3 flex-wrap">
             <button
               onClick={() => setShowGoalModal(true)}
               className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -329,7 +330,7 @@ export function MatchDetailPage() {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-medium text-gray-900">{match.homeTeamName}</h3>
-            {match.status === MatchStatus.Scheduled && (
+            {canEditLineup && (
               <button
                 onClick={() => setShowLineupModal('home')}
                 className="inline-flex items-center px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -382,7 +383,7 @@ export function MatchDetailPage() {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-medium text-gray-900">{match.awayTeamName}</h3>
-            {match.status === MatchStatus.Scheduled && (
+            {canEditLineup && (
               <button
                 onClick={() => setShowLineupModal('away')}
                 className="inline-flex items-center px-3 py-1 text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700"

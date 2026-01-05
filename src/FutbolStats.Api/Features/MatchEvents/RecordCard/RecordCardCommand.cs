@@ -32,9 +32,9 @@ public class RecordCardHandler(FutbolDbContext db)
             .FirstOrDefaultAsync(m => m.Id == request.MatchId, cancellationToken)
             ?? throw new NotFoundException("Match", request.MatchId);
 
-        if (match.Status != MatchStatus.Live && match.Status != MatchStatus.HalfTime)
+        if (match.Status != MatchStatus.Live && match.Status != MatchStatus.HalfTime && match.Status != MatchStatus.Finished)
         {
-            throw new InvalidOperationException("Cannot record events for non-live matches");
+            throw new InvalidOperationException("Solo se pueden registrar eventos en partidos en curso o finalizados");
         }
 
         // Check if this is a second yellow
