@@ -1,16 +1,24 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Trophy, Users, User, Target } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Trophy, Users, User, Target, RefreshCw } from 'lucide-react';
 import { championshipsApi } from '@/api/endpoints/championships.api';
 import { statisticsApi } from '@/api/endpoints/statistics.api';
 
 export function StatisticsPage() {
   const [selectedChampionship, setSelectedChampionship] = useState('');
   const [activeTab, setActiveTab] = useState<'standings' | 'scorers'>('standings');
+  const queryClient = useQueryClient();
 
   const { data: championships } = useQuery({
     queryKey: ['championships', 'all'],
     queryFn: () => championshipsApi.getAll({ pageSize: 100 }),
+  });
+
+  const recalculateMutation = useMutation({
+    mutationFn: () => championshipsApi.recalculateStandings(selectedChampionship),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['standings', selectedChampionship] });
+    },
   });
 
   const { data: standings, isLoading: loadingStandings } = useQuery({
@@ -89,6 +97,20 @@ export function StatisticsPage() {
           {/* Standings Table */}
           {activeTab === 'standings' && (
             <div className="bg-white rounded-lg shadow overflow-hidden">
+              <div className="px-4 py-3 border-b flex justify-between items-center">
+                <span className="text-sm text-gray-500">
+                  Tabla de posiciones actualizada segun partidos finalizados
+                </span>
+                <button
+                  onClick={() => recalculateMutation.mutate()}
+                  disabled={recalculateMutation.isPending}
+                  className="inline-flex items-center px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  title="Recalcular estadisticas desde cero"
+                >
+                  <RefreshCw className={`h-4 w-4 mr-1 ${recalculateMutation.isPending ? 'animate-spin' : ''}`} />
+                  {recalculateMutation.isPending ? 'Recalculando...' : 'Recalcular'}
+                </button>
+              </div>
               {loadingStandings ? (
                 <div className="text-center py-12">
                   <p className="text-gray-500">Cargando...</p>

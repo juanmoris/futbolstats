@@ -4,6 +4,7 @@ using FutbolStats.Api.Features.Championships.CreateChampionship;
 using FutbolStats.Api.Features.Championships.DeleteChampionship;
 using FutbolStats.Api.Features.Championships.GetChampionshipById;
 using FutbolStats.Api.Features.Championships.GetChampionships;
+using FutbolStats.Api.Features.Championships.RecalculateStandings;
 using FutbolStats.Api.Features.Championships.RemoveTeamFromChampionship;
 using FutbolStats.Api.Features.Championships.UpdateChampionship;
 using MediatR;
@@ -95,6 +96,16 @@ public static class ChampionshipsEndpoints
             return Results.NoContent();
         })
         .WithName("RemoveTeamFromChampionship")
+        .RequireAuthorization()
+        .WithOpenApi();
+
+        // POST /api/championships/{id}/recalculate-standings
+        group.MapPost("/{id:guid}/recalculate-standings", async (Guid id, IMediator mediator) =>
+        {
+            var result = await mediator.Send(new RecalculateStandingsCommand(id));
+            return Results.Ok(result);
+        })
+        .WithName("RecalculateStandings")
         .RequireAuthorization()
         .WithOpenApi();
     }

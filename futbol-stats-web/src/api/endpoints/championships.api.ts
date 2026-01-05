@@ -42,4 +42,9 @@ export const championshipsApi = {
   removeTeam: async (championshipId: string, teamId: string): Promise<void> => {
     await apiClient.delete(`/championships/${championshipId}/teams/${teamId}`);
   },
+
+  recalculateStandings: async (championshipId: string): Promise<{ teamsUpdated: number; matchesProcessed: number }> => {
+    const response = await apiClient.post(`/championships/${championshipId}/recalculate-standings`);
+    return response.data;
+  },
 };
