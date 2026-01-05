@@ -211,23 +211,24 @@ export function MatchesPage() {
                     <Eye className="h-5 w-5" />
                   </Link>
 
+                  {(match.status === MatchStatus.Scheduled || match.status === MatchStatus.Finished) && (
+                    <button
+                      onClick={() => setEditingMatch(match)}
+                      className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-md"
+                      title="Editar partido"
+                    >
+                      <Pencil className="h-5 w-5" />
+                    </button>
+                  )}
+
                   {match.status === MatchStatus.Scheduled && (
-                    <>
-                      <button
-                        onClick={() => setEditingMatch(match)}
-                        className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-md"
-                        title="Editar partido"
-                      >
-                        <Pencil className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => startMutation.mutate(match.id)}
-                        className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-md"
-                        title="Iniciar partido"
-                      >
-                        <Play className="h-5 w-5" />
-                      </button>
-                    </>
+                    <button
+                      onClick={() => startMutation.mutate(match.id)}
+                      className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-md"
+                      title="Iniciar partido"
+                    >
+                      <Play className="h-5 w-5" />
+                    </button>
                   )}
 
                   {match.status === MatchStatus.Live && (

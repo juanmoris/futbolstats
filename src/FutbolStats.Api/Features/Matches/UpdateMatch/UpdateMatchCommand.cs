@@ -26,9 +26,9 @@ public class UpdateMatchHandler(FutbolDbContext db)
             .FirstOrDefaultAsync(m => m.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException("Match", request.Id);
 
-        if (match.Status != Common.MatchStatus.Scheduled)
+        if (match.Status == Common.MatchStatus.Live || match.Status == Common.MatchStatus.HalfTime)
         {
-            throw new InvalidOperationException("Solo se pueden editar partidos programados");
+            throw new InvalidOperationException("No se pueden editar partidos en curso");
         }
 
         var matchDate = request.MatchDate.Kind == DateTimeKind.Unspecified
