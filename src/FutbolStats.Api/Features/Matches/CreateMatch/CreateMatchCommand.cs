@@ -25,13 +25,17 @@ public class CreateMatchHandler(FutbolDbContext db)
         CreateMatchCommand request,
         CancellationToken cancellationToken)
     {
+        var matchDate = request.MatchDate.Kind == DateTimeKind.Unspecified
+            ? DateTime.SpecifyKind(request.MatchDate, DateTimeKind.Utc)
+            : request.MatchDate.ToUniversalTime();
+
         var match = new Match
         {
             Id = Guid.NewGuid(),
             ChampionshipId = request.ChampionshipId,
             HomeTeamId = request.HomeTeamId,
             AwayTeamId = request.AwayTeamId,
-            MatchDate = request.MatchDate,
+            MatchDate = matchDate,
             Stadium = request.Stadium,
             Matchday = request.Matchday,
             Status = MatchStatus.Scheduled,
