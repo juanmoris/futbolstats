@@ -4,6 +4,7 @@ import type {
   Match,
   MatchDetail,
   CreateMatchRequest,
+  SetLineupRequest,
   RecordGoalRequest,
   RecordCardRequest,
   RecordSubstitutionRequest,
@@ -47,6 +48,10 @@ export const matchesApi = {
 
   end: async (id: string): Promise<void> => {
     await apiClient.post(`/matches/${id}/end`);
+  },
+
+  setLineup: async (matchId: string, data: SetLineupRequest): Promise<void> => {
+    await apiClient.post(`/matches/${matchId}/lineup`, data);
   },
 
   recordGoal: async (matchId: string, data: RecordGoalRequest): Promise<void> => {

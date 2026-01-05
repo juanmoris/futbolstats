@@ -79,3 +79,15 @@ export interface RecordSubstitutionRequest {
   minute: number;
   extraMinute?: number;
 }
+
+export interface SetLineupRequest {
+  teamId: string;
+  players: LineupPlayerRequest[];
+}
+
+export interface LineupPlayerRequest {
+  playerId: string;
+  isStarter: boolean;
+  position?: string;
+  jerseyNumber: number;
+}
