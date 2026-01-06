@@ -10,6 +10,10 @@ export interface Match {
   awayTeamId: string;
   awayTeamName: string;
   awayTeamLogo: string | null;
+  homeCoachId: string | null;
+  homeCoachName: string | null;
+  awayCoachId: string | null;
+  awayCoachName: string | null;
   matchDate: string;
   stadium: string | null;
   status: MatchStatus;

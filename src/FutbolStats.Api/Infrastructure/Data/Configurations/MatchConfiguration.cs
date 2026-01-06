@@ -28,6 +28,16 @@ public class MatchConfiguration : IEntityTypeConfiguration<Match>
             .HasForeignKey(m => m.AwayTeamId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(m => m.HomeCoach)
+            .WithMany()
+            .HasForeignKey(m => m.HomeCoachId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(m => m.AwayCoach)
+            .WithMany()
+            .HasForeignKey(m => m.AwayCoachId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(m => m.ChampionshipId);
         builder.HasIndex(m => m.MatchDate);
         builder.HasIndex(m => m.Status);

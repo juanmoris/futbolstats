@@ -7,6 +7,7 @@ using FutbolStats.Api.Features.Matches.GetMatches;
 using FutbolStats.Api.Features.Matches.GetLiveMatches;
 using FutbolStats.Api.Features.Matches.HalfTime;
 using FutbolStats.Api.Features.Matches.SetLineup;
+using FutbolStats.Api.Features.Matches.SetMatchCoaches;
 using FutbolStats.Api.Features.Matches.StartMatch;
 using FutbolStats.Api.Features.Matches.UpdateMatch;
 using MediatR;
@@ -126,9 +127,22 @@ public static class MatchesEndpoints
         .WithName("EndMatch")
         .RequireAuthorization()
         .WithOpenApi();
+
+        // PUT /api/matches/{id}/coaches
+        group.MapPut("/{id:guid}/coaches", async (Guid id, SetMatchCoachesRequest request, IMediator mediator) =>
+        {
+            var command = new SetMatchCoachesCommand(id, request.HomeCoachId, request.AwayCoachId);
+            await mediator.Send(command);
+            return Results.NoContent();
+        })
+        .WithName("SetMatchCoaches")
+        .RequireAuthorization()
+        .WithOpenApi();
     }
 }
 
 public record UpdateMatchRequest(DateTime MatchDate, string? Stadium, int Matchday);
 
 public record SetLineupRequest(Guid TeamId, List<LineupPlayerDto> Players);
+
+public record SetMatchCoachesRequest(Guid? HomeCoachId, Guid? AwayCoachId);

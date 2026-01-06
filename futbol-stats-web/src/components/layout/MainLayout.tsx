@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Trophy, Users, User, LayoutDashboard, Calendar, BarChart3, LogOut } from 'lucide-react';
+import { Trophy, Users, User, UserCog, LayoutDashboard, Calendar, BarChart3, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const navigation = [
@@ -7,6 +7,7 @@ const navigation = [
   { name: 'Campeonatos', href: '/championships', icon: Trophy },
   { name: 'Equipos', href: '/teams', icon: Users },
   { name: 'Jugadores', href: '/players', icon: User },
+  { name: 'Entrenadores', href: '/coaches', icon: UserCog },
   { name: 'Partidos', href: '/matches', icon: Calendar },
   { name: 'Estadisticas', href: '/statistics', icon: BarChart3 },
 ];

@@ -29,12 +29,30 @@ public class CreateMatchHandler(FutbolDbContext db)
             ? DateTime.SpecifyKind(request.MatchDate, DateTimeKind.Utc)
             : request.MatchDate.ToUniversalTime();
 
+        var matchDateOnly = DateOnly.FromDateTime(matchDate);
+
+        // Find coach for home team on match date
+        var homeCoachAssignment = await db.CoachTeamAssignments
+            .Where(a => a.TeamId == request.HomeTeamId
+                && a.StartDate <= matchDateOnly
+                && (a.EndDate == null || a.EndDate >= matchDateOnly))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        // Find coach for away team on match date
+        var awayCoachAssignment = await db.CoachTeamAssignments
+            .Where(a => a.TeamId == request.AwayTeamId
+                && a.StartDate <= matchDateOnly
+                && (a.EndDate == null || a.EndDate >= matchDateOnly))
+            .FirstOrDefaultAsync(cancellationToken);
+
         var match = new Match
         {
             Id = Guid.NewGuid(),
             ChampionshipId = request.ChampionshipId,
             HomeTeamId = request.HomeTeamId,
             AwayTeamId = request.AwayTeamId,
+            HomeCoachId = homeCoachAssignment?.CoachId,
+            AwayCoachId = awayCoachAssignment?.CoachId,
             MatchDate = matchDate,
             Stadium = request.Stadium,
             Matchday = request.Matchday,

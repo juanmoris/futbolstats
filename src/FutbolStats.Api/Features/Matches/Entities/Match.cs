@@ -1,5 +1,6 @@
 using FutbolStats.Api.Common;
 using FutbolStats.Api.Features.Championships.Entities;
+using FutbolStats.Api.Features.Coaches.Entities;
 using FutbolStats.Api.Features.MatchEvents.Entities;
 using FutbolStats.Api.Features.Teams.Entities;
 
@@ -11,6 +12,8 @@ public class Match
     public Guid ChampionshipId { get; set; }
     public Guid HomeTeamId { get; set; }
     public Guid AwayTeamId { get; set; }
+    public Guid? HomeCoachId { get; set; }
+    public Guid? AwayCoachId { get; set; }
     public DateTime MatchDate { get; set; }
     public string? Stadium { get; set; }
     public MatchStatus Status { get; set; } = MatchStatus.Scheduled;
@@ -24,6 +27,8 @@ public class Match
     public Championship Championship { get; set; } = null!;
     public Team HomeTeam { get; set; } = null!;
     public Team AwayTeam { get; set; } = null!;
+    public Coach? HomeCoach { get; set; }
+    public Coach? AwayCoach { get; set; }
     public ICollection<MatchEvent> Events { get; set; } = [];
     public ICollection<MatchLineup> Lineups { get; set; } = [];
 }

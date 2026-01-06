@@ -21,6 +21,8 @@ public class GetLiveMatchesHandler(FutbolDbContext db)
             .Include(m => m.Championship)
             .Include(m => m.HomeTeam)
             .Include(m => m.AwayTeam)
+            .Include(m => m.HomeCoach)
+            .Include(m => m.AwayCoach)
             .Where(m => liveStatuses.Contains(m.Status))
             .OrderBy(m => m.MatchDate)
             .Select(m => new MatchDto(
@@ -35,6 +37,10 @@ public class GetLiveMatchesHandler(FutbolDbContext db)
                 m.AwayTeam.Name,
                 m.AwayTeam.ShortName,
                 m.AwayTeam.LogoUrl,
+                m.HomeCoachId,
+                m.HomeCoach != null ? m.HomeCoach.FirstName + " " + m.HomeCoach.LastName : null,
+                m.AwayCoachId,
+                m.AwayCoach != null ? m.AwayCoach.FirstName + " " + m.AwayCoach.LastName : null,
                 m.MatchDate,
                 m.Stadium,
                 m.Status,

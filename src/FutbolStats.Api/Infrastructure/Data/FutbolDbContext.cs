@@ -3,6 +3,7 @@ using System.Text;
 using FutbolStats.Api.Common;
 using FutbolStats.Api.Features.Auth.Entities;
 using FutbolStats.Api.Features.Championships.Entities;
+using FutbolStats.Api.Features.Coaches.Entities;
 using FutbolStats.Api.Features.MatchEvents.Entities;
 using FutbolStats.Api.Features.Matches.Entities;
 using FutbolStats.Api.Features.Players.Entities;
@@ -24,6 +25,8 @@ public class FutbolDbContext : DbContext
     public DbSet<Match> Matches => Set<Match>();
     public DbSet<MatchLineup> MatchLineups => Set<MatchLineup>();
     public DbSet<MatchEvent> MatchEvents => Set<MatchEvent>();
+    public DbSet<Coach> Coaches => Set<Coach>();
+    public DbSet<CoachTeamAssignment> CoachTeamAssignments => Set<CoachTeamAssignment>();
     public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

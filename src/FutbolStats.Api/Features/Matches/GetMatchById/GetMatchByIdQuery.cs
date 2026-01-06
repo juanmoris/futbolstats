@@ -21,6 +21,10 @@ public record MatchDetailDto(
     string AwayTeamName,
     string AwayTeamShortName,
     string? AwayTeamLogoUrl,
+    Guid? HomeCoachId,
+    string? HomeCoachName,
+    Guid? AwayCoachId,
+    string? AwayCoachName,
     DateTime MatchDate,
     string? Stadium,
     MatchStatus Status,
@@ -68,6 +72,8 @@ public class GetMatchByIdHandler(FutbolDbContext db)
             .Include(m => m.Championship)
             .Include(m => m.HomeTeam)
             .Include(m => m.AwayTeam)
+            .Include(m => m.HomeCoach)
+            .Include(m => m.AwayCoach)
             .Include(m => m.Lineups)
                 .ThenInclude(l => l.Player)
             .Include(m => m.Events)
@@ -136,6 +142,10 @@ public class GetMatchByIdHandler(FutbolDbContext db)
             match.AwayTeam.Name,
             match.AwayTeam.ShortName,
             match.AwayTeam.LogoUrl,
+            match.HomeCoachId,
+            match.HomeCoach?.FullName,
+            match.AwayCoachId,
+            match.AwayCoach?.FullName,
             match.MatchDate,
             match.Stadium,
             match.Status,

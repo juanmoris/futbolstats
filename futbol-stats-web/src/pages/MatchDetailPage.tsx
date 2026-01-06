@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Clock, Play, Pause, StopCircle, Users, Plus, X, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { ArrowLeft, Clock, Play, Pause, StopCircle, Users, Plus, X, ArrowUpRight, ArrowDownRight, UserCog } from 'lucide-react';
 import { matchesApi } from '@/api/endpoints/matches.api';
 import { playersApi } from '@/api/endpoints/players.api';
+import { coachesApi } from '@/api/endpoints/coaches.api';
 import { MatchStatus, EventType } from '@/api/types/common.types';
 import type {
   MatchDetail,
@@ -88,6 +89,7 @@ export function MatchDetailPage() {
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [showCardModal, setShowCardModal] = useState(false);
   const [showSubstitutionModal, setShowSubstitutionModal] = useState(false);
+  const [showCoachesModal, setShowCoachesModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { data: match, isLoading } = useQuery({
@@ -241,6 +243,9 @@ export function MatchDetailPage() {
           <div className="flex items-center gap-4 flex-1 justify-end">
             <div className="text-right">
               <p className="text-xl font-bold text-gray-900">{match.homeTeamName}</p>
+              {match.homeCoachName && (
+                <p className="text-sm text-gray-500">DT: {match.homeCoachName}</p>
+              )}
             </div>
             {match.homeTeamLogo && (
               <img src={match.homeTeamLogo} alt="" className="h-16 w-16 rounded-full object-cover" />
@@ -271,6 +276,9 @@ export function MatchDetailPage() {
             )}
             <div>
               <p className="text-xl font-bold text-gray-900">{match.awayTeamName}</p>
+              {match.awayCoachName && (
+                <p className="text-sm text-gray-500">DT: {match.awayCoachName}</p>
+              )}
             </div>
           </div>
         </div>
@@ -280,6 +288,17 @@ export function MatchDetailPage() {
             {match.stadium}
           </div>
         )}
+
+        {/* Edit Coaches Button */}
+        <div className="text-center mt-4">
+          <button
+            onClick={() => setShowCoachesModal(true)}
+            className="inline-flex items-center px-3 py-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md"
+          >
+            <UserCog className="h-4 w-4 mr-1" />
+            {match.homeCoachName || match.awayCoachName ? 'Cambiar Entrenadores' : 'Asignar Entrenadores'}
+          </button>
+        </div>
 
         {/* Match Controls */}
         {match.status !== MatchStatus.Finished && (
@@ -527,6 +546,13 @@ export function MatchDetailPage() {
         <SubstitutionModal
           match={match}
           onClose={() => setShowSubstitutionModal(false)}
+        />
+      )}
+
+      {showCoachesModal && (
+        <CoachesModal
+          match={match}
+          onClose={() => setShowCoachesModal(false)}
         />
       )}
     </div>
@@ -1133,6 +1159,105 @@ function SubstitutionModal({ match, onClose }: { match: MatchDetail; onClose: ()
               className="px-4 py-2 text-sm text-white bg-purple-600 rounded-md disabled:opacity-50"
             >
               {recordSubstitutionMutation.isPending ? 'Guardando...' : 'Registrar Cambio'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function CoachesModal({ match, onClose }: { match: MatchDetail; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const [homeCoachId, setHomeCoachId] = useState<string>(match.homeCoachId || '');
+  const [awayCoachId, setAwayCoachId] = useState<string>(match.awayCoachId || '');
+  const [error, setError] = useState<string | null>(null);
+
+  const { data: coaches } = useQuery({
+    queryKey: ['coaches', { pageSize: 100 }],
+    queryFn: () => coachesApi.getAll({ pageSize: 100 }),
+  });
+
+  const setCoachesMutation = useMutation({
+    mutationFn: () => matchesApi.setCoaches(match.id, homeCoachId || null, awayCoachId || null),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['match', match.id] });
+      onClose();
+    },
+    onError: (err) => setError(getErrorMessage(err)),
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCoachesMutation.mutate();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <form onSubmit={handleSubmit}>
+          <div className="px-6 py-4 border-b">
+            <h3 className="text-lg font-medium text-gray-900">Asignar Entrenadores</h3>
+          </div>
+
+          <div className="px-6 py-4 space-y-4">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-md text-sm">
+                {error}
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                DT {match.homeTeamName} (Local)
+              </label>
+              <select
+                value={homeCoachId}
+                onChange={(e) => setHomeCoachId(e.target.value)}
+                className="mt-1 block w-full rounded-md border px-3 py-2"
+              >
+                <option value="">Sin asignar</option>
+                {coaches?.items?.map((coach) => (
+                  <option key={coach.id} value={coach.id}>
+                    {coach.fullName} {coach.currentTeamName ? `(${coach.currentTeamName})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                DT {match.awayTeamName} (Visitante)
+              </label>
+              <select
+                value={awayCoachId}
+                onChange={(e) => setAwayCoachId(e.target.value)}
+                className="mt-1 block w-full rounded-md border px-3 py-2"
+              >
+                <option value="">Sin asignar</option>
+                {coaches?.items?.map((coach) => (
+                  <option key={coach.id} value={coach.id}>
+                    {coach.fullName} {coach.currentTeamName ? `(${coach.currentTeamName})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="px-6 py-4 border-t flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-sm text-gray-700 bg-white border rounded-md"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={setCoachesMutation.isPending}
+              className="px-4 py-2 text-sm text-white bg-blue-600 rounded-md disabled:opacity-50"
+            >
+              {setCoachesMutation.isPending ? 'Guardando...' : 'Guardar'}
             </button>
           </div>
         </form>

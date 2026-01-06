@@ -3,6 +3,7 @@ using FluentValidation;
 using FutbolStats.Api.Common.Behaviors;
 using FutbolStats.Api.Features.Auth;
 using FutbolStats.Api.Features.Championships;
+using FutbolStats.Api.Features.Coaches;
 using FutbolStats.Api.Features.Matches;
 using FutbolStats.Api.Features.MatchEvents;
 using FutbolStats.Api.Features.Players;
@@ -128,5 +129,6 @@ app.MapPlayersEndpoints();
 app.MapMatchesEndpoints();
 app.MapMatchEventsEndpoints();
 app.MapStatisticsEndpoints();
+app.MapCoachesEndpoints();
 
 app.Run();

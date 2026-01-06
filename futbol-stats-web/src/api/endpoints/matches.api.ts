@@ -78,4 +78,8 @@ export const matchesApi = {
   deleteEvent: async (matchId: string, eventId: string): Promise<void> => {
     await apiClient.delete(`/matches/${matchId}/events/${eventId}`);
   },
+
+  setCoaches: async (matchId: string, homeCoachId: string | null, awayCoachId: string | null): Promise<void> => {
+    await apiClient.put(`/matches/${matchId}/coaches`, { homeCoachId, awayCoachId });
+  },
 };
