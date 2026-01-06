@@ -368,10 +368,10 @@ export function MatchDetailPage() {
         <h3 className="text-lg font-medium text-gray-900 mb-4">Eventos del partido</h3>
 
         {match.events?.length ? (
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-96 overflow-y-auto">
             {match.events
               .filter(e => e.eventType !== EventType.Assist)
-              .sort((a, b) => a.minute - b.minute)
+              .sort((a, b) => b.minute - a.minute || (b.extraMinute || 0) - (a.extraMinute || 0))
               .map((event) => (
                 <div
                   key={event.id}
@@ -603,7 +603,7 @@ function LineupModal({ match, teamType, onClose }: { match: MatchDetail; teamTyp
         playerId: player.id,
         isStarter,
         position: player.position.toString(),
-        jerseyNumber: player.jerseyNumber,
+        jerseyNumber: player.number,
       }]);
     }
   };
