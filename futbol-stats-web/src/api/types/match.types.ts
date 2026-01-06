@@ -39,7 +39,7 @@ export interface MatchEvent {
 export interface LineupPlayer {
   playerId: string;
   playerName: string;
-  number: number;
+  jerseyNumber: number;
   position: string;
   isStarter: boolean;
 }

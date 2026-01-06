@@ -178,6 +178,7 @@ export function MatchesPage() {
                       </div>
                       <div className="text-xs text-gray-500 mt-1">
                         {new Date(match.matchDate).toLocaleDateString('es', {
+                          timeZone: 'UTC',
                           weekday: 'short',
                           day: 'numeric',
                           month: 'short',
@@ -368,7 +369,7 @@ function CreateMatchModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const dateTime = `${matchDate}T${matchTime}:00`;
+    const dateTime = `${matchDate}T${matchTime}:00Z`;
     onSave({
       championshipId,
       homeTeamId,
@@ -510,7 +511,7 @@ function EditMatchModal({
 }) {
   const matchDateTime = new Date(match.matchDate);
   const [matchDate, setMatchDate] = useState(matchDateTime.toISOString().split('T')[0]);
-  const [matchTime, setMatchTime] = useState(matchDateTime.toTimeString().slice(0, 5));
+  const [matchTime, setMatchTime] = useState(matchDateTime.toISOString().slice(11, 16));
   const [stadium, setStadium] = useState(match.stadium || '');
   const [matchday, setMatchday] = useState(match.matchday.toString());
 
@@ -532,7 +533,7 @@ function EditMatchModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const dateTime = `${matchDate}T${matchTime}:00`;
+    const dateTime = `${matchDate}T${matchTime}:00Z`;
     onSave({
       matchDate: dateTime,
       stadium: stadium || undefined,

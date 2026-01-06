@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Clock, Play, Pause, StopCircle, Users, Plus, X } from 'lucide-react';
+import { ArrowLeft, Clock, Play, Pause, StopCircle, Users, Plus, X, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { matchesApi } from '@/api/endpoints/matches.api';
 import { playersApi } from '@/api/endpoints/players.api';
 import { MatchStatus, EventType } from '@/api/types/common.types';
@@ -14,6 +14,71 @@ import type {
   LineupPlayerRequest
 } from '@/api/types/match.types';
 import type { Player } from '@/api/types/player.types';
+import type { MatchEvent } from '@/api/types/match.types';
+
+function formatMinute(minute: number, extraMinute: number | null): string {
+  return extraMinute ? `${minute}+${extraMinute}'` : `${minute}'`;
+}
+
+function PlayerEventIcons({ playerId, events }: { playerId: string; events: MatchEvent[] }) {
+  const playerEvents = events.filter(e => e.playerId === playerId);
+
+  const goals = playerEvents.filter(e =>
+    e.eventType === EventType.Goal || e.eventType === EventType.PenaltyScored
+  );
+  const ownGoals = playerEvents.filter(e => e.eventType === EventType.OwnGoal);
+  const yellowCard = playerEvents.find(e => e.eventType === EventType.YellowCard);
+  const redCard = playerEvents.find(e =>
+    e.eventType === EventType.RedCard || e.eventType === EventType.SecondYellow
+  );
+  const subOut = playerEvents.find(e => e.eventType === EventType.SubstitutionOut);
+  const subIn = playerEvents.find(e => e.eventType === EventType.SubstitutionIn);
+
+  return (
+    <div className="flex items-center gap-1">
+      {goals.map((goal, i) => (
+        <span
+          key={i}
+          className="text-xs cursor-default"
+          title={`Gol ${formatMinute(goal.minute, goal.extraMinute)}`}
+        >
+          ⚽
+        </span>
+      ))}
+      {ownGoals.map((og, i) => (
+        <span
+          key={i}
+          className="text-xs text-red-600 cursor-default"
+          title={`Autogol ${formatMinute(og.minute, og.extraMinute)}`}
+        >
+          ⚽
+        </span>
+      ))}
+      {yellowCard && (
+        <span
+          className="w-3 h-4 bg-yellow-400 rounded-sm cursor-default"
+          title={`Tarjeta amarilla ${formatMinute(yellowCard.minute, yellowCard.extraMinute)}`}
+        />
+      )}
+      {redCard && (
+        <span
+          className="w-3 h-4 bg-red-600 rounded-sm cursor-default"
+          title={`Tarjeta roja ${formatMinute(redCard.minute, redCard.extraMinute)}`}
+        />
+      )}
+      {subOut && (
+        <span title={`Sustituido ${formatMinute(subOut.minute, subOut.extraMinute)}`}>
+          <ArrowDownRight className="h-4 w-4 text-red-500 cursor-default" />
+        </span>
+      )}
+      {subIn && (
+        <span title={`Ingresó ${formatMinute(subIn.minute, subIn.extraMinute)}`}>
+          <ArrowUpRight className="h-4 w-4 text-green-500 cursor-default" />
+        </span>
+      )}
+    </div>
+  );
+}
 
 export function MatchDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -189,6 +254,7 @@ export function MatchDetailPage() {
             <div className="flex items-center justify-center text-sm text-gray-500 mt-2">
               <Clock className="h-4 w-4 mr-1" />
               {new Date(match.matchDate).toLocaleDateString('es', {
+                timeZone: 'UTC',
                 weekday: 'long',
                 day: 'numeric',
                 month: 'long',
@@ -349,11 +415,11 @@ export function MatchDetailPage() {
                   <div key={player.playerId} className="flex items-center justify-between py-2 border-b last:border-0">
                     <div className="flex items-center gap-3">
                       <span className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-medium text-blue-800">
-                        {player.number}
+                        {player.jerseyNumber}
                       </span>
                       <span className="font-medium">{player.playerName}</span>
                     </div>
-                    <span className="text-sm text-gray-500">{player.position}</span>
+                    <PlayerEventIcons playerId={player.playerId} events={match.events} />
                   </div>
                 ))}
               {match.homeLineup.filter(p => !p.isStarter).length > 0 && (
@@ -365,11 +431,11 @@ export function MatchDetailPage() {
                       <div key={player.playerId} className="flex items-center justify-between py-2 border-b last:border-0">
                         <div className="flex items-center gap-3">
                           <span className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-600">
-                            {player.number}
+                            {player.jerseyNumber}
                           </span>
                           <span className="text-gray-500">{player.playerName}</span>
                         </div>
-                        <span className="text-sm text-gray-500">{player.position}</span>
+                        <PlayerEventIcons playerId={player.playerId} events={match.events} />
                       </div>
                     ))}
                 </>
@@ -402,11 +468,11 @@ export function MatchDetailPage() {
                   <div key={player.playerId} className="flex items-center justify-between py-2 border-b last:border-0">
                     <div className="flex items-center gap-3">
                       <span className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-800">
-                        {player.number}
+                        {player.jerseyNumber}
                       </span>
                       <span className="font-medium">{player.playerName}</span>
                     </div>
-                    <span className="text-sm text-gray-500">{player.position}</span>
+                    <PlayerEventIcons playerId={player.playerId} events={match.events} />
                   </div>
                 ))}
               {match.awayLineup.filter(p => !p.isStarter).length > 0 && (
@@ -418,11 +484,11 @@ export function MatchDetailPage() {
                       <div key={player.playerId} className="flex items-center justify-between py-2 border-b last:border-0">
                         <div className="flex items-center gap-3">
                           <span className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-600">
-                            {player.number}
+                            {player.jerseyNumber}
                           </span>
                           <span className="text-gray-500">{player.playerName}</span>
                         </div>
-                        <span className="text-sm text-gray-500">{player.position}</span>
+                        <PlayerEventIcons playerId={player.playerId} events={match.events} />
                       </div>
                     ))}
                 </>
@@ -511,7 +577,7 @@ function LineupModal({ match, teamType, onClose }: { match: MatchDetail; teamTyp
         playerId: player.id,
         isStarter,
         position: player.position.toString(),
-        jerseyNumber: player.number,
+        jerseyNumber: player.jerseyNumber,
       }]);
     }
   };
@@ -683,7 +749,7 @@ function GoalModal({ match, onClose }: { match: MatchDetail; onClose: () => void
               >
                 <option value="">Seleccionar...</option>
                 {lineup?.map((p) => (
-                  <option key={p.playerId} value={p.playerId}>{p.number} - {p.playerName}</option>
+                  <option key={p.playerId} value={p.playerId}>{p.jerseyNumber} - {p.playerName}</option>
                 ))}
               </select>
             </div>
@@ -698,7 +764,7 @@ function GoalModal({ match, onClose }: { match: MatchDetail; onClose: () => void
               >
                 <option value="">Sin asistencia</option>
                 {lineup?.filter(p => p.playerId !== scorerId).map((p) => (
-                  <option key={p.playerId} value={p.playerId}>{p.number} - {p.playerName}</option>
+                  <option key={p.playerId} value={p.playerId}>{p.jerseyNumber} - {p.playerName}</option>
                 ))}
               </select>
             </div>
@@ -846,7 +912,7 @@ function CardModal({ match, onClose }: { match: MatchDetail; onClose: () => void
               >
                 <option value="">Seleccionar...</option>
                 {lineup?.map((p) => (
-                  <option key={p.playerId} value={p.playerId}>{p.number} - {p.playerName}</option>
+                  <option key={p.playerId} value={p.playerId}>{p.jerseyNumber} - {p.playerName}</option>
                 ))}
               </select>
             </div>
@@ -1008,7 +1074,7 @@ function SubstitutionModal({ match, onClose }: { match: MatchDetail; onClose: ()
               >
                 <option value="">Seleccionar...</option>
                 {onFieldPlayers.map((p) => (
-                  <option key={p.playerId} value={p.playerId}>{p.number} - {p.playerName}</option>
+                  <option key={p.playerId} value={p.playerId}>{p.jerseyNumber} - {p.playerName}</option>
                 ))}
               </select>
             </div>
@@ -1024,7 +1090,7 @@ function SubstitutionModal({ match, onClose }: { match: MatchDetail; onClose: ()
               >
                 <option value="">Seleccionar...</option>
                 {benchPlayers.map((p) => (
-                  <option key={p.playerId} value={p.playerId}>{p.number} - {p.playerName}</option>
+                  <option key={p.playerId} value={p.playerId}>{p.jerseyNumber} - {p.playerName}</option>
                 ))}
               </select>
             </div>

@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Edit2, Trash2, Trophy, Users, X } from 'lucide-react';
 import { championshipsApi } from '@/api/endpoints/championships.api';
 import { teamsApi } from '@/api/endpoints/teams.api';
-import type { Championship, CreateChampionshipRequest } from '@/api/types/championship.types';
+import type { Championship, CreateChampionshipRequest, UpdateChampionshipRequest } from '@/api/types/championship.types';
 import { ChampionshipStatus } from '@/api/types/common.types';
 
 export function ChampionshipsPage() {
@@ -28,8 +28,20 @@ export function ChampionshipsPage() {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    setEditingChampionship(null);
     createMutation.reset();
+    updateMutation.reset();
   };
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateChampionshipRequest }) =>
+      championshipsApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['championships'] });
+      setIsModalOpen(false);
+      setEditingChampionship(null);
+    },
+  });
 
   const deleteMutation = useMutation({
     mutationFn: championshipsApi.delete,
@@ -40,6 +52,10 @@ export function ChampionshipsPage() {
 
   const handleCreate = (data: CreateChampionshipRequest) => {
     createMutation.mutate(data);
+  };
+
+  const handleUpdate = (id: string, data: UpdateChampionshipRequest) => {
+    updateMutation.mutate({ id, data });
   };
 
   const handleDelete = (id: string) => {
@@ -126,7 +142,7 @@ export function ChampionshipsPage() {
                     {championship.season}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(championship.startDate).toLocaleDateString()} - {new Date(championship.endDate).toLocaleDateString()}
+                    {new Date(championship.startDate + 'T12:00:00').toLocaleDateString()} - {new Date(championship.endDate + 'T12:00:00').toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {championship.teamsCount} equipos
@@ -219,9 +235,10 @@ export function ChampionshipsPage() {
         <ChampionshipModal
           championship={editingChampionship}
           onClose={handleCloseModal}
-          onSave={handleCreate}
-          isLoading={createMutation.isPending}
-          error={createMutation.error}
+          onCreate={handleCreate}
+          onUpdate={handleUpdate}
+          isLoading={editingChampionship ? updateMutation.isPending : createMutation.isPending}
+          error={editingChampionship ? updateMutation.error : createMutation.error}
         />
       )}
 
@@ -242,20 +259,24 @@ export function ChampionshipsPage() {
 function ChampionshipModal({
   championship,
   onClose,
-  onSave,
+  onCreate,
+  onUpdate,
   isLoading,
   error,
 }: {
   championship: Championship | null;
   onClose: () => void;
-  onSave: (data: CreateChampionshipRequest) => void;
+  onCreate: (data: CreateChampionshipRequest) => void;
+  onUpdate: (id: string, data: UpdateChampionshipRequest) => void;
   isLoading: boolean;
   error: Error | null;
 }) {
+  const isEditing = championship !== null;
   const [name, setName] = useState(championship?.name || '');
   const [season, setSeason] = useState(championship?.season || '');
   const [startDate, setStartDate] = useState(championship?.startDate?.split('T')[0] || '');
   const [endDate, setEndDate] = useState(championship?.endDate?.split('T')[0] || '');
+  const [status, setStatus] = useState<ChampionshipStatus>(championship?.status ?? ChampionshipStatus.Upcoming);
 
   const getErrorMessage = (): string | null => {
     if (!error) return null;
@@ -275,7 +296,11 @@ function ChampionshipModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ name, season, startDate, endDate });
+    if (isEditing) {
+      onUpdate(championship.id, { name, season, startDate, endDate, status });
+    } else {
+      onCreate({ name, season, startDate, endDate });
+    }
   };
 
   return (
@@ -336,6 +361,20 @@ function ChampionshipModal({
                 />
               </div>
             </div>
+            {isEditing && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Estado</label>
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(Number(e.target.value) as ChampionshipStatus)}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm border px-3 py-2"
+                >
+                  <option value={ChampionshipStatus.Upcoming}>Proximo</option>
+                  <option value={ChampionshipStatus.InProgress}>En curso</option>
+                  <option value={ChampionshipStatus.Finished}>Finalizado</option>
+                </select>
+              </div>
+            )}
           </div>
           <div className="px-6 py-4 border-t flex justify-end space-x-3">
             <button
