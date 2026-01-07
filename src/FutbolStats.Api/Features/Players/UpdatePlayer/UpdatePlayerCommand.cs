@@ -54,26 +54,26 @@ public class UpdatePlayerValidator : AbstractValidator<UpdatePlayerCommand>
     public UpdatePlayerValidator(FutbolDbContext db)
     {
         RuleFor(x => x.Id)
-            .NotEmpty().WithMessage("Id is required");
+            .NotEmpty().WithMessage("El Id es requerido");
 
         RuleFor(x => x.FirstName)
-            .NotEmpty().WithMessage("First name is required")
-            .MaximumLength(100).WithMessage("First name must not exceed 100 characters");
+            .NotEmpty().WithMessage("El nombre es requerido")
+            .MaximumLength(100).WithMessage("El nombre no debe exceder 100 caracteres");
 
         RuleFor(x => x.LastName)
-            .NotEmpty().WithMessage("Last name is required")
-            .MaximumLength(100).WithMessage("Last name must not exceed 100 characters");
+            .NotEmpty().WithMessage("El apellido es requerido")
+            .MaximumLength(100).WithMessage("El apellido no debe exceder 100 caracteres");
 
         RuleFor(x => x.Number)
-            .InclusiveBetween(1, 99).WithMessage("Number must be between 1 and 99");
+            .InclusiveBetween(1, 99).WithMessage("El número debe estar entre 1 y 99");
 
         RuleFor(x => x.Position)
-            .IsInEnum().WithMessage("Invalid position");
+            .IsInEnum().WithMessage("Posición inválida");
 
         RuleFor(x => x.TeamId)
-            .NotEmpty().WithMessage("Team is required")
+            .NotEmpty().WithMessage("El equipo es requerido")
             .MustAsync(async (teamId, ct) => await db.Teams.AnyAsync(t => t.Id == teamId, ct))
-            .WithMessage("Team does not exist");
+            .WithMessage("El equipo no existe");
 
         RuleFor(x => x)
             .MustAsync(async (cmd, ct) =>
@@ -82,19 +82,19 @@ public class UpdatePlayerValidator : AbstractValidator<UpdatePlayerCommand>
                     p.Number == cmd.Number &&
                     p.IsActive &&
                     p.Id != cmd.Id, ct))
-            .WithMessage("A player with this number already exists in the team");
+            .WithMessage("Ya existe un jugador con este número en el equipo");
 
         RuleFor(x => x.BirthDate)
             .LessThan(DateOnly.FromDateTime(DateTime.UtcNow))
-            .WithMessage("Birth date must be in the past")
+            .WithMessage("La fecha de nacimiento debe ser en el pasado")
             .When(x => x.BirthDate.HasValue);
 
         RuleFor(x => x.Nationality)
-            .MaximumLength(100).WithMessage("Nationality must not exceed 100 characters")
+            .MaximumLength(100).WithMessage("La nacionalidad no debe exceder 100 caracteres")
             .When(x => !string.IsNullOrEmpty(x.Nationality));
 
         RuleFor(x => x.PhotoUrl)
-            .MaximumLength(500).WithMessage("Photo URL must not exceed 500 characters")
+            .MaximumLength(500).WithMessage("La URL de la foto no debe exceder 500 caracteres")
             .When(x => !string.IsNullOrEmpty(x.PhotoUrl));
     }
 }

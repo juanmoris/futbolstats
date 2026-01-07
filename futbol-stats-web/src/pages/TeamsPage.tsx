@@ -9,6 +9,7 @@ export function TeamsPage() {
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+  const [modalError, setModalError] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
@@ -21,7 +22,20 @@ export function TeamsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] });
       setIsModalOpen(false);
+      setModalError(null);
     },
+    onError: (err) => setModalError(getErrorMessage(err)),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: CreateTeamRequest }) =>
+      teamsApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teams'] });
+      setIsModalOpen(false);
+      setModalError(null);
+    },
+    onError: (err) => setModalError(getErrorMessage(err)),
   });
 
   const deleteMutation = useMutation({
@@ -31,8 +45,18 @@ export function TeamsPage() {
     },
   });
 
-  const handleCreate = (data: CreateTeamRequest) => {
-    createMutation.mutate(data);
+  const handleSave = (data: CreateTeamRequest) => {
+    if (editingTeam) {
+      updateMutation.mutate({ id: editingTeam.id, data });
+    } else {
+      createMutation.mutate(data);
+    }
+  };
+
+  const handleOpenModal = (team: Team | null) => {
+    setEditingTeam(team);
+    setModalError(null);
+    setIsModalOpen(true);
   };
 
   const handleDelete = (id: string) => {
@@ -51,7 +75,7 @@ export function TeamsPage() {
           </p>
         </div>
         <button
-          onClick={() => { setEditingTeam(null); setIsModalOpen(true); }}
+          onClick={() => handleOpenModal(null)}
           className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -131,7 +155,7 @@ export function TeamsPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
-                      onClick={() => { setEditingTeam(team); setIsModalOpen(true); }}
+                      onClick={() => handleOpenModal(team)}
                       className="text-blue-600 hover:text-blue-900 mr-4"
                     >
                       <Edit2 className="h-4 w-4" />
@@ -181,12 +205,26 @@ export function TeamsPage() {
         <TeamModal
           team={editingTeam}
           onClose={() => setIsModalOpen(false)}
-          onSave={handleCreate}
-          isLoading={createMutation.isPending}
+          onSave={handleSave}
+          isLoading={createMutation.isPending || updateMutation.isPending}
+          error={modalError}
         />
       )}
     </div>
   );
+}
+
+function getErrorMessage(err: unknown): string {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const axiosError = err as any;
+  if (axiosError.response?.data?.errors) {
+    const errors = axiosError.response.data.errors;
+    return Object.values(errors).flat().join(', ');
+  }
+  if (axiosError.response?.data?.message) {
+    return axiosError.response.data.message;
+  }
+  return 'Error al realizar la operación';
 }
 
 function TeamModal({
@@ -194,11 +232,13 @@ function TeamModal({
   onClose,
   onSave,
   isLoading,
+  error,
 }: {
   team: Team | null;
   onClose: () => void;
   onSave: (data: CreateTeamRequest) => void;
   isLoading: boolean;
+  error: string | null;
 }) {
   const [name, setName] = useState(team?.name || '');
   const [shortName, setShortName] = useState(team?.shortName || '');
@@ -227,6 +267,11 @@ function TeamModal({
             </h3>
           </div>
           <div className="px-6 py-4 space-y-4">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                {error}
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700">Nombre</label>
               <input

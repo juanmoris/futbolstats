@@ -12,6 +12,7 @@ export function PlayersPage() {
   const [teamFilter, setTeamFilter] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
+  const [modalError, setModalError] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data: teams } = useQuery({
@@ -34,7 +35,20 @@ export function PlayersPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['players'] });
       setIsModalOpen(false);
+      setModalError(null);
     },
+    onError: (err) => setModalError(getErrorMessage(err)),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: CreatePlayerRequest & { isActive: boolean } }) =>
+      playersApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['players'] });
+      setIsModalOpen(false);
+      setModalError(null);
+    },
+    onError: (err) => setModalError(getErrorMessage(err)),
   });
 
   const deleteMutation = useMutation({
@@ -44,8 +58,18 @@ export function PlayersPage() {
     },
   });
 
-  const handleCreate = (data: CreatePlayerRequest) => {
-    createMutation.mutate(data);
+  const handleSave = (data: CreatePlayerRequest & { isActive?: boolean }) => {
+    if (editingPlayer) {
+      updateMutation.mutate({ id: editingPlayer.id, data: { ...data, isActive: data.isActive ?? true } });
+    } else {
+      createMutation.mutate(data);
+    }
+  };
+
+  const handleOpenModal = (player: Player | null) => {
+    setEditingPlayer(player);
+    setModalError(null);
+    setIsModalOpen(true);
   };
 
   const handleDelete = (id: string) => {
@@ -84,7 +108,7 @@ export function PlayersPage() {
           </p>
         </div>
         <button
-          onClick={() => { setEditingPlayer(null); setIsModalOpen(true); }}
+          onClick={() => handleOpenModal(null)}
           className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700"
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -183,7 +207,7 @@ export function PlayersPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
-                      onClick={() => { setEditingPlayer(player); setIsModalOpen(true); }}
+                      onClick={() => handleOpenModal(player)}
                       className="text-purple-600 hover:text-purple-900 mr-4"
                     >
                       <Edit2 className="h-4 w-4" />
@@ -234,12 +258,26 @@ export function PlayersPage() {
           player={editingPlayer}
           teams={teams?.items || []}
           onClose={() => setIsModalOpen(false)}
-          onSave={handleCreate}
-          isLoading={createMutation.isPending}
+          onSave={handleSave}
+          isLoading={createMutation.isPending || updateMutation.isPending}
+          error={modalError}
         />
       )}
     </div>
   );
+}
+
+function getErrorMessage(err: unknown): string {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const axiosError = err as any;
+  if (axiosError.response?.data?.errors) {
+    const errors = axiosError.response.data.errors;
+    return Object.values(errors).flat().join(', ');
+  }
+  if (axiosError.response?.data?.message) {
+    return axiosError.response.data.message;
+  }
+  return 'Error al realizar la operacion';
 }
 
 function PlayerModal({
@@ -248,12 +286,14 @@ function PlayerModal({
   onClose,
   onSave,
   isLoading,
+  error,
 }: {
   player: Player | null;
   teams: { id: string; name: string }[];
   onClose: () => void;
-  onSave: (data: CreatePlayerRequest) => void;
+  onSave: (data: CreatePlayerRequest & { isActive?: boolean }) => void;
   isLoading: boolean;
+  error: string | null;
 }) {
   const [firstName, setFirstName] = useState(player?.firstName || '');
   const [lastName, setLastName] = useState(player?.lastName || '');
@@ -263,6 +303,7 @@ function PlayerModal({
   const [nationality, setNationality] = useState(player?.nationality || '');
   const [birthDate, setBirthDate] = useState(player?.birthDate?.split('T')[0] || '');
   const [photoUrl, setPhotoUrl] = useState(player?.photoUrl || '');
+  const [isActive, setIsActive] = useState(player?.isActive ?? true);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -275,6 +316,7 @@ function PlayerModal({
       nationality: nationality || undefined,
       birthDate: birthDate || undefined,
       photoUrl: photoUrl || undefined,
+      isActive,
     });
   };
 
@@ -288,6 +330,11 @@ function PlayerModal({
             </h3>
           </div>
           <div className="px-6 py-4 space-y-4">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                {error}
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Nombre</label>
@@ -379,6 +426,19 @@ function PlayerModal({
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm border px-3 py-2"
               />
             </div>
+            {player && (
+              <div>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={isActive}
+                    onChange={(e) => setIsActive(e.target.checked)}
+                    className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Jugador activo</span>
+                </label>
+              </div>
+            )}
           </div>
           <div className="px-6 py-4 border-t flex justify-end space-x-3">
             <button

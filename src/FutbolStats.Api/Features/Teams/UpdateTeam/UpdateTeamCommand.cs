@@ -45,34 +45,34 @@ public class UpdateTeamValidator : AbstractValidator<UpdateTeamCommand>
     public UpdateTeamValidator(FutbolDbContext db)
     {
         RuleFor(x => x.Id)
-            .NotEmpty().WithMessage("Id is required");
+            .NotEmpty().WithMessage("El Id es requerido");
 
         RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Name is required")
-            .MaximumLength(200).WithMessage("Name must not exceed 200 characters")
+            .NotEmpty().WithMessage("El nombre es requerido")
+            .MaximumLength(200).WithMessage("El nombre no debe exceder 200 caracteres")
             .MustAsync(async (cmd, name, ct) =>
                 !await db.Teams.AnyAsync(t => t.Name == name && t.Id != cmd.Id, ct))
-            .WithMessage("A team with this name already exists");
+            .WithMessage("Ya existe un equipo con este nombre");
 
         RuleFor(x => x.ShortName)
-            .NotEmpty().WithMessage("Short name is required")
-            .MaximumLength(5).WithMessage("Short name must not exceed 5 characters")
+            .NotEmpty().WithMessage("La abreviatura es requerida")
+            .MaximumLength(5).WithMessage("La abreviatura no debe exceder 5 caracteres")
             .MustAsync(async (cmd, shortName, ct) =>
                 !await db.Teams.AnyAsync(t =>
                     t.ShortName == shortName.ToUpperInvariant() && t.Id != cmd.Id, ct))
-            .WithMessage("A team with this short name already exists");
+            .WithMessage("Ya existe un equipo con esta abreviatura");
 
         RuleFor(x => x.LogoUrl)
-            .MaximumLength(500).WithMessage("Logo URL must not exceed 500 characters")
+            .MaximumLength(500).WithMessage("La URL del logo no debe exceder 500 caracteres")
             .When(x => !string.IsNullOrEmpty(x.LogoUrl));
 
         RuleFor(x => x.Stadium)
-            .MaximumLength(200).WithMessage("Stadium must not exceed 200 characters")
+            .MaximumLength(200).WithMessage("El estadio no debe exceder 200 caracteres")
             .When(x => !string.IsNullOrEmpty(x.Stadium));
 
         RuleFor(x => x.FoundedYear)
             .InclusiveBetween(1800, DateTime.UtcNow.Year)
-            .WithMessage($"Founded year must be between 1800 and {DateTime.UtcNow.Year}")
+            .WithMessage($"El año de fundación debe estar entre 1800 y {DateTime.UtcNow.Year}")
             .When(x => x.FoundedYear.HasValue);
     }
 }
