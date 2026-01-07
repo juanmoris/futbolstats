@@ -8,6 +8,7 @@ import { PlayerPosition } from '@/api/types/common.types';
 
 export function PlayersPage() {
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState('');
   const [teamFilter, setTeamFilter] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,10 +22,10 @@ export function PlayersPage() {
   });
 
   const { data, isLoading } = useQuery({
-    queryKey: ['players', { page, pageSize: 10, search, teamId: teamFilter }],
+    queryKey: ['players', { page, pageSize, search, teamId: teamFilter }],
     queryFn: () => playersApi.getAll({
       page,
-      pageSize: 10,
+      pageSize,
       search: search || undefined,
       teamId: teamFilter || undefined,
     }),
@@ -138,6 +139,17 @@ export function PlayersPage() {
             <option key={team.id} value={team.id}>{team.name}</option>
           ))}
         </select>
+        <select
+          value={pageSize}
+          onChange={(e) => { setPageSize(parseInt(e.target.value)); setPage(1); }}
+          className="block w-24 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+        >
+          <option value={10}>10</option>
+          <option value={20}>20</option>
+          <option value={30}>30</option>
+          <option value={50}>50</option>
+          <option value={100}>100</option>
+        </select>
       </div>
 
       {isLoading ? (
@@ -227,8 +239,8 @@ export function PlayersPage() {
           {data && data.totalPages > 1 && (
             <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200">
               <p className="text-sm text-gray-700">
-                Mostrando <span className="font-medium">{(page - 1) * 10 + 1}</span> a{' '}
-                <span className="font-medium">{Math.min(page * 10, data.totalCount)}</span> de{' '}
+                Mostrando <span className="font-medium">{(page - 1) * pageSize + 1}</span> a{' '}
+                <span className="font-medium">{Math.min(page * pageSize, data.totalCount)}</span> de{' '}
                 <span className="font-medium">{data.totalCount}</span> resultados
               </p>
               <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
