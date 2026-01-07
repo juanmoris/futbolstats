@@ -10,6 +10,7 @@ import { MatchStatus } from '@/api/types/common.types';
 
 export function MatchesPage() {
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [championshipFilter, setChampionshipFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,10 +24,10 @@ export function MatchesPage() {
   });
 
   const { data, isLoading } = useQuery({
-    queryKey: ['matches', { page, pageSize: 10, championshipId: championshipFilter, status: statusFilter }],
+    queryKey: ['matches', { page, pageSize, championshipId: championshipFilter, status: statusFilter }],
     queryFn: () => matchesApi.getAll({
       page,
-      pageSize: 10,
+      pageSize,
       championshipId: championshipFilter || undefined,
       status: statusFilter ? parseInt(statusFilter) as typeof MatchStatus[keyof typeof MatchStatus] : undefined,
     }),
@@ -143,6 +144,17 @@ export function MatchesPage() {
           <option value="1">En vivo</option>
           <option value="2">Medio tiempo</option>
           <option value="3">Finalizado</option>
+        </select>
+        <select
+          value={pageSize}
+          onChange={(e) => { setPageSize(parseInt(e.target.value)); setPage(1); }}
+          className="block w-24 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+        >
+          <option value={10}>10</option>
+          <option value={20}>20</option>
+          <option value={30}>30</option>
+          <option value={50}>50</option>
+          <option value={100}>100</option>
         </select>
       </div>
 
@@ -299,7 +311,7 @@ export function MatchesPage() {
           {data && data.totalPages > 1 && (
             <div className="flex items-center justify-between mt-4">
               <p className="text-sm text-gray-700">
-                Mostrando {(page - 1) * 10 + 1} a {Math.min(page * 10, data.totalCount)} de {data.totalCount}
+                Mostrando {(page - 1) * pageSize + 1} a {Math.min(page * pageSize, data.totalCount)} de {data.totalCount}
               </p>
               <nav className="flex gap-2">
                 <button

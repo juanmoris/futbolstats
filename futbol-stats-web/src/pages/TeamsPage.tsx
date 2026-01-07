@@ -6,6 +6,7 @@ import type { Team, CreateTeamRequest } from '@/api/types/team.types';
 
 export function TeamsPage() {
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
@@ -13,8 +14,8 @@ export function TeamsPage() {
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['teams', { page, pageSize: 10, search }],
-    queryFn: () => teamsApi.getAll({ page, pageSize: 10, search: search || undefined }),
+    queryKey: ['teams', { page, pageSize, search }],
+    queryFn: () => teamsApi.getAll({ page, pageSize, search: search || undefined }),
   });
 
   const createMutation = useMutation({
@@ -84,8 +85,8 @@ export function TeamsPage() {
       </div>
 
       {/* Search */}
-      <div className="mb-6">
-        <div className="relative">
+      <div className="mb-6 flex gap-4">
+        <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
           <input
             type="text"
@@ -95,6 +96,17 @@ export function TeamsPage() {
             className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           />
         </div>
+        <select
+          value={pageSize}
+          onChange={(e) => { setPageSize(parseInt(e.target.value)); setPage(1); }}
+          className="block w-24 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+        >
+          <option value={10}>10</option>
+          <option value={20}>20</option>
+          <option value={30}>30</option>
+          <option value={50}>50</option>
+          <option value={100}>100</option>
+        </select>
       </div>
 
       {isLoading ? (
@@ -175,8 +187,8 @@ export function TeamsPage() {
           {data && data.totalPages > 1 && (
             <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200">
               <p className="text-sm text-gray-700">
-                Mostrando <span className="font-medium">{(page - 1) * 10 + 1}</span> a{' '}
-                <span className="font-medium">{Math.min(page * 10, data.totalCount)}</span> de{' '}
+                Mostrando <span className="font-medium">{(page - 1) * pageSize + 1}</span> a{' '}
+                <span className="font-medium">{Math.min(page * pageSize, data.totalCount)}</span> de{' '}
                 <span className="font-medium">{data.totalCount}</span> resultados
               </p>
               <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
