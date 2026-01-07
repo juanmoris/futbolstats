@@ -109,5 +109,36 @@ public class CreateMatchValidator : AbstractValidator<CreateMatchCommand>
                 return homeTeamInChampionship && awayTeamInChampionship;
             })
             .WithMessage("Ambos equipos deben estar registrados en el campeonato");
+
+        RuleFor(x => x)
+            .MustAsync(async (cmd, ct) =>
+            {
+                var matchesInMatchday = await db.Matches
+                    .CountAsync(m => m.ChampionshipId == cmd.ChampionshipId && m.Matchday == cmd.Matchday, ct);
+                return matchesInMatchday < 6;
+            })
+            .WithMessage("No se pueden agregar más de 6 partidos por jornada");
+
+        RuleFor(x => x)
+            .MustAsync(async (cmd, ct) =>
+            {
+                var homeTeamAlreadyPlays = await db.Matches
+                    .AnyAsync(m => m.ChampionshipId == cmd.ChampionshipId
+                        && m.Matchday == cmd.Matchday
+                        && (m.HomeTeamId == cmd.HomeTeamId || m.AwayTeamId == cmd.HomeTeamId), ct);
+                return !homeTeamAlreadyPlays;
+            })
+            .WithMessage("El equipo local ya tiene un partido registrado en esta jornada");
+
+        RuleFor(x => x)
+            .MustAsync(async (cmd, ct) =>
+            {
+                var awayTeamAlreadyPlays = await db.Matches
+                    .AnyAsync(m => m.ChampionshipId == cmd.ChampionshipId
+                        && m.Matchday == cmd.Matchday
+                        && (m.HomeTeamId == cmd.AwayTeamId || m.AwayTeamId == cmd.AwayTeamId), ct);
+                return !awayTeamAlreadyPlays;
+            })
+            .WithMessage("El equipo visitante ya tiene un partido registrado en esta jornada");
     }
 }
