@@ -38,6 +38,10 @@ public class ExceptionHandlingMiddleware
                 StatusCodes.Status404NotFound,
                 new ErrorResponse(notFoundEx.Message)
             ),
+            InvalidOperationException invalidOpEx => (
+                StatusCodes.Status400BadRequest,
+                new ErrorResponse(invalidOpEx.Message)
+            ),
             UnauthorizedAccessException => (
                 StatusCodes.Status401Unauthorized,
                 new ErrorResponse("Unauthorized")

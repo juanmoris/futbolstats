@@ -77,8 +77,10 @@ public class SetLineupValidator : AbstractValidator<SetLineupCommand>
 
         RuleFor(x => x.Players)
             .NotEmpty().WithMessage("Players are required")
-            .Must(players => players.Count(p => p.IsStarter) <= 11)
-            .WithMessage("Cannot have more than 11 starters");
+            .Must(players => players.Count(p => p.IsStarter) == 11)
+            .WithMessage("Debe haber exactamente 11 titulares")
+            .Must(players => players.Count(p => !p.IsStarter) >= 1)
+            .WithMessage("Debe haber al menos 1 suplente");
 
         RuleForEach(x => x.Players)
             .ChildRules(player =>
