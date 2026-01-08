@@ -1034,8 +1034,26 @@ function SubstitutionModal({ match, onClose }: { match: MatchDetail; onClose: ()
   const [error, setError] = useState<string | null>(null);
 
   const lineup = teamId === match.homeTeamId ? match.homeLineup : match.awayLineup;
-  const onFieldPlayers = lineup?.filter(p => p.isStarter) || [];
-  const benchPlayers = lineup?.filter(p => !p.isStarter) || [];
+  const teamEvents = match.events?.filter(e => e.teamId === teamId) || [];
+
+  // IDs de jugadores que ya salieron
+  const playersOut = teamEvents
+    .filter(e => e.eventType === EventType.SubstitutionOut)
+    .map(e => e.playerId);
+
+  // IDs de jugadores que ya entraron
+  const playersIn = teamEvents
+    .filter(e => e.eventType === EventType.SubstitutionIn)
+    .map(e => e.playerId);
+
+  // Jugadores en cancha: titulares que no han salido + suplentes que entraron y no han salido
+  const onFieldPlayers = lineup?.filter(p =>
+    (p.isStarter && !playersOut.includes(p.playerId)) ||
+    (!p.isStarter && playersIn.includes(p.playerId) && !playersOut.includes(p.playerId))
+  ) || [];
+
+  // Jugadores en banca: suplentes que no han entrado
+  const benchPlayers = lineup?.filter(p => !p.isStarter && !playersIn.includes(p.playerId)) || [];
 
   const recordSubstitutionMutation = useMutation({
     mutationFn: (data: RecordSubstitutionRequest) => matchesApi.recordSubstitution(match.id, data),
