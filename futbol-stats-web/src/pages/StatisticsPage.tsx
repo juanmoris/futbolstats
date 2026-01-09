@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Trophy, Users, User, Target, RefreshCw } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Trophy, Users, User, Target, RefreshCw, Loader2 } from 'lucide-react';
 import { championshipsApi } from '@/api/endpoints/championships.api';
 import { statisticsApi } from '@/api/endpoints/statistics.api';
 
@@ -27,11 +27,52 @@ export function StatisticsPage() {
     enabled: !!selectedChampionship,
   });
 
-  const { data: topScorers, isLoading: loadingScorers } = useQuery({
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  const {
+    data: topScorersData,
+    isLoading: loadingScorers,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: ['topScorers', selectedChampionship],
-    queryFn: () => statisticsApi.getTopScorers(selectedChampionship, 20),
+    queryFn: ({ pageParam = 1 }) => statisticsApi.getTopScorers(selectedChampionship, pageParam, 20),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => lastPage.hasNextPage ? lastPage.page + 1 : undefined,
     enabled: !!selectedChampionship,
   });
+
+  const allScorers = topScorersData?.pages.flatMap(page => page.scorers) ?? [];
+  const topScorers = topScorersData?.pages[0] ? {
+    championshipId: topScorersData.pages[0].championshipId,
+    championshipName: topScorersData.pages[0].championshipName,
+    scorers: allScorers,
+    totalCount: topScorersData.pages[0].totalCount,
+  } : null;
+
+  useEffect(() => {
+    if (activeTab !== 'scorers' || !hasNextPage || isFetchingNextPage) return;
+
+    const element = loadMoreRef.current;
+    if (!element) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      {
+        threshold: 0,
+        rootMargin: '200px',
+      }
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [activeTab, hasNextPage, isFetchingNextPage, fetchNextPage, topScorersData]);
 
   return (
     <div>
@@ -171,67 +212,94 @@ export function StatisticsPage() {
 
           {/* Top Scorers */}
           {activeTab === 'scorers' && (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="bg-white rounded-lg shadow">
               {loadingScorers ? (
                 <div className="text-center py-12">
                   <p className="text-gray-500">Cargando...</p>
                 </div>
               ) : topScorers?.scorers?.length ? (
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">#</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jugador</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16">PJ</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16">Goles</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16">Pen.</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16">Asist.</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {topScorers.scorers.map((scorer) => (
-                      <tr key={scorer.playerId} className={scorer.rank <= 3 ? 'bg-yellow-50' : ''}>
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${
-                            scorer.rank === 1 ? 'bg-yellow-400 text-yellow-900' :
-                            scorer.rank === 2 ? 'bg-gray-300 text-gray-900' :
-                            scorer.rank === 3 ? 'bg-amber-600 text-white' :
-                            'bg-gray-100 text-gray-600'
-                          } text-sm font-medium`}>
-                            {scorer.rank}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center">
-                            {scorer.photoUrl ? (
-                              <img src={scorer.photoUrl} alt="" className="h-10 w-10 rounded-full object-cover mr-3" />
-                            ) : (
-                              <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center mr-3">
-                                <User className="h-5 w-5 text-purple-600" />
+                <>
+                  <div className="px-4 py-3 border-b flex justify-between items-center">
+                    <span className="text-sm text-gray-500">
+                      Mostrando {topScorers.scorers.length} de {topScorers.totalCount} goleadores
+                    </span>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">#</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jugador</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16">PJ</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16">Goles</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16">Pen.</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16">Asist.</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {topScorers.scorers.map((scorer) => (
+                          <tr key={scorer.playerId} className={scorer.rank <= 3 ? 'bg-yellow-50' : ''}>
+                            <td className="px-4 py-3">
+                              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${
+                                scorer.rank === 1 ? 'bg-yellow-400 text-yellow-900' :
+                                scorer.rank === 2 ? 'bg-gray-300 text-gray-900' :
+                                scorer.rank === 3 ? 'bg-amber-600 text-white' :
+                                'bg-gray-100 text-gray-600'
+                              } text-sm font-medium`}>
+                                {scorer.rank}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center">
+                                {scorer.photoUrl ? (
+                                  <img src={scorer.photoUrl} alt="" className="h-10 w-10 rounded-full object-cover mr-3" />
+                                ) : (
+                                  <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center mr-3">
+                                    <User className="h-5 w-5 text-purple-600" />
+                                  </div>
+                                )}
+                                <span className="font-medium text-gray-900">{scorer.playerName}</span>
                               </div>
-                            )}
-                            <span className="font-medium text-gray-900">{scorer.playerName}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center">
-                            {scorer.teamLogoUrl && (
-                              <img src={scorer.teamLogoUrl} alt="" className="h-6 w-6 rounded-full object-cover mr-2" />
-                            )}
-                            <span className="text-sm text-gray-500">{scorer.teamName}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-center text-gray-500">{scorer.matchesPlayed}</td>
-                        <td className="px-4 py-3 text-center">
-                          <span className="text-lg font-bold text-gray-900">{scorer.goals}</span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-center text-gray-500">{scorer.penaltyGoals}</td>
-                        <td className="px-4 py-3 text-sm text-center text-gray-500">{scorer.assists}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center">
+                                {scorer.teamLogoUrl && (
+                                  <img src={scorer.teamLogoUrl} alt="" className="h-6 w-6 rounded-full object-cover mr-2" />
+                                )}
+                                <span className="text-sm text-gray-500">{scorer.teamName}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-center text-gray-500">{scorer.matchesPlayed}</td>
+                            <td className="px-4 py-3 text-center">
+                              <span className="text-lg font-bold text-gray-900">{scorer.goals}</span>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-center text-gray-500">{scorer.penaltyGoals}</td>
+                            <td className="px-4 py-3 text-sm text-center text-gray-500">{scorer.assists}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {/* Load more section */}
+                  <div ref={loadMoreRef} className="py-4 text-center border-t">
+                    {isFetchingNextPage ? (
+                      <div className="flex items-center justify-center gap-2 text-gray-500">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <span>Cargando más goleadores...</span>
+                      </div>
+                    ) : hasNextPage ? (
+                      <button
+                        onClick={() => fetchNextPage()}
+                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-green-600 bg-green-50 rounded-md hover:bg-green-100 transition-colors"
+                      >
+                        Cargar más goleadores
+                      </button>
+                    ) : (
+                      <span className="text-sm text-gray-400">Has llegado al final de la lista</span>
+                    )}
+                  </div>
+                </>
               ) : (
                 <div className="text-center py-12">
                   <p className="text-gray-500">No hay goleadores registrados en este campeonato</p>

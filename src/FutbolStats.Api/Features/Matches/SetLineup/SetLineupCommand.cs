@@ -80,7 +80,13 @@ public class SetLineupValidator : AbstractValidator<SetLineupCommand>
             .Must(players => players.Count(p => p.IsStarter) == 11)
             .WithMessage("Debe haber exactamente 11 titulares")
             .Must(players => players.Count(p => !p.IsStarter) >= 1)
-            .WithMessage("Debe haber al menos 1 suplente");
+            .WithMessage("Debe haber al menos 1 suplente")
+            .Must(players =>
+            {
+                var jerseyNumbers = players.Select(p => p.JerseyNumber).ToList();
+                return jerseyNumbers.Count == jerseyNumbers.Distinct().Count();
+            })
+            .WithMessage("No puede haber dos jugadores con el mismo número de camiseta en la alineación");
 
         RuleForEach(x => x.Players)
             .ChildRules(player =>

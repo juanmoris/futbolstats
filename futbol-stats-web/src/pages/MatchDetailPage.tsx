@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Clock, Play, Pause, StopCircle, Users, Plus, X, ArrowUpRight, ArrowDownRight, UserCog } from 'lucide-react';
+import { ArrowLeft, Clock, Play, Pause, StopCircle, Users, X, ArrowUpRight, ArrowDownRight, UserCog } from 'lucide-react';
 import { matchesApi } from '@/api/endpoints/matches.api';
 import { playersApi } from '@/api/endpoints/players.api';
 import { coachesApi } from '@/api/endpoints/coaches.api';

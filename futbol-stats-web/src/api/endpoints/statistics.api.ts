@@ -12,9 +12,9 @@ export const statisticsApi = {
     return response.data;
   },
 
-  getTopScorers: async (championshipId: string, limit?: number): Promise<TopScorersResponse> => {
+  getTopScorers: async (championshipId: string, page: number = 1, pageSize: number = 20): Promise<TopScorersResponse> => {
     const response = await apiClient.get(`/statistics/championships/${championshipId}/top-scorers`, {
-      params: { limit },
+      params: { page, pageSize },
     });
     return response.data;
   },

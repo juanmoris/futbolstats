@@ -24,6 +24,9 @@ public class PlayerConfiguration : IEntityTypeConfiguration<Player>
         builder.Property(p => p.PhotoUrl)
             .HasMaxLength(500);
 
+        builder.Property(p => p.BirthDate)
+            .IsRequired();
+
         builder.HasOne(p => p.Team)
             .WithMany(t => t.Players)
             .HasForeignKey(p => p.TeamId)

@@ -24,6 +24,10 @@ export interface TopScorersResponse {
   championshipId: string;
   championshipName: string;
   scorers: Scorer[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  hasNextPage: boolean;
 }
 
 export interface Scorer {

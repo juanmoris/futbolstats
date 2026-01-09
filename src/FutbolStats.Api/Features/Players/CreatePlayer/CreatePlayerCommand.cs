@@ -12,7 +12,7 @@ public record CreatePlayerCommand(
     string LastName,
     int Number,
     PlayerPosition Position,
-    DateOnly? BirthDate,
+    DateOnly BirthDate,
     string? Nationality,
     string? PhotoUrl,
     Guid TeamId
@@ -79,10 +79,20 @@ public class CreatePlayerValidator : AbstractValidator<CreatePlayerCommand>
                     p.IsActive, ct))
             .WithMessage("Ya existe un jugador con este número en el equipo");
 
+        RuleFor(x => x)
+            .MustAsync(async (cmd, ct) =>
+                !await db.Players.AnyAsync(p =>
+                    p.TeamId == cmd.TeamId &&
+                    p.FirstName == cmd.FirstName &&
+                    p.LastName == cmd.LastName &&
+                    p.BirthDate == cmd.BirthDate &&
+                    p.IsActive, ct))
+            .WithMessage("Ya existe un jugador activo con el mismo nombre, apellido y fecha de nacimiento en este equipo");
+
         RuleFor(x => x.BirthDate)
+            .NotEmpty().WithMessage("La fecha de nacimiento es requerida")
             .LessThan(DateOnly.FromDateTime(DateTime.UtcNow))
-            .WithMessage("La fecha de nacimiento debe ser en el pasado")
-            .When(x => x.BirthDate.HasValue);
+            .WithMessage("La fecha de nacimiento debe ser en el pasado");
 
         RuleFor(x => x.Nationality)
             .MaximumLength(100).WithMessage("La nacionalidad no debe exceder 100 caracteres")

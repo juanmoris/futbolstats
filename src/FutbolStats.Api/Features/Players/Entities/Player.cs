@@ -11,7 +11,7 @@ public class Player
     public string LastName { get; set; } = string.Empty;
     public int Number { get; set; }
     public PlayerPosition Position { get; set; }
-    public DateOnly? BirthDate { get; set; }
+    public DateOnly BirthDate { get; set; }
     public string? Nationality { get; set; }
     public string? PhotoUrl { get; set; }
     public Guid TeamId { get; set; }

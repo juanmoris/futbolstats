@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Edit2, Trash2, User, Search, Link2, Unlink2 } from 'lucide-react';
 import { coachesApi } from '@/api/endpoints/coaches.api';
 import { teamsApi } from '@/api/endpoints/teams.api';
-import type { Coach, CreateCoachRequest, UpdateCoachRequest, CoachDetail } from '@/api/types/coach.types';
+import type { Coach, CreateCoachRequest, UpdateCoachRequest } from '@/api/types/coach.types';
 
 export function CoachesPage() {
   const [page, setPage] = useState(1);

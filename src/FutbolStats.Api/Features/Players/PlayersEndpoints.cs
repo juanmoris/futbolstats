@@ -90,7 +90,7 @@ public record UpdatePlayerRequest(
     string LastName,
     int Number,
     PlayerPosition Position,
-    DateOnly? BirthDate,
+    DateOnly BirthDate,
     string? Nationality,
     string? PhotoUrl,
     Guid TeamId,

@@ -50,9 +50,10 @@ public static class StatisticsEndpoints
         group.MapGet("/championships/{id:guid}/top-scorers", async (
             Guid id,
             IMediator mediator,
-            int limit = 20) =>
+            int page = 1,
+            int pageSize = 20) =>
         {
-            var result = await mediator.Send(new GetTopScorersQuery(id, limit));
+            var result = await mediator.Send(new GetTopScorersQuery(id, page, pageSize));
             return Results.Ok(result);
         })
         .WithName("GetTopScorers")

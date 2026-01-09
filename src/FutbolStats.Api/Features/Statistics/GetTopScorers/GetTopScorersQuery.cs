@@ -6,12 +6,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FutbolStats.Api.Features.Statistics.GetTopScorers;
 
-public record GetTopScorersQuery(Guid ChampionshipId, int Limit = 20) : IRequest<TopScorersResponse>;
+public record GetTopScorersQuery(Guid ChampionshipId, int Page = 1, int PageSize = 20) : IRequest<TopScorersResponse>;
 
 public record TopScorersResponse(
     Guid ChampionshipId,
     string ChampionshipName,
-    List<ScorerDto> Scorers
+    List<ScorerDto> Scorers,
+    int Page,
+    int PageSize,
+    int TotalCount,
+    bool HasNextPage
 );
 
 public record ScorerDto(
@@ -76,7 +80,7 @@ public class GetTopScorersQueryHandler : IRequestHandler<GetTopScorersQuery, Top
             .ToDictionaryAsync(x => x.PlayerId, x => x.MatchesPlayed, cancellationToken);
 
         // Group goals by player
-        var scorers = goalEvents
+        var allScorers = goalEvents
             .GroupBy(e => e.PlayerId)
             .Select(g => new
             {
@@ -89,9 +93,16 @@ public class GetTopScorersQueryHandler : IRequestHandler<GetTopScorersQuery, Top
             .OrderByDescending(x => x.Goals)
             .ThenByDescending(x => x.Assists)
             .ThenBy(x => x.MatchesPlayed)
-            .Take(request.Limit)
+            .ToList();
+
+        var totalCount = allScorers.Count;
+        var skip = (request.Page - 1) * request.PageSize;
+
+        var scorers = allScorers
+            .Skip(skip)
+            .Take(request.PageSize)
             .Select((x, index) => new ScorerDto(
-                index + 1,
+                skip + index + 1,
                 x.Player.Id,
                 $"{x.Player.FirstName} {x.Player.LastName}",
                 x.Player.PhotoUrl,
@@ -105,10 +116,16 @@ public class GetTopScorersQueryHandler : IRequestHandler<GetTopScorersQuery, Top
             ))
             .ToList();
 
+        var hasNextPage = skip + scorers.Count < totalCount;
+
         return new TopScorersResponse(
             championship.Id,
             championship.Name,
-            scorers
+            scorers,
+            request.Page,
+            request.PageSize,
+            totalCount,
+            hasNextPage
         );
     }
 }
