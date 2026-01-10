@@ -14,6 +14,13 @@ export function StatisticsPage() {
     queryFn: () => championshipsApi.getAll({ pageSize: 100 }),
   });
 
+  // Establecer el último campeonato por defecto
+  useEffect(() => {
+    if (championships?.items?.length && !selectedChampionship) {
+      setSelectedChampionship(championships.items[0].id);
+    }
+  }, [championships, selectedChampionship]);
+
   const recalculateMutation = useMutation({
     mutationFn: () => championshipsApi.recalculateStandings(selectedChampionship),
     onSuccess: () => {
@@ -93,9 +100,8 @@ export function StatisticsPage() {
           onChange={(e) => setSelectedChampionship(e.target.value)}
           className="block w-full md:w-96 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
         >
-          <option value="">Seleccionar campeonato</option>
           {championships?.items?.map((c) => (
-            <option key={c.id} value={c.id}>{c.name} - {c.season}</option>
+            <option key={c.id} value={c.id}>{c.name} {c.season}</option>
           ))}
         </select>
       </div>
