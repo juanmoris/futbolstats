@@ -8,6 +8,7 @@ export interface Championship {
   endDate: string;
   status: ChampionshipStatus;
   teamsCount: number;
+  maxMatchday: number;
 }
 
 export interface ChampionshipDetail extends Championship {

@@ -19,7 +19,8 @@ public record ChampionshipDto(
     DateOnly StartDate,
     DateOnly EndDate,
     ChampionshipStatus Status,
-    int TeamsCount
+    int TeamsCount,
+    int MaxMatchday
 );
 
 public class GetChampionshipsHandler(FutbolDbContext db)
@@ -51,7 +52,8 @@ public class GetChampionshipsHandler(FutbolDbContext db)
                 c.StartDate,
                 c.EndDate,
                 c.Status,
-                c.Teams.Count
+                c.Teams.Count,
+                c.Matches.Any() ? c.Matches.Max(m => m.Matchday) : 0
             ))
             .ToListAsync(cancellationToken);
 

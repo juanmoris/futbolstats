@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Plus, Play, Pause, StopCircle, Eye, Pencil, Trash2 } from 'lucide-react';
@@ -9,9 +9,8 @@ import type { Match, CreateMatchRequest, UpdateMatchRequest } from '@/api/types/
 import { MatchStatus } from '@/api/types/common.types';
 
 export function MatchesPage() {
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [championshipFilter, setChampionshipFilter] = useState('');
+  const [currentMatchday, setCurrentMatchday] = useState<number | null>(null);
+  const [championshipFilter, setChampionshipFilter] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
@@ -23,14 +22,26 @@ export function MatchesPage() {
     queryFn: () => championshipsApi.getAll({ pageSize: 100 }),
   });
 
+  // Establecer el último campeonato por defecto
+  useEffect(() => {
+    if (championships?.items?.length && !championshipFilter) {
+      const latest = championships.items[0]; // Ordenados DESC por fecha
+      setChampionshipFilter(latest.id);
+      setCurrentMatchday(latest.maxMatchday || 1);
+    }
+  }, [championships, championshipFilter]);
+
+  const selectedChampionship = championships?.items?.find(c => c.id === championshipFilter);
+
   const { data, isLoading } = useQuery({
-    queryKey: ['matches', { page, pageSize, championshipId: championshipFilter, status: statusFilter }],
+    queryKey: ['matches', { championshipId: championshipFilter, matchday: currentMatchday, status: statusFilter }],
     queryFn: () => matchesApi.getAll({
-      page,
-      pageSize,
-      championshipId: championshipFilter || undefined,
+      championshipId: championshipFilter!,
+      matchday: currentMatchday!,
+      pageSize: 100,
       status: statusFilter ? parseInt(statusFilter) as typeof MatchStatus[keyof typeof MatchStatus] : undefined,
     }),
+    enabled: !!championshipFilter && !!currentMatchday,
   });
 
   const createMutation = useMutation({
@@ -125,18 +136,21 @@ export function MatchesPage() {
       {/* Filters */}
       <div className="mb-6 flex gap-4">
         <select
-          value={championshipFilter}
-          onChange={(e) => { setChampionshipFilter(e.target.value); setPage(1); }}
+          value={championshipFilter || ''}
+          onChange={(e) => {
+            const selected = championships?.items?.find(c => c.id === e.target.value);
+            setChampionshipFilter(e.target.value);
+            setCurrentMatchday(selected?.maxMatchday || 1);
+          }}
           className="block w-64 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
         >
-          <option value="">Todos los campeonatos</option>
           {championships?.items?.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
+            <option key={c.id} value={c.id}>{c.name} {c.season}</option>
           ))}
         </select>
         <select
           value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+          onChange={(e) => { setStatusFilter(e.target.value); }}
           className="block w-48 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
         >
           <option value="">Todos los estados</option>
@@ -146,21 +160,25 @@ export function MatchesPage() {
           <option value="3">Finalizado</option>
         </select>
         <select
-          value={pageSize}
-          onChange={(e) => { setPageSize(parseInt(e.target.value)); setPage(1); }}
-          className="block w-24 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+          value={currentMatchday || ''}
+          onChange={(e) => setCurrentMatchday(parseInt(e.target.value))}
+          className="block w-36 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
         >
-          <option value={10}>10</option>
-          <option value={20}>20</option>
-          <option value={30}>30</option>
-          <option value={50}>50</option>
-          <option value={100}>100</option>
+          {selectedChampionship && Array.from({ length: selectedChampionship.maxMatchday }, (_, i) => i + 1)
+            .sort((a, b) => b - a)
+            .map((matchday) => (
+              <option key={matchday} value={matchday}>Jornada {matchday}</option>
+            ))}
         </select>
       </div>
 
       {isLoading ? (
         <div className="text-center py-12">
           <p className="text-gray-500">Cargando...</p>
+        </div>
+      ) : !data?.items?.length ? (
+        <div className="text-center py-12 bg-white rounded-lg shadow">
+          <p className="text-gray-500">No se encontraron partidos con los filtros seleccionados</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -179,7 +197,9 @@ export function MatchesPage() {
               return acc;
             }, {} as Record<string, { championshipName: string; matchday: number; matches: Match[] }>);
 
-            return Object.values(matchesByMatchday || {}).map((group) => (
+            return Object.values(matchesByMatchday || {})
+              .sort((a, b) => b.matchday - a.matchday)
+              .map((group) => (
               <div key={`${group.championshipName}-${group.matchday}`}>
                 {/* Encabezado de jornada */}
                 <div className="bg-gray-800 text-white px-4 py-2 rounded-t-lg flex items-center justify-between">
@@ -308,25 +328,25 @@ export function MatchesPage() {
             ));
           })()}
 
-          {data && data.totalPages > 1 && (
+          {selectedChampionship && selectedChampionship.maxMatchday > 0 && (
             <div className="flex items-center justify-between mt-4">
               <p className="text-sm text-gray-700">
-                Mostrando {(page - 1) * pageSize + 1} a {Math.min(page * pageSize, data.totalCount)} de {data.totalCount}
+                Jornada {currentMatchday} de {selectedChampionship.maxMatchday}
               </p>
               <nav className="flex gap-2">
                 <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={!data.hasPreviousPage}
+                  onClick={() => setCurrentMatchday(m => Math.max(1, (m || 1) - 1))}
+                  disabled={currentMatchday === 1}
                   className="px-3 py-1 border rounded-md text-sm disabled:opacity-50"
                 >
-                  Anterior
+                  Jornada Anterior
                 </button>
                 <button
-                  onClick={() => setPage(p => p + 1)}
-                  disabled={!data.hasNextPage}
+                  onClick={() => setCurrentMatchday(m => Math.min(selectedChampionship.maxMatchday, (m || 1) + 1))}
+                  disabled={currentMatchday === selectedChampionship.maxMatchday}
                   className="px-3 py-1 border rounded-md text-sm disabled:opacity-50"
                 >
-                  Siguiente
+                  Jornada Siguiente
                 </button>
               </nav>
             </div>
