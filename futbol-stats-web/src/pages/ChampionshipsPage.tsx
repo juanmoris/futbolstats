@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Edit2, Trash2, Trophy, Users, X } from 'lucide-react';
 import { championshipsApi } from '@/api/endpoints/championships.api';
 import { teamsApi } from '@/api/endpoints/teams.api';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Championship, CreateChampionshipRequest, UpdateChampionshipRequest } from '@/api/types/championship.types';
 import { ChampionshipStatus } from '@/api/types/common.types';
 
@@ -12,6 +13,7 @@ export function ChampionshipsPage() {
   const [editingChampionship, setEditingChampionship] = useState<Championship | null>(null);
   const [teamsModalChampionship, setTeamsModalChampionship] = useState<Championship | null>(null);
   const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
 
   const { data, isLoading } = useQuery({
     queryKey: ['championships', { page, pageSize: 10 }],
@@ -91,13 +93,15 @@ export function ChampionshipsPage() {
             Gestiona los campeonatos de futbol
           </p>
         </div>
-        <button
-          onClick={() => { setEditingChampionship(null); createMutation.reset(); setIsModalOpen(true); }}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Nuevo Campeonato
-        </button>
+        {isAuthenticated && (
+          <button
+            onClick={() => { setEditingChampionship(null); createMutation.reset(); setIsModalOpen(true); }}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Campeonato
+          </button>
+        )}
       </div>
 
       {isLoading ? (
@@ -124,9 +128,11 @@ export function ChampionshipsPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Estado
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Acciones
-                </th>
+                {isAuthenticated && (
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Acciones
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -152,29 +158,31 @@ export function ChampionshipsPage() {
                       {getStatusLabel(championship.status)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => setTeamsModalChampionship(championship)}
-                      className="text-blue-600 hover:text-blue-900 mr-4"
-                      title="Gestionar equipos"
-                    >
-                      <Users className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => { setEditingChampionship(championship); createMutation.reset(); setIsModalOpen(true); }}
-                      className="text-green-600 hover:text-green-900 mr-4"
-                      title="Editar"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(championship.id)}
-                      className="text-red-600 hover:text-red-900"
-                      title="Eliminar"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </td>
+                  {isAuthenticated && (
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button
+                        onClick={() => setTeamsModalChampionship(championship)}
+                        className="text-blue-600 hover:text-blue-900 mr-4"
+                        title="Gestionar equipos"
+                      >
+                        <Users className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => { setEditingChampionship(championship); createMutation.reset(); setIsModalOpen(true); }}
+                        className="text-green-600 hover:text-green-900 mr-4"
+                        title="Editar"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(championship.id)}
+                        className="text-red-600 hover:text-red-900"
+                        title="Eliminar"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

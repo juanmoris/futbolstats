@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Edit2, Trash2, User, Search } from 'lucide-react';
 import { playersApi } from '@/api/endpoints/players.api';
 import { teamsApi } from '@/api/endpoints/teams.api';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Player, CreatePlayerRequest } from '@/api/types/player.types';
 import { PlayerPosition } from '@/api/types/common.types';
 
@@ -15,6 +16,7 @@ export function PlayersPage() {
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
 
   const { data: teams } = useQuery({
     queryKey: ['teams', 'all'],
@@ -108,13 +110,15 @@ export function PlayersPage() {
             Gestiona los jugadores de los equipos
           </p>
         </div>
-        <button
-          onClick={() => handleOpenModal(null)}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Nuevo Jugador
-        </button>
+        {isAuthenticated && (
+          <button
+            onClick={() => handleOpenModal(null)}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Jugador
+          </button>
+        )}
       </div>
 
       {/* Filters */}
@@ -176,9 +180,11 @@ export function PlayersPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Estado
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Acciones
-                </th>
+                {isAuthenticated && (
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Acciones
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -217,20 +223,22 @@ export function PlayersPage() {
                       {player.isActive ? 'Activo' : 'Inactivo'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => handleOpenModal(player)}
-                      className="text-purple-600 hover:text-purple-900 mr-4"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(player.id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </td>
+                  {isAuthenticated && (
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button
+                        onClick={() => handleOpenModal(player)}
+                        className="text-purple-600 hover:text-purple-900 mr-4"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(player.id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Edit2, Trash2, Users, Search } from 'lucide-react';
 import { teamsApi } from '@/api/endpoints/teams.api';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Team, CreateTeamRequest } from '@/api/types/team.types';
 
 export function TeamsPage() {
@@ -12,6 +13,7 @@ export function TeamsPage() {
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
 
   const { data, isLoading } = useQuery({
     queryKey: ['teams', { page, pageSize, search }],
@@ -75,13 +77,15 @@ export function TeamsPage() {
             Gestiona los equipos de futbol
           </p>
         </div>
-        <button
-          onClick={() => handleOpenModal(null)}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Nuevo Equipo
-        </button>
+        {isAuthenticated && (
+          <button
+            onClick={() => handleOpenModal(null)}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Equipo
+          </button>
+        )}
       </div>
 
       {/* Search */}
@@ -133,9 +137,11 @@ export function TeamsPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Jugadores
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Acciones
-                </th>
+                {isAuthenticated && (
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Acciones
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -165,20 +171,22 @@ export function TeamsPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {team.playersCount} jugadores
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => handleOpenModal(team)}
-                      className="text-blue-600 hover:text-blue-900 mr-4"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(team.id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </td>
+                  {isAuthenticated && (
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button
+                        onClick={() => handleOpenModal(team)}
+                        className="text-blue-600 hover:text-blue-900 mr-4"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(team.id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

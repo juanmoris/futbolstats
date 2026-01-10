@@ -5,6 +5,7 @@ import { Plus, Play, Pause, StopCircle, Eye, Pencil, Trash2 } from 'lucide-react
 import { matchesApi } from '@/api/endpoints/matches.api';
 import { championshipsApi } from '@/api/endpoints/championships.api';
 import { teamsApi } from '@/api/endpoints/teams.api';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Match, CreateMatchRequest, UpdateMatchRequest } from '@/api/types/match.types';
 import { MatchStatus } from '@/api/types/common.types';
 
@@ -16,6 +17,7 @@ export function MatchesPage() {
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
   const [deletingMatch, setDeletingMatch] = useState<Match | null>(null);
   const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
 
   const { data: championships } = useQuery({
     queryKey: ['championships', 'all'],
@@ -124,13 +126,15 @@ export function MatchesPage() {
             Gestiona los partidos y registra eventos en vivo
           </p>
         </div>
-        <button
-          onClick={() => { createMutation.reset(); setIsModalOpen(true); }}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Nuevo Partido
-        </button>
+        {isAuthenticated && (
+          <button
+            onClick={() => { createMutation.reset(); setIsModalOpen(true); }}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Partido
+          </button>
+        )}
       </div>
 
       {/* Filters */}
@@ -270,54 +274,58 @@ export function MatchesPage() {
                             <Eye className="h-5 w-5" />
                           </Link>
 
-                          {(match.status === MatchStatus.Scheduled || match.status === MatchStatus.Finished) && (
-                            <button
-                              onClick={() => setEditingMatch(match)}
-                              className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-md"
-                              title="Editar partido"
-                            >
-                              <Pencil className="h-5 w-5" />
-                            </button>
-                          )}
+                          {isAuthenticated && (
+                            <>
+                              {(match.status === MatchStatus.Scheduled || match.status === MatchStatus.Finished) && (
+                                <button
+                                  onClick={() => setEditingMatch(match)}
+                                  className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-md"
+                                  title="Editar partido"
+                                >
+                                  <Pencil className="h-5 w-5" />
+                                </button>
+                              )}
 
-                          {match.status === MatchStatus.Scheduled && (
-                            <button
-                              onClick={() => startMutation.mutate(match.id)}
-                              className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-md"
-                              title="Iniciar partido"
-                            >
-                              <Play className="h-5 w-5" />
-                            </button>
-                          )}
+                              {match.status === MatchStatus.Scheduled && (
+                                <button
+                                  onClick={() => startMutation.mutate(match.id)}
+                                  className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-md"
+                                  title="Iniciar partido"
+                                >
+                                  <Play className="h-5 w-5" />
+                                </button>
+                              )}
 
-                          {match.status === MatchStatus.Live && (
-                            <button
-                              onClick={() => halftimeMutation.mutate(match.id)}
-                              className="p-2 text-yellow-600 hover:text-yellow-900 hover:bg-yellow-50 rounded-md"
-                              title="Medio tiempo"
-                            >
-                              <Pause className="h-5 w-5" />
-                            </button>
-                          )}
+                              {match.status === MatchStatus.Live && (
+                                <button
+                                  onClick={() => halftimeMutation.mutate(match.id)}
+                                  className="p-2 text-yellow-600 hover:text-yellow-900 hover:bg-yellow-50 rounded-md"
+                                  title="Medio tiempo"
+                                >
+                                  <Pause className="h-5 w-5" />
+                                </button>
+                              )}
 
-                          {(match.status === MatchStatus.Live || match.status === MatchStatus.HalfTime) && (
-                            <button
-                              onClick={() => endMutation.mutate(match.id)}
-                              className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-md"
-                              title="Finalizar partido"
-                            >
-                              <StopCircle className="h-5 w-5" />
-                            </button>
-                          )}
+                              {(match.status === MatchStatus.Live || match.status === MatchStatus.HalfTime) && (
+                                <button
+                                  onClick={() => endMutation.mutate(match.id)}
+                                  className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-md"
+                                  title="Finalizar partido"
+                                >
+                                  <StopCircle className="h-5 w-5" />
+                                </button>
+                              )}
 
-                          {(match.status === MatchStatus.Scheduled || match.status === MatchStatus.Finished) && (
-                            <button
-                              onClick={() => setDeletingMatch(match)}
-                              className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-md"
-                              title="Eliminar partido"
-                            >
-                              <Trash2 className="h-5 w-5" />
-                            </button>
+                              {(match.status === MatchStatus.Scheduled || match.status === MatchStatus.Finished) && (
+                                <button
+                                  onClick={() => setDeletingMatch(match)}
+                                  className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-md"
+                                  title="Eliminar partido"
+                                >
+                                  <Trash2 className="h-5 w-5" />
+                                </button>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>

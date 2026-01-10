@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Edit2, Trash2, User, Search, Link2, Unlink2 } from 'lucide-react';
 import { coachesApi } from '@/api/endpoints/coaches.api';
 import { teamsApi } from '@/api/endpoints/teams.api';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Coach, CreateCoachRequest, UpdateCoachRequest } from '@/api/types/coach.types';
 
 export function CoachesPage() {
@@ -13,6 +14,7 @@ export function CoachesPage() {
   const [assigningCoach, setAssigningCoach] = useState<Coach | null>(null);
   const [viewingCoach, setViewingCoach] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
 
   const { data, isLoading } = useQuery({
     queryKey: ['coaches', { page, pageSize: 10, search }],
@@ -69,13 +71,15 @@ export function CoachesPage() {
             Gestiona los entrenadores y sus asignaciones a equipos
           </p>
         </div>
-        <button
-          onClick={() => { setEditingCoach(null); setIsModalOpen(true); }}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Nuevo Entrenador
-        </button>
+        {isAuthenticated && (
+          <button
+            onClick={() => { setEditingCoach(null); setIsModalOpen(true); }}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Entrenador
+          </button>
+        )}
       </div>
 
       {/* Search */}
@@ -110,9 +114,11 @@ export function CoachesPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Equipo Actual
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Acciones
-                </th>
+                {isAuthenticated && (
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Acciones
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -154,27 +160,29 @@ export function CoachesPage() {
                       <span className="text-gray-400">Sin equipo</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => setAssigningCoach(coach)}
-                      className="text-green-600 hover:text-green-900 mr-4"
-                      title={coach.currentTeamId ? 'Cambiar equipo' : 'Asignar a equipo'}
-                    >
-                      {coach.currentTeamId ? <Unlink2 className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}
-                    </button>
-                    <button
-                      onClick={() => { setEditingCoach(coach); setIsModalOpen(true); }}
-                      className="text-blue-600 hover:text-blue-900 mr-4"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(coach.id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </td>
+                  {isAuthenticated && (
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button
+                        onClick={() => setAssigningCoach(coach)}
+                        className="text-green-600 hover:text-green-900 mr-4"
+                        title={coach.currentTeamId ? 'Cambiar equipo' : 'Asignar a equipo'}
+                      >
+                        {coach.currentTeamId ? <Unlink2 className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}
+                      </button>
+                      <button
+                        onClick={() => { setEditingCoach(coach); setIsModalOpen(true); }}
+                        className="text-blue-600 hover:text-blue-900 mr-4"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(coach.id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
