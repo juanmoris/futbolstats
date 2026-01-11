@@ -48,8 +48,10 @@ export function MatchesPage() {
 
   const createMutation = useMutation({
     mutationFn: matchesApi.create,
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['matches'] });
+      queryClient.invalidateQueries({ queryKey: ['championships'] });
+      setCurrentMatchday(variables.matchday);
       setIsModalOpen(false);
     },
   });
@@ -473,7 +475,7 @@ function CreateMatchModal({
               >
                 <option value="">Seleccionar</option>
                 {championships.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+                  <option key={c.id} value={c.id}>{c.name} {c.season}</option>
                 ))}
               </select>
             </div>
