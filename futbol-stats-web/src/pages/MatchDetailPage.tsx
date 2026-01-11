@@ -17,6 +17,18 @@ import type {
 import type { Player } from '@/api/types/player.types';
 import type { MatchEvent } from '@/api/types/match.types';
 
+function findAssistForGoal(events: MatchEvent[], goalEvent: MatchEvent): MatchEvent | undefined {
+  if (goalEvent.eventType !== EventType.Goal && goalEvent.eventType !== EventType.PenaltyScored) {
+    return undefined;
+  }
+  return events.find(e =>
+    e.eventType === EventType.Assist &&
+    e.minute === goalEvent.minute &&
+    e.extraMinute === goalEvent.extraMinute &&
+    e.teamId === goalEvent.teamId
+  );
+}
+
 function formatMinute(minute: number, extraMinute: number | null): string {
   return extraMinute ? `${minute}+${extraMinute}'` : `${minute}'`;
 }
@@ -28,6 +40,7 @@ function PlayerEventIcons({ playerId, events }: { playerId: string; events: Matc
     e.eventType === EventType.Goal || e.eventType === EventType.PenaltyScored
   );
   const ownGoals = playerEvents.filter(e => e.eventType === EventType.OwnGoal);
+  const assists = playerEvents.filter(e => e.eventType === EventType.Assist);
   const yellowCard = playerEvents.find(e => e.eventType === EventType.YellowCard);
   const redCard = playerEvents.find(e =>
     e.eventType === EventType.RedCard || e.eventType === EventType.SecondYellow
@@ -53,6 +66,15 @@ function PlayerEventIcons({ playerId, events }: { playerId: string; events: Matc
           title={`Autogol ${formatMinute(og.minute, og.extraMinute)}`}
         >
           ⚽
+        </span>
+      ))}
+      {assists.map((assist, i) => (
+        <span
+          key={i}
+          className="text-xs cursor-default"
+          title={`Asistencia ${formatMinute(assist.minute, assist.extraMinute)}`}
+        >
+          👟
         </span>
       ))}
       {yellowCard && (
@@ -163,7 +185,7 @@ export function MatchDetailPage() {
       case EventType.SubstitutionOut:
         return '🔽';
       case EventType.Assist:
-        return '🅰️';
+        return '👟';
       default:
         return '•';
     }
@@ -372,38 +394,48 @@ export function MatchDetailPage() {
             {match.events
               .filter(e => e.eventType !== EventType.Assist)
               .sort((a, b) => b.minute - a.minute || (b.extraMinute || 0) - (a.extraMinute || 0))
-              .map((event) => (
-                <div
-                  key={event.id}
-                  className={`flex items-center gap-4 p-3 rounded-lg ${
-                    event.teamId === match.homeTeamId ? 'bg-blue-50' : 'bg-gray-50'
-                  }`}
-                >
-                  <div className="w-12 text-center">
-                    <span className="text-sm font-medium text-gray-900">
-                      {event.minute}'
-                      {event.extraMinute && `+${event.extraMinute}`}
-                    </span>
+              .map((event) => {
+                const assist = findAssistForGoal(match.events || [], event);
+                return (
+                  <div
+                    key={event.id}
+                    className={`flex items-center gap-4 p-3 rounded-lg ${
+                      event.teamId === match.homeTeamId ? 'bg-blue-50' : 'bg-gray-50'
+                    }`}
+                  >
+                    <div className="w-12 text-center">
+                      <span className="text-sm font-medium text-gray-900">
+                        {event.minute}'
+                        {event.extraMinute && `+${event.extraMinute}`}
+                      </span>
+                    </div>
+                    <div className="text-2xl">{getEventIcon(event.eventType)}</div>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">{event.playerName}</p>
+                      <p className="text-sm text-gray-500">{getEventLabel(event.eventType)}</p>
+                      {assist && (
+                        <p className="text-sm text-gray-500">
+                          <span className="inline-flex items-center gap-1">
+                            👟 {assist.playerName}
+                          </span>
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {event.teamId === match.homeTeamId ? match.homeTeamName : match.awayTeamName}
+                    </div>
+                    {canRecordEvents && (
+                      <button
+                        onClick={() => deleteEventMutation.mutate(event.id)}
+                        className="text-red-500 hover:text-red-700"
+                        title="Eliminar evento"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
-                  <div className="text-2xl">{getEventIcon(event.eventType)}</div>
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">{event.playerName}</p>
-                    <p className="text-sm text-gray-500">{getEventLabel(event.eventType)}</p>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {event.teamId === match.homeTeamId ? match.homeTeamName : match.awayTeamName}
-                  </div>
-                  {canRecordEvents && (
-                    <button
-                      onClick={() => deleteEventMutation.mutate(event.id)}
-                      className="text-red-500 hover:text-red-700"
-                      title="Eliminar evento"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-              ))}
+                );
+              })}
           </div>
         ) : (
           <p className="text-gray-500 text-center py-4">No hay eventos registrados</p>
