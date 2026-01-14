@@ -6,7 +6,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FutbolStats.Api.Features.Statistics.GetTopScorers;
 
-public record GetTopScorersQuery(Guid ChampionshipId, int Page = 1, int PageSize = 20) : IRequest<TopScorersResponse>;
+public record GetTopScorersQuery(
+    Guid ChampionshipId,
+    int Page = 1,
+    int PageSize = 20,
+    Guid? TeamId = null,
+    string? Search = null
+) : IRequest<TopScorersResponse>;
 
 public record TopScorersResponse(
     Guid ChampionshipId,
@@ -94,6 +100,22 @@ public class GetTopScorersQueryHandler : IRequestHandler<GetTopScorersQuery, Top
             .ThenByDescending(x => x.Assists)
             .ThenBy(x => x.MatchesPlayed)
             .ToList();
+
+        // Filtrar por equipo
+        if (request.TeamId.HasValue)
+        {
+            allScorers = allScorers.Where(x => x.Player.TeamId == request.TeamId.Value).ToList();
+        }
+
+        // Filtrar por nombre de jugador
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var searchLower = request.Search.ToLower();
+            allScorers = allScorers.Where(x =>
+                x.Player.FirstName.ToLower().Contains(searchLower) ||
+                x.Player.LastName.ToLower().Contains(searchLower)
+            ).ToList();
+        }
 
         var totalCount = allScorers.Count;
         var skip = (request.Page - 1) * request.PageSize;

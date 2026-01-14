@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Trophy, Users, User, Target, RefreshCw, Loader2 } from 'lucide-react';
+import { Trophy, Users, User, Target, RefreshCw, Loader2, Search } from 'lucide-react';
 import { championshipsApi } from '@/api/endpoints/championships.api';
 import { statisticsApi } from '@/api/endpoints/statistics.api';
 
 export function StatisticsPage() {
   const [selectedChampionship, setSelectedChampionship] = useState('');
   const [activeTab, setActiveTab] = useState<'standings' | 'scorers'>('standings');
+  const [scorerSearch, setScorerSearch] = useState('');
+  const [scorerTeamFilter, setScorerTeamFilter] = useState('');
   const queryClient = useQueryClient();
 
   const { data: championships } = useQuery({
@@ -20,6 +22,12 @@ export function StatisticsPage() {
       setSelectedChampionship(championships.items[0].id);
     }
   }, [championships, selectedChampionship]);
+
+  // Resetear filtros al cambiar de campeonato
+  useEffect(() => {
+    setScorerSearch('');
+    setScorerTeamFilter('');
+  }, [selectedChampionship]);
 
   const recalculateMutation = useMutation({
     mutationFn: () => championshipsApi.recalculateStandings(selectedChampionship),
@@ -43,8 +51,14 @@ export function StatisticsPage() {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ['topScorers', selectedChampionship],
-    queryFn: ({ pageParam = 1 }) => statisticsApi.getTopScorers(selectedChampionship, pageParam, 20),
+    queryKey: ['topScorers', selectedChampionship, scorerSearch, scorerTeamFilter],
+    queryFn: ({ pageParam = 1 }) => statisticsApi.getTopScorers(
+      selectedChampionship,
+      pageParam,
+      20,
+      scorerTeamFilter || undefined,
+      scorerSearch || undefined
+    ),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => lastPage.hasNextPage ? lastPage.page + 1 : undefined,
     enabled: !!selectedChampionship,
@@ -219,6 +233,31 @@ export function StatisticsPage() {
           {/* Top Scorers */}
           {activeTab === 'scorers' && (
             <div className="bg-white rounded-lg shadow">
+              {/* Filtros de goleadores */}
+              <div className="px-4 py-4 border-b">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Buscar jugador..."
+                      value={scorerSearch}
+                      onChange={(e) => setScorerSearch(e.target.value)}
+                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                    />
+                  </div>
+                  <select
+                    value={scorerTeamFilter}
+                    onChange={(e) => setScorerTeamFilter(e.target.value)}
+                    className="block w-full sm:w-56 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                  >
+                    <option value="">Todos los equipos</option>
+                    {standings?.standings?.map((team) => (
+                      <option key={team.teamId} value={team.teamId}>{team.teamName}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
               {loadingScorers ? (
                 <div className="text-center py-12">
                   <p className="text-gray-500">Cargando...</p>

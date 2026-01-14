@@ -51,9 +51,11 @@ public static class StatisticsEndpoints
             Guid id,
             IMediator mediator,
             int page = 1,
-            int pageSize = 20) =>
+            int pageSize = 20,
+            Guid? teamId = null,
+            string? search = null) =>
         {
-            var result = await mediator.Send(new GetTopScorersQuery(id, page, pageSize));
+            var result = await mediator.Send(new GetTopScorersQuery(id, page, pageSize, teamId, search));
             return Results.Ok(result);
         })
         .WithName("GetTopScorers")
