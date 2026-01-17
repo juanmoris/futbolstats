@@ -398,8 +398,6 @@ function PlayerModal({
                   type="number"
                   value={number}
                   onChange={(e) => setNumber(e.target.value)}
-                  min={1}
-                  max={99}
                   placeholder="-"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm border px-3 py-2"
                 />
