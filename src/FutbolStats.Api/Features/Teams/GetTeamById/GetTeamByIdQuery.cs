@@ -24,7 +24,7 @@ public record TeamPlayerDto(
     Guid Id,
     string FirstName,
     string LastName,
-    int Number,
+    int? Number,
     PlayerPosition Position,
     string? Nationality,
     bool IsActive

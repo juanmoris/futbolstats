@@ -9,7 +9,7 @@ public class Player
     public Guid Id { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
-    public int Number { get; set; }
+    public int? Number { get; set; }
     public PlayerPosition Position { get; set; }
     public DateOnly BirthDate { get; set; }
     public string? Nationality { get; set; }

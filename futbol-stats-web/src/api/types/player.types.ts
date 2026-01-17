@@ -5,7 +5,7 @@ export interface Player {
   firstName: string;
   lastName: string;
   fullName: string;
-  number: number;
+  number: number | null;
   position: PlayerPosition;
   birthDate: string | null;
   nationality: string | null;
@@ -33,7 +33,7 @@ export interface PlayerStats {
 export interface CreatePlayerRequest {
   firstName: string;
   lastName: string;
-  number: number;
+  number: number | null;
   position: PlayerPosition;
   birthDate?: string;
   nationality?: string;

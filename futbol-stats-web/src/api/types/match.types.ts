@@ -43,7 +43,7 @@ export interface MatchEvent {
 export interface LineupPlayer {
   playerId: string;
   playerName: string;
-  jerseyNumber: number;
+  jerseyNumber: number | null;
   position: string;
   isStarter: boolean;
 }
@@ -99,5 +99,5 @@ export interface LineupPlayerRequest {
   playerId: string;
   isStarter: boolean;
   position?: string;
-  jerseyNumber: number;
+  jerseyNumber: number | null;
 }

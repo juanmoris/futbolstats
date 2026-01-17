@@ -12,7 +12,7 @@ public record MatchEventDto(
     Guid Id,
     Guid PlayerId,
     string PlayerName,
-    int PlayerNumber,
+    int? PlayerNumber,
     Guid? SecondPlayerId,
     string? SecondPlayerName,
     Guid TeamId,

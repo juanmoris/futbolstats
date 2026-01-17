@@ -404,7 +404,7 @@ function CreateMatchModal({
   isLoading,
   error,
 }: {
-  championships: { id: string; name: string }[];
+  championships: { id: string; name: string; season: string }[];
   onClose: () => void;
   onSave: (data: CreateMatchRequest) => void;
   isLoading: boolean;

@@ -214,7 +214,7 @@ export function PlayersPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    #{player.number}
+                    {player.number !== null ? `#${player.number}` : '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -330,7 +330,7 @@ function PlayerModal({
     onSave({
       firstName,
       lastName,
-      number: parseInt(number),
+      number: number ? parseInt(number) : null,
       position: parseInt(position) as typeof PlayerPosition[keyof typeof PlayerPosition],
       teamId,
       nationality: nationality || undefined,
@@ -393,14 +393,14 @@ function PlayerModal({
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Numero</label>
+                <label className="block text-sm font-medium text-gray-700">Numero (opcional)</label>
                 <input
                   type="number"
                   value={number}
                   onChange={(e) => setNumber(e.target.value)}
-                  required
                   min={1}
                   max={99}
+                  placeholder="-"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm border px-3 py-2"
                 />
               </div>

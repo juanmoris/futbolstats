@@ -20,7 +20,7 @@ public record PlayerDto(
     string FirstName,
     string LastName,
     string FullName,
-    int Number,
+    int? Number,
     PlayerPosition Position,
     DateOnly? BirthDate,
     string? Nationality,

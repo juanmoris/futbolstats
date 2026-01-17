@@ -10,7 +10,7 @@ namespace FutbolStats.Api.Features.Players.CreatePlayer;
 public record CreatePlayerCommand(
     string FirstName,
     string LastName,
-    int Number,
+    int? Number,
     PlayerPosition Position,
     DateOnly BirthDate,
     string? Nationality,
@@ -18,7 +18,7 @@ public record CreatePlayerCommand(
     Guid TeamId
 ) : IRequest<CreatePlayerResponse>;
 
-public record CreatePlayerResponse(Guid Id, string FullName, int Number, Guid TeamId);
+public record CreatePlayerResponse(Guid Id, string FullName, int? Number, Guid TeamId);
 
 public class CreatePlayerHandler(FutbolDbContext db)
     : IRequestHandler<CreatePlayerCommand, CreatePlayerResponse>
@@ -27,6 +27,21 @@ public class CreatePlayerHandler(FutbolDbContext db)
         CreatePlayerCommand request,
         CancellationToken cancellationToken)
     {
+        // Si se asigna un número, quitar ese número al jugador que lo tenía
+        if (request.Number.HasValue)
+        {
+            var existingPlayer = await db.Players
+                .FirstOrDefaultAsync(p =>
+                    p.TeamId == request.TeamId &&
+                    p.Number == request.Number &&
+                    p.IsActive, cancellationToken);
+
+            if (existingPlayer != null)
+            {
+                existingPlayer.Number = null;
+            }
+        }
+
         var player = new Player
         {
             Id = Guid.NewGuid(),
@@ -61,7 +76,8 @@ public class CreatePlayerValidator : AbstractValidator<CreatePlayerCommand>
             .MaximumLength(100).WithMessage("El apellido no debe exceder 100 caracteres");
 
         RuleFor(x => x.Number)
-            .InclusiveBetween(1, 99).WithMessage("El número debe estar entre 1 y 99");
+            .InclusiveBetween(1, 99).WithMessage("El número debe estar entre 1 y 99")
+            .When(x => x.Number.HasValue);
 
         RuleFor(x => x.Position)
             .IsInEnum().WithMessage("Posición inválida");
@@ -70,14 +86,6 @@ public class CreatePlayerValidator : AbstractValidator<CreatePlayerCommand>
             .NotEmpty().WithMessage("El equipo es requerido")
             .MustAsync(async (teamId, ct) => await db.Teams.AnyAsync(t => t.Id == teamId, ct))
             .WithMessage("El equipo no existe");
-
-        RuleFor(x => x)
-            .MustAsync(async (cmd, ct) =>
-                !await db.Players.AnyAsync(p =>
-                    p.TeamId == cmd.TeamId &&
-                    p.Number == cmd.Number &&
-                    p.IsActive, ct))
-            .WithMessage("Ya existe un jugador con este número en el equipo");
 
         RuleFor(x => x)
             .MustAsync(async (cmd, ct) =>
