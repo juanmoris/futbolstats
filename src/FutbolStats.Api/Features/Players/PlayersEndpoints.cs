@@ -88,7 +88,7 @@ public static class PlayersEndpoints
 public record UpdatePlayerRequest(
     string FirstName,
     string LastName,
-    int Number,
+    int? Number,
     PlayerPosition Position,
     DateOnly BirthDate,
     string? Nationality,
