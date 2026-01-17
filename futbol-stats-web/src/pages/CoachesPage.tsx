@@ -8,6 +8,7 @@ import type { Coach, CreateCoachRequest, UpdateCoachRequest } from '@/api/types/
 
 export function CoachesPage() {
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCoach, setEditingCoach] = useState<Coach | null>(null);
@@ -17,8 +18,8 @@ export function CoachesPage() {
   const { isAuthenticated } = useAuth();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['coaches', { page, pageSize: 10, search }],
-    queryFn: () => coachesApi.getAll({ page, pageSize: 10, search: search || undefined }),
+    queryKey: ['coaches', { page, pageSize, search }],
+    queryFn: () => coachesApi.getAll({ page, pageSize, search: search || undefined }),
   });
 
   const createMutation = useMutation({
@@ -82,9 +83,9 @@ export function CoachesPage() {
         )}
       </div>
 
-      {/* Search */}
-      <div className="mb-6">
-        <div className="relative">
+      {/* Search and Page Size */}
+      <div className="mb-6 flex gap-4">
+        <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
           <input
             type="text"
@@ -94,6 +95,17 @@ export function CoachesPage() {
             className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           />
         </div>
+        <select
+          value={pageSize}
+          onChange={(e) => { setPageSize(parseInt(e.target.value)); setPage(1); }}
+          className="block w-24 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+        >
+          <option value={10}>10</option>
+          <option value={20}>20</option>
+          <option value={30}>30</option>
+          <option value={50}>50</option>
+          <option value={100}>100</option>
+        </select>
       </div>
 
       {isLoading ? (
@@ -191,8 +203,8 @@ export function CoachesPage() {
           {data && data.totalPages > 1 && (
             <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200">
               <p className="text-sm text-gray-700">
-                Mostrando <span className="font-medium">{(page - 1) * 10 + 1}</span> a{' '}
-                <span className="font-medium">{Math.min(page * 10, data.totalCount)}</span> de{' '}
+                Mostrando <span className="font-medium">{(page - 1) * pageSize + 1}</span> a{' '}
+                <span className="font-medium">{Math.min(page * pageSize, data.totalCount)}</span> de{' '}
                 <span className="font-medium">{data.totalCount}</span> resultados
               </p>
               <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">

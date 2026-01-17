@@ -48,7 +48,8 @@ public class GetCoachesHandler(FutbolDbContext db)
         var pagination = new PaginationParams(request.Page, request.PageSize);
 
         var items = await query
-            .OrderBy(c => c.LastName)
+            .OrderByDescending(c => c.TeamAssignments.Any(a => a.EndDate == null))
+            .ThenBy(c => c.LastName)
             .ThenBy(c => c.FirstName)
             .Skip(pagination.Skip)
             .Take(pagination.PageSize)
