@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Clock, Play, Pause, StopCircle, Users, X, ArrowUpRight, ArrowDownRight, UserCog } from 'lucide-react';
+import { ArrowLeft, Clock, Play, Pause, StopCircle, Users, X, ArrowUpRight, ArrowDownRight, UserCog, Shield } from 'lucide-react';
 import { matchesApi } from '@/api/endpoints/matches.api';
 import { playersApi } from '@/api/endpoints/players.api';
 import { coachesApi } from '@/api/endpoints/coaches.api';
@@ -269,8 +269,12 @@ export function MatchDetailPage() {
                 <p className="text-sm text-gray-500">DT: {match.homeCoachName}</p>
               )}
             </div>
-            {match.homeTeamLogo && (
-              <img src={match.homeTeamLogo} alt="" className="h-16 w-16 rounded-full object-cover" />
+            {match.homeTeamLogo ? (
+              <img src={match.homeTeamLogo} alt={match.homeTeamName} className="h-16 w-16 rounded-full object-cover" />
+            ) : (
+              <div className="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center">
+                <Shield className="h-8 w-8 text-blue-600" />
+              </div>
             )}
           </div>
 
@@ -293,8 +297,12 @@ export function MatchDetailPage() {
           </div>
 
           <div className="flex items-center gap-4 flex-1">
-            {match.awayTeamLogo && (
-              <img src={match.awayTeamLogo} alt="" className="h-16 w-16 rounded-full object-cover" />
+            {match.awayTeamLogo ? (
+              <img src={match.awayTeamLogo} alt={match.awayTeamName} className="h-16 w-16 rounded-full object-cover" />
+            ) : (
+              <div className="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center">
+                <Shield className="h-8 w-8 text-blue-600" />
+              </div>
             )}
             <div>
               <p className="text-xl font-bold text-gray-900">{match.awayTeamName}</p>
@@ -446,7 +454,16 @@ export function MatchDetailPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-medium text-gray-900">{match.homeTeamName}</h3>
+            <div className="flex items-center gap-3">
+              {match.homeTeamLogo ? (
+                <img src={match.homeTeamLogo} alt={match.homeTeamName} className="h-8 w-8 rounded-full object-cover" />
+              ) : (
+                <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                  <Shield className="h-4 w-4 text-blue-600" />
+                </div>
+              )}
+              <h3 className="text-lg font-medium text-gray-900">{match.homeTeamName}</h3>
+            </div>
             {canEditLineup && (
               <button
                 onClick={() => setShowLineupModal('home')}
@@ -499,7 +516,16 @@ export function MatchDetailPage() {
 
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-medium text-gray-900">{match.awayTeamName}</h3>
+            <div className="flex items-center gap-3">
+              {match.awayTeamLogo ? (
+                <img src={match.awayTeamLogo} alt={match.awayTeamName} className="h-8 w-8 rounded-full object-cover" />
+              ) : (
+                <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                  <Shield className="h-4 w-4 text-blue-600" />
+                </div>
+              )}
+              <h3 className="text-lg font-medium text-gray-900">{match.awayTeamName}</h3>
+            </div>
             {canEditLineup && (
               <button
                 onClick={() => setShowLineupModal('away')}
@@ -607,6 +633,7 @@ function getErrorMessage(err: unknown): string {
 function LineupModal({ match, teamType, onClose }: { match: MatchDetail; teamType: 'home' | 'away'; onClose: () => void }) {
   const teamId = teamType === 'home' ? match.homeTeamId : match.awayTeamId;
   const teamName = teamType === 'home' ? match.homeTeamName : match.awayTeamName;
+  const teamLogo = teamType === 'home' ? match.homeTeamLogo : match.awayTeamLogo;
   const queryClient = useQueryClient();
 
   const [selectedPlayers, setSelectedPlayers] = useState<LineupPlayerRequest[]>([]);
@@ -655,7 +682,16 @@ function LineupModal({ match, teamType, onClose }: { match: MatchDetail; teamTyp
     <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] flex flex-col">
         <div className="px-6 py-4 border-b flex justify-between items-center">
-          <h3 className="text-lg font-medium text-gray-900">Alineacion - {teamName}</h3>
+          <div className="flex items-center gap-3">
+            {teamLogo ? (
+              <img src={teamLogo} alt={teamName} className="h-8 w-8 rounded-full object-cover" />
+            ) : (
+              <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                <Shield className="h-4 w-4 text-blue-600" />
+              </div>
+            )}
+            <h3 className="text-lg font-medium text-gray-900">Alineacion - {teamName}</h3>
+          </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
             <X className="h-5 w-5" />
           </button>
@@ -681,12 +717,9 @@ function LineupModal({ match, teamType, onClose }: { match: MatchDetail; teamTyp
                 <div key={player.id} className="flex items-center justify-between py-2 px-3 border rounded-md">
                   <div className="flex items-center gap-3">
                     <span className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium">
-                      {player.number}
+                      {player.number ?? '-'}
                     </span>
-                    <div>
-                      <span className="font-medium">{player.firstName} {player.lastName}</span>
-                      <span className="ml-2 text-sm text-gray-500">{player.position}</span>
-                    </div>
+                    <span className="font-medium">{player.firstName} {player.lastName}</span>
                   </div>
                   <div className="flex gap-2">
                     <button
