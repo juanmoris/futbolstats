@@ -55,3 +55,10 @@ export const EventType = {
 } as const;
 
 export type EventType = typeof EventType[keyof typeof EventType];
+
+export const TiebreakerType = {
+  HeadToHead: 0,      // Enfrentamientos directos primero
+  GoalDifference: 1,  // Diferencia de goles primero
+} as const;
+
+export type TiebreakerType = typeof TiebreakerType[keyof typeof TiebreakerType];

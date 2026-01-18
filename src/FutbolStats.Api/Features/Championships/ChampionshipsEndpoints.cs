@@ -59,7 +59,8 @@ public static class ChampionshipsEndpoints
                 request.Season,
                 request.StartDate,
                 request.EndDate,
-                request.Status
+                request.Status,
+                request.TiebreakerType
             );
             var result = await mediator.Send(command);
             return Results.Ok(result);
@@ -118,5 +119,6 @@ public record UpdateChampionshipRequest(
     string Season,
     DateOnly StartDate,
     DateOnly EndDate,
-    ChampionshipStatus Status
+    ChampionshipStatus Status,
+    TiebreakerType TiebreakerType
 );

@@ -13,7 +13,8 @@ public record UpdateChampionshipCommand(
     string Season,
     DateOnly StartDate,
     DateOnly EndDate,
-    ChampionshipStatus Status
+    ChampionshipStatus Status,
+    TiebreakerType TiebreakerType
 ) : IRequest<UpdateChampionshipResponse>;
 
 public record UpdateChampionshipResponse(Guid Id, string Name, string Season);
@@ -34,6 +35,7 @@ public class UpdateChampionshipHandler(FutbolDbContext db)
         championship.StartDate = request.StartDate;
         championship.EndDate = request.EndDate;
         championship.Status = request.Status;
+        championship.TiebreakerType = request.TiebreakerType;
 
         await db.SaveChangesAsync(cancellationToken);
 

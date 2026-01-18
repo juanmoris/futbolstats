@@ -1,4 +1,5 @@
 using FutbolStats.Api.Common.Exceptions;
+using FutbolStats.Api.Features.Championships.Services;
 using FutbolStats.Api.Infrastructure.Data;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -32,10 +33,12 @@ public record StandingEntryDto(
 public class GetStandingsQueryHandler : IRequestHandler<GetStandingsQuery, StandingsResponse>
 {
     private readonly FutbolDbContext _context;
+    private readonly IStandingsService _standingsService;
 
-    public GetStandingsQueryHandler(FutbolDbContext context)
+    public GetStandingsQueryHandler(FutbolDbContext context, IStandingsService standingsService)
     {
         _context = context;
+        _standingsService = standingsService;
     }
 
     public async Task<StandingsResponse> Handle(GetStandingsQuery request, CancellationToken cancellationToken)
@@ -51,11 +54,13 @@ public class GetStandingsQueryHandler : IRequestHandler<GetStandingsQuery, Stand
             throw new NotFoundException("Championship", request.ChampionshipId);
         }
 
-        var standings = championship.Teams
-            .OrderByDescending(t => t.Points)
-            .ThenByDescending(t => t.GoalDifference)
-            .ThenByDescending(t => t.GoalsFor)
-            .ThenBy(t => t.Team.Name)
+        var sortedTeams = await _standingsService.GetSortedStandingsAsync(
+            championship.Id,
+            championship.Teams,
+            championship.TiebreakerType,
+            cancellationToken);
+
+        var standings = sortedTeams
             .Select((t, index) => new StandingEntryDto(
                 index + 1,
                 t.TeamId,

@@ -44,3 +44,9 @@ public enum UserRole
     Admin,
     Editor
 }
+
+public enum TiebreakerType
+{
+    HeadToHead,      // Enfrentamientos directos primero (UEFA, La Liga)
+    GoalDifference   // Diferencia de goles primero (Premier League)
+}

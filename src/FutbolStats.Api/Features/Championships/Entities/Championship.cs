@@ -11,6 +11,7 @@ public class Championship
     public DateOnly StartDate { get; set; }
     public DateOnly EndDate { get; set; }
     public ChampionshipStatus Status { get; set; }
+    public TiebreakerType TiebreakerType { get; set; } = TiebreakerType.HeadToHead;
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 

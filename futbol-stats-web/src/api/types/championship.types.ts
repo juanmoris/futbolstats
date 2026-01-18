@@ -1,4 +1,4 @@
-import type { ChampionshipStatus } from './common.types';
+import type { ChampionshipStatus, TiebreakerType } from './common.types';
 
 export interface Championship {
   id: string;
@@ -7,6 +7,7 @@ export interface Championship {
   startDate: string;
   endDate: string;
   status: ChampionshipStatus;
+  tiebreakerType: TiebreakerType;
   teamsCount: number;
   maxMatchday: number;
 }
@@ -37,8 +38,10 @@ export interface CreateChampionshipRequest {
   season: string;
   startDate: string;
   endDate: string;
+  tiebreakerType?: TiebreakerType;
 }
 
 export interface UpdateChampionshipRequest extends CreateChampionshipRequest {
   status: ChampionshipStatus;
+  tiebreakerType: TiebreakerType;
 }

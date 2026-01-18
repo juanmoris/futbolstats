@@ -3,6 +3,7 @@ using FluentValidation;
 using FutbolStats.Api.Common.Behaviors;
 using FutbolStats.Api.Features.Auth;
 using FutbolStats.Api.Features.Championships;
+using FutbolStats.Api.Features.Championships.Services;
 using FutbolStats.Api.Features.Coaches;
 using FutbolStats.Api.Features.Matches;
 using FutbolStats.Api.Features.MatchEvents;
@@ -32,6 +33,9 @@ builder.Services.AddMediatR(cfg =>
 
 // FluentValidation
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+
+// Services
+builder.Services.AddScoped<IStandingsService, StandingsService>();
 
 // Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");

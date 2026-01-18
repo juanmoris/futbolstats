@@ -19,6 +19,7 @@ public record ChampionshipDto(
     DateOnly StartDate,
     DateOnly EndDate,
     ChampionshipStatus Status,
+    TiebreakerType TiebreakerType,
     int TeamsCount,
     int MaxMatchday
 );
@@ -52,6 +53,7 @@ public class GetChampionshipsHandler(FutbolDbContext db)
                 c.StartDate,
                 c.EndDate,
                 c.Status,
+                c.TiebreakerType,
                 c.Teams.Count,
                 c.Matches.Any() ? c.Matches.Max(m => m.Matchday) : 0
             ))

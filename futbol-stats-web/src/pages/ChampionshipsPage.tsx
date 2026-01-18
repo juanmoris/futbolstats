@@ -5,7 +5,7 @@ import { championshipsApi } from '@/api/endpoints/championships.api';
 import { teamsApi } from '@/api/endpoints/teams.api';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Championship, CreateChampionshipRequest, UpdateChampionshipRequest } from '@/api/types/championship.types';
-import { ChampionshipStatus } from '@/api/types/common.types';
+import { ChampionshipStatus, TiebreakerType } from '@/api/types/common.types';
 
 export function ChampionshipsPage() {
   const [page, setPage] = useState(1);
@@ -285,6 +285,7 @@ function ChampionshipModal({
   const [startDate, setStartDate] = useState(championship?.startDate?.split('T')[0] || '');
   const [endDate, setEndDate] = useState(championship?.endDate?.split('T')[0] || '');
   const [status, setStatus] = useState<ChampionshipStatus>(championship?.status ?? ChampionshipStatus.Upcoming);
+  const [tiebreakerType, setTiebreakerType] = useState<TiebreakerType>(championship?.tiebreakerType ?? TiebreakerType.HeadToHead);
 
   const getErrorMessage = (): string | null => {
     if (!error) return null;
@@ -305,9 +306,9 @@ function ChampionshipModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isEditing) {
-      onUpdate(championship.id, { name, season, startDate, endDate, status });
+      onUpdate(championship.id, { name, season, startDate, endDate, status, tiebreakerType });
     } else {
-      onCreate({ name, season, startDate, endDate });
+      onCreate({ name, season, startDate, endDate, tiebreakerType });
     }
   };
 
@@ -368,6 +369,20 @@ function ChampionshipModal({
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm border px-3 py-2"
                 />
               </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Criterio de desempate</label>
+              <select
+                value={tiebreakerType}
+                onChange={(e) => setTiebreakerType(Number(e.target.value) as TiebreakerType)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm border px-3 py-2"
+              >
+                <option value={TiebreakerType.HeadToHead}>Enfrentamientos directos</option>
+                <option value={TiebreakerType.GoalDifference}>Diferencia de goles</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                Define cómo se desempatan equipos con los mismos puntos
+              </p>
             </div>
             {isEditing && (
               <div>

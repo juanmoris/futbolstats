@@ -11,7 +11,8 @@ public record CreateChampionshipCommand(
     string Name,
     string Season,
     DateOnly StartDate,
-    DateOnly EndDate
+    DateOnly EndDate,
+    TiebreakerType TiebreakerType = TiebreakerType.HeadToHead
 ) : IRequest<CreateChampionshipResponse>;
 
 public record CreateChampionshipResponse(Guid Id, string Name, string Season);
@@ -30,7 +31,8 @@ public class CreateChampionshipHandler(FutbolDbContext db)
             Season = request.Season,
             StartDate = request.StartDate,
             EndDate = request.EndDate,
-            Status = ChampionshipStatus.Upcoming
+            Status = ChampionshipStatus.Upcoming,
+            TiebreakerType = request.TiebreakerType
         };
 
         db.Championships.Add(championship);

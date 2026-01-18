@@ -1,5 +1,6 @@
 using FutbolStats.Api.Common;
 using FutbolStats.Api.Common.Exceptions;
+using FutbolStats.Api.Features.Championships.Services;
 using FutbolStats.Api.Infrastructure.Data;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -46,10 +47,12 @@ public record ChampionshipSummaryDto(
 public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQuery, TeamStatisticsResponse>
 {
     private readonly FutbolDbContext _context;
+    private readonly IStandingsService _standingsService;
 
-    public GetTeamStatisticsQueryHandler(FutbolDbContext context)
+    public GetTeamStatisticsQueryHandler(FutbolDbContext context, IStandingsService standingsService)
     {
         _context = context;
+        _standingsService = standingsService;
     }
 
     public async Task<TeamStatisticsResponse> Handle(GetTeamStatisticsQuery request, CancellationToken cancellationToken)
@@ -147,16 +150,21 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
 
             foreach (var ct in championshipTeams)
             {
-                // Calculate position
-                var standings = await _context.ChampionshipTeams
+                // Get all teams in the championship with Team relation for proper sorting
+                var allTeamsInChampionship = await _context.ChampionshipTeams
+                    .Include(x => x.Team)
                     .Where(x => x.ChampionshipId == ct.ChampionshipId)
-                    .OrderByDescending(x => x.Points)
-                    .ThenByDescending(x => x.GoalsFor - x.GoalsAgainst)
-                    .ThenByDescending(x => x.GoalsFor)
                     .AsNoTracking()
                     .ToListAsync(cancellationToken);
 
-                var position = standings.FindIndex(x => x.TeamId == request.TeamId) + 1;
+                // Calculate position using standings service with championship's tiebreaker type
+                var sortedStandings = await _standingsService.GetSortedStandingsAsync(
+                    ct.ChampionshipId,
+                    allTeamsInChampionship,
+                    ct.Championship.TiebreakerType,
+                    cancellationToken);
+
+                var position = sortedStandings.FindIndex(x => x.TeamId == request.TeamId) + 1;
 
                 championshipSummaries.Add(new ChampionshipSummaryDto(
                     ct.ChampionshipId,
