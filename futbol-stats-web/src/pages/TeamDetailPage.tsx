@@ -62,7 +62,7 @@ export function TeamDetailPage() {
     ? championships.find(c => c.championshipId === selectedChampionshipId)
     : null;
   const selectedChampionshipLabel = selectedChampionship
-    ? `${selectedChampionship.championshipName} (${selectedChampionship.season})`
+    ? `${selectedChampionship.championshipName} ${selectedChampionship.season}`.trim()
     : null;
 
   return (
@@ -112,7 +112,7 @@ export function TeamDetailPage() {
                 <option value="">Todos los campeonatos</option>
                 {championships.map((c) => (
                   <option key={c.championshipId} value={c.championshipId}>
-                    {c.championshipName} ({c.season})
+                    {c.championshipName} {c.season}
                   </option>
                 ))}
               </select>
@@ -292,8 +292,7 @@ export function TeamDetailPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <Trophy className="h-4 w-4 text-yellow-500 mr-2" />
-                          <span className="font-medium text-gray-900">{championship.championshipName}</span>
-                          <span className="ml-2 text-sm text-gray-500">({championship.season})</span>
+                          <span className="font-medium text-gray-900">{championship.championshipName} {championship.season}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
