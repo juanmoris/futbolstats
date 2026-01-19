@@ -31,7 +31,8 @@ public record TeamStatisticsResponse(
 public record TopScorerDto(
     Guid PlayerId,
     string PlayerName,
-    int Goals
+    int Goals,
+    int MatchesPlayed
 );
 
 public record ChampionshipSummaryDto(
@@ -127,12 +128,30 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
             .AsNoTracking()
             .ToDictionaryAsync(p => p.Id, cancellationToken);
 
+        // Get matches played count for each player
+        var matchLineupsQuery = _context.MatchLineups
+            .Include(l => l.Match)
+            .Where(l => l.Match.Status == MatchStatus.Finished
+                        && playerIds.Contains(l.PlayerId));
+
+        if (request.ChampionshipId.HasValue)
+        {
+            matchLineupsQuery = matchLineupsQuery.Where(l => l.Match.ChampionshipId == request.ChampionshipId.Value);
+        }
+
+        var matchesPlayedByPlayer = await matchLineupsQuery
+            .GroupBy(l => l.PlayerId)
+            .Select(g => new { PlayerId = g.Key, MatchesPlayed = g.Count() })
+            .AsNoTracking()
+            .ToDictionaryAsync(x => x.PlayerId, x => x.MatchesPlayed, cancellationToken);
+
         var topScorerDtos = topScorers
             .Where(ts => players.ContainsKey(ts.PlayerId))
             .Select(ts => new TopScorerDto(
                 ts.PlayerId,
                 $"{players[ts.PlayerId].FirstName} {players[ts.PlayerId].LastName}",
-                ts.Goals
+                ts.Goals,
+                matchesPlayedByPlayer.GetValueOrDefault(ts.PlayerId, 0)
             ))
             .ToList();
 

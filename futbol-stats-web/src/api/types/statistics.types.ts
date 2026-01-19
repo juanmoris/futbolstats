@@ -95,6 +95,7 @@ export interface TopScorer {
   playerId: string;
   playerName: string;
   goals: number;
+  matchesPlayed: number;
 }
 
 export interface ChampionshipSummary {

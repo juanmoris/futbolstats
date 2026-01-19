@@ -160,6 +160,7 @@ export function TeamDetailPage() {
                 <div className="flex items-center gap-3">
                   <span className="text-lg font-bold text-gray-400 w-6">{index + 1}</span>
                   <span className="font-medium text-gray-900">{scorer.playerName}</span>
+                  <span className="text-sm text-gray-500">({scorer.matchesPlayed} PJ)</span>
                 </div>
                 <span className="text-lg font-bold text-green-600">{scorer.goals} goles</span>
               </div>
