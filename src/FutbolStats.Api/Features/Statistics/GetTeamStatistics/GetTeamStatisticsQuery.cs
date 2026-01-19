@@ -25,13 +25,19 @@ public record TeamStatisticsResponse(
     int RedCards,
     int CleanSheets,
     List<TopScorerDto> TopScorers,
+    List<PlayerAppearanceDto> TopPlayersByAppearances,
     List<ChampionshipSummaryDto>? ChampionshipSummaries
 );
 
 public record TopScorerDto(
     Guid PlayerId,
     string PlayerName,
-    int Goals,
+    int Goals
+);
+
+public record PlayerAppearanceDto(
+    Guid PlayerId,
+    string PlayerName,
     int MatchesPlayed
 );
 
@@ -122,36 +128,46 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
             .Take(5)
             .ToList();
 
-        var playerIds = topScorers.Select(ts => ts.PlayerId).ToList();
-        var players = await _context.Players
-            .Where(p => playerIds.Contains(p.Id))
+        var scorerPlayerIds = topScorers.Select(ts => ts.PlayerId).ToList();
+        var scorerPlayers = await _context.Players
+            .Where(p => scorerPlayerIds.Contains(p.Id))
             .AsNoTracking()
             .ToDictionaryAsync(p => p.Id, cancellationToken);
 
-        // Get matches played count for each player
-        var matchLineupsQuery = _context.MatchLineups
+        var topScorerDtos = topScorers
+            .Where(ts => scorerPlayers.ContainsKey(ts.PlayerId))
+            .Select(ts => new TopScorerDto(
+                ts.PlayerId,
+                $"{scorerPlayers[ts.PlayerId].FirstName} {scorerPlayers[ts.PlayerId].LastName}",
+                ts.Goals
+            ))
+            .ToList();
+
+        // Top players by appearances (matches played)
+        var appearancesQuery = _context.MatchLineups
             .Include(l => l.Match)
+            .Include(l => l.Player)
             .Where(l => l.Match.Status == MatchStatus.Finished
-                        && playerIds.Contains(l.PlayerId));
+                        && l.Player.TeamId == request.TeamId);
 
         if (request.ChampionshipId.HasValue)
         {
-            matchLineupsQuery = matchLineupsQuery.Where(l => l.Match.ChampionshipId == request.ChampionshipId.Value);
+            appearancesQuery = appearancesQuery.Where(l => l.Match.ChampionshipId == request.ChampionshipId.Value);
         }
 
-        var matchesPlayedByPlayer = await matchLineupsQuery
-            .GroupBy(l => l.PlayerId)
-            .Select(g => new { PlayerId = g.Key, MatchesPlayed = g.Count() })
+        var topPlayersByAppearances = await appearancesQuery
+            .GroupBy(l => new { l.PlayerId, l.Player.FirstName, l.Player.LastName })
+            .Select(g => new { g.Key.PlayerId, g.Key.FirstName, g.Key.LastName, MatchesPlayed = g.Count() })
+            .OrderByDescending(x => x.MatchesPlayed)
+            .Take(5)
             .AsNoTracking()
-            .ToDictionaryAsync(x => x.PlayerId, x => x.MatchesPlayed, cancellationToken);
+            .ToListAsync(cancellationToken);
 
-        var topScorerDtos = topScorers
-            .Where(ts => players.ContainsKey(ts.PlayerId))
-            .Select(ts => new TopScorerDto(
-                ts.PlayerId,
-                $"{players[ts.PlayerId].FirstName} {players[ts.PlayerId].LastName}",
-                ts.Goals,
-                matchesPlayedByPlayer.GetValueOrDefault(ts.PlayerId, 0)
+        var topPlayersByAppearancesDtos = topPlayersByAppearances
+            .Select(p => new PlayerAppearanceDto(
+                p.PlayerId,
+                $"{p.FirstName} {p.LastName}",
+                p.MatchesPlayed
             ))
             .ToList();
 
@@ -213,6 +229,7 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
             redCards,
             cleanSheets,
             topScorerDtos,
+            topPlayersByAppearancesDtos,
             championshipSummaries
         );
     }

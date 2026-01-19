@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Users, Trophy, Target, Shield, AlertTriangle, Award } from 'lucide-react';
+import { ArrowLeft, Users, Trophy, Target, Shield, AlertTriangle, Award, Calendar } from 'lucide-react';
 import { statisticsApi } from '@/api/endpoints/statistics.api';
 import { teamsApi } from '@/api/endpoints/teams.api';
 
@@ -148,26 +148,50 @@ export function TeamDetailPage() {
         </div>
       </div>
 
-      {/* Goleadores del Equipo */}
-      {stats.topScorers && stats.topScorers.length > 0 && (
-        <div className="bg-white rounded-lg shadow mb-6">
-          <div className="px-6 py-4 border-b">
-            <h2 className="text-lg font-semibold text-gray-900">Goleadores del Equipo</h2>
-          </div>
-          <div className="divide-y divide-gray-200">
-            {stats.topScorers.map((scorer, index) => (
-              <div key={scorer.playerId} className="px-6 py-3 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-lg font-bold text-gray-400 w-6">{index + 1}</span>
-                  <span className="font-medium text-gray-900">{scorer.playerName}</span>
-                  <span className="text-sm text-gray-500">({scorer.matchesPlayed} PJ)</span>
+      {/* Goleadores y Partidos Jugados */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {/* Goleadores del Equipo */}
+        {stats.topScorers && stats.topScorers.length > 0 && (
+          <div className="bg-white rounded-lg shadow">
+            <div className="px-6 py-4 border-b flex items-center gap-2">
+              <Target className="h-5 w-5 text-green-500" />
+              <h2 className="text-lg font-semibold text-gray-900">Goleadores</h2>
+            </div>
+            <div className="divide-y divide-gray-200">
+              {stats.topScorers.map((scorer, index) => (
+                <div key={scorer.playerId} className="px-6 py-3 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg font-bold text-gray-400 w-6">{index + 1}</span>
+                    <span className="font-medium text-gray-900">{scorer.playerName}</span>
+                  </div>
+                  <span className="text-lg font-bold text-green-600">{scorer.goals} goles</span>
                 </div>
-                <span className="text-lg font-bold text-green-600">{scorer.goals} goles</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Partidos Jugados */}
+        {stats.topPlayersByAppearances && stats.topPlayersByAppearances.length > 0 && (
+          <div className="bg-white rounded-lg shadow">
+            <div className="px-6 py-4 border-b flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-blue-500" />
+              <h2 className="text-lg font-semibold text-gray-900">Partidos Jugados</h2>
+            </div>
+            <div className="divide-y divide-gray-200">
+              {stats.topPlayersByAppearances.map((player, index) => (
+                <div key={player.playerId} className="px-6 py-3 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg font-bold text-gray-400 w-6">{index + 1}</span>
+                    <span className="font-medium text-gray-900">{player.playerName}</span>
+                  </div>
+                  <span className="text-lg font-bold text-blue-600">{player.matchesPlayed} PJ</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Rendimiento por Campeonato */}
       {stats.championshipSummaries && stats.championshipSummaries.length > 0 && (

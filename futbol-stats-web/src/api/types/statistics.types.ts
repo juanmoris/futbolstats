@@ -88,6 +88,7 @@ export interface TeamStatisticsResponse {
   redCards: number;
   cleanSheets: number;
   topScorers: TopScorer[];
+  topPlayersByAppearances: PlayerAppearance[];
   championshipSummaries: ChampionshipSummary[] | null;
 }
 
@@ -95,6 +96,11 @@ export interface TopScorer {
   playerId: string;
   playerName: string;
   goals: number;
+}
+
+export interface PlayerAppearance {
+  playerId: string;
+  playerName: string;
   matchesPlayed: number;
 }
 
