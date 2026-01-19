@@ -152,12 +152,15 @@ export function TeamDetailPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Goleadores del Equipo */}
         {stats.topScorers && stats.topScorers.length > 0 && (
-          <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b flex items-center gap-2">
-              <Target className="h-5 w-5 text-green-500" />
-              <h2 className="text-lg font-semibold text-gray-900">Goleadores</h2>
+          <div className="bg-white rounded-lg shadow flex flex-col">
+            <div className="px-6 py-4 border-b flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-green-500" />
+                <h2 className="text-lg font-semibold text-gray-900">Goleadores</h2>
+              </div>
+              <span className="text-sm text-gray-500">{stats.topScorers.length} jugadores</span>
             </div>
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-gray-200 overflow-y-auto max-h-80">
               {stats.topScorers.map((scorer, index) => (
                 <div key={scorer.playerId} className="px-6 py-3 flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -173,12 +176,15 @@ export function TeamDetailPage() {
 
         {/* Partidos Jugados */}
         {stats.topPlayersByAppearances && stats.topPlayersByAppearances.length > 0 && (
-          <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-blue-500" />
-              <h2 className="text-lg font-semibold text-gray-900">Partidos Jugados</h2>
+          <div className="bg-white rounded-lg shadow flex flex-col">
+            <div className="px-6 py-4 border-b flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-blue-500" />
+                <h2 className="text-lg font-semibold text-gray-900">Partidos Jugados</h2>
+              </div>
+              <span className="text-sm text-gray-500">{stats.topPlayersByAppearances.length} jugadores</span>
             </div>
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-gray-200 overflow-y-auto max-h-80">
               {stats.topPlayersByAppearances.map((player, index) => (
                 <div key={player.playerId} className="px-6 py-3 flex items-center justify-between">
                   <div className="flex items-center gap-3">
