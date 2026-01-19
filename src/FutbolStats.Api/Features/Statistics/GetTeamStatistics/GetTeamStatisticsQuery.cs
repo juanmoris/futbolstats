@@ -177,6 +177,7 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
             var championshipTeams = await _context.ChampionshipTeams
                 .Include(ct => ct.Championship)
                 .Where(ct => ct.TeamId == request.TeamId)
+                .OrderByDescending(ct => ct.Championship.StartDate)
                 .AsNoTracking()
                 .ToListAsync(cancellationToken);
 
