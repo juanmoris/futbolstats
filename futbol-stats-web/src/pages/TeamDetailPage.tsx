@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Users, Trophy, Target, Shield, AlertTriangle, Award, Calendar } from 'lucide-react';
@@ -29,10 +29,18 @@ export function TeamDetailPage() {
     enabled: !!id && !!selectedChampionshipId,
   });
 
-  const isLoading = isLoadingTeam || isLoadingAllStats || (selectedChampionshipId && isLoadingFiltered);
-  const stats = selectedChampionshipId ? filteredStats : allStats;
   const championships = allStats?.championshipSummaries || [];
   const hasMultipleChampionships = championships.length > 1;
+
+  // Seleccionar el campeonato más reciente por defecto
+  useEffect(() => {
+    if (championships.length > 0 && selectedChampionshipId === null) {
+      setSelectedChampionshipId(championships[0].championshipId);
+    }
+  }, [championships, selectedChampionshipId]);
+
+  const isLoading = isLoadingTeam || isLoadingAllStats || (selectedChampionshipId && isLoadingFiltered);
+  const stats = selectedChampionshipId ? filteredStats : allStats;
 
   if (isLoadingTeam || isLoadingAllStats) {
     return (
