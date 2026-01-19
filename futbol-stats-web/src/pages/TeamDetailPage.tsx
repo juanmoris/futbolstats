@@ -58,8 +58,11 @@ export function TeamDetailPage() {
     ? ((displayStats.wins / displayStats.matchesPlayed) * 100).toFixed(1)
     : '0';
 
-  const selectedChampionshipName = selectedChampionshipId
-    ? championships.find(c => c.championshipId === selectedChampionshipId)?.championshipName
+  const selectedChampionship = selectedChampionshipId
+    ? championships.find(c => c.championshipId === selectedChampionshipId)
+    : null;
+  const selectedChampionshipLabel = selectedChampionship
+    ? `${selectedChampionship.championshipName} (${selectedChampionship.season})`
     : null;
 
   return (
@@ -109,7 +112,7 @@ export function TeamDetailPage() {
                 <option value="">Todos los campeonatos</option>
                 {championships.map((c) => (
                   <option key={c.championshipId} value={c.championshipId}>
-                    {c.championshipName}
+                    {c.championshipName} ({c.season})
                   </option>
                 ))}
               </select>
@@ -118,10 +121,10 @@ export function TeamDetailPage() {
         </div>
 
         {/* Indicador de campeonato seleccionado */}
-        {selectedChampionshipName && (
+        {selectedChampionshipLabel && (
           <div className="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-yellow-50 border border-yellow-200 rounded-full text-sm text-yellow-800">
             <Trophy className="h-4 w-4" />
-            <span>Mostrando estadisticas de: <strong>{selectedChampionshipName}</strong></span>
+            <span>Mostrando estadisticas de: <strong>{selectedChampionshipLabel}</strong></span>
           </div>
         )}
       </div>
@@ -290,6 +293,7 @@ export function TeamDetailPage() {
                         <div className="flex items-center">
                           <Trophy className="h-4 w-4 text-yellow-500 mr-2" />
                           <span className="font-medium text-gray-900">{championship.championshipName}</span>
+                          <span className="ml-2 text-sm text-gray-500">({championship.season})</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">

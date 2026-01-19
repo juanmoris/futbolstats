@@ -44,6 +44,7 @@ public record PlayerAppearanceDto(
 public record ChampionshipSummaryDto(
     Guid ChampionshipId,
     string ChampionshipName,
+    string Season,
     int Position,
     int MatchesPlayed,
     int Points,
@@ -202,6 +203,7 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
                 championshipSummaries.Add(new ChampionshipSummaryDto(
                     ct.ChampionshipId,
                     ct.Championship.Name,
+                    ct.Championship.Season,
                     position,
                     ct.GamesPlayed,
                     ct.Points,

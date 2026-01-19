@@ -107,6 +107,7 @@ export interface PlayerAppearance {
 export interface ChampionshipSummary {
   championshipId: string;
   championshipName: string;
+  season: string;
   position: number;
   matchesPlayed: number;
   points: number;
