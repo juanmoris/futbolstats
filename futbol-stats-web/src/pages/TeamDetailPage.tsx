@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Users, Trophy, Target, Shield, AlertTriangle, Award, Calendar } from 'lucide-react';
@@ -8,6 +8,7 @@ import { teamsApi } from '@/api/endpoints/teams.api';
 export function TeamDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [selectedChampionshipId, setSelectedChampionshipId] = useState<string | null>(null);
+  const hasInitializedDefault = useRef(false);
 
   const { data: team, isLoading: isLoadingTeam } = useQuery({
     queryKey: ['team', id],
@@ -32,12 +33,13 @@ export function TeamDetailPage() {
   const championships = allStats?.championshipSummaries || [];
   const hasMultipleChampionships = championships.length > 1;
 
-  // Seleccionar el campeonato más reciente por defecto
+  // Seleccionar el campeonato más reciente por defecto (solo la primera vez)
   useEffect(() => {
-    if (championships.length > 0 && selectedChampionshipId === null) {
+    if (championships.length > 0 && !hasInitializedDefault.current) {
       setSelectedChampionshipId(championships[0].championshipId);
+      hasInitializedDefault.current = true;
     }
-  }, [championships, selectedChampionshipId]);
+  }, [championships]);
 
   const isLoading = isLoadingTeam || isLoadingAllStats || (selectedChampionshipId && isLoadingFiltered);
   const stats = selectedChampionshipId ? filteredStats : allStats;
