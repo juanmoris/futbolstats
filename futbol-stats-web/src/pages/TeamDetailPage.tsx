@@ -251,11 +251,13 @@ export function TeamDetailPage() {
         )}
       </div>
 
-      {/* Rendimiento por Campeonato - solo mostrar cuando no hay filtro */}
-      {!selectedChampionshipId && championships.length > 0 && (
+      {/* Rendimiento por Campeonato */}
+      {championships.length > 0 && (
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b">
-            <h2 className="text-lg font-semibold text-gray-900">Rendimiento por Campeonato</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              {selectedChampionshipId ? 'Rendimiento en el Campeonato' : 'Rendimiento por Campeonato'}
+            </h2>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -285,7 +287,10 @@ export function TeamDetailPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {championships.map((championship) => {
+                {(selectedChampionshipId
+                  ? championships.filter(c => c.championshipId === selectedChampionshipId)
+                  : championships
+                ).map((championship) => {
                   const gd = championship.goalsFor - championship.goalsAgainst;
                   return (
                     <tr key={championship.championshipId} className="hover:bg-gray-50">
