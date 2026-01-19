@@ -10,6 +10,7 @@ import { TeamsPage } from '@/pages/TeamsPage';
 import { PlayersPage } from '@/pages/PlayersPage';
 import { MatchesPage } from '@/pages/MatchesPage';
 import { MatchDetailPage } from '@/pages/MatchDetailPage';
+import { TeamDetailPage } from '@/pages/TeamDetailPage';
 import { CoachesPage } from '@/pages/CoachesPage';
 import { StatisticsPage } from '@/pages/StatisticsPage';
 
@@ -24,6 +25,7 @@ function App() {
               <Route path="/" element={<DashboardPage />} />
               <Route path="/championships" element={<ChampionshipsPage />} />
               <Route path="/teams" element={<TeamsPage />} />
+              <Route path="/teams/:id" element={<TeamDetailPage />} />
               <Route path="/players" element={<PlayersPage />} />
               <Route path="/matches" element={<MatchesPage />} />
               <Route path="/matches/:id" element={<MatchDetailPage />} />

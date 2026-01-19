@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit2, Trash2, Users, Search } from 'lucide-react';
+import { Plus, Edit2, Trash2, Users, Search, BarChart3 } from 'lucide-react';
 import { teamsApi } from '@/api/endpoints/teams.api';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Team, CreateTeamRequest } from '@/api/types/team.types';
@@ -137,18 +138,16 @@ export function TeamsPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Jugadores
                 </th>
-                {isAuthenticated && (
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Acciones
-                  </th>
-                )}
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Acciones
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {data?.items?.map((team) => (
                 <tr key={team.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
+                    <Link to={`/teams/${team.id}`} className="flex items-center hover:opacity-80">
                       {team.logoUrl ? (
                         <img src={team.logoUrl} alt={team.name} className="h-10 w-10 rounded-full object-cover" />
                       ) : (
@@ -156,8 +155,8 @@ export function TeamsPage() {
                           <Users className="h-5 w-5 text-blue-600" />
                         </div>
                       )}
-                      <span className="ml-3 font-medium text-gray-900">{team.name}</span>
-                    </div>
+                      <span className="ml-3 font-medium text-blue-600 hover:text-blue-800">{team.name}</span>
+                    </Link>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {team.shortName}
@@ -171,22 +170,33 @@ export function TeamsPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {team.playersCount} jugadores
                   </td>
-                  {isAuthenticated && (
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => handleOpenModal(team)}
-                        className="text-blue-600 hover:text-blue-900 mr-4"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(team.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </td>
-                  )}
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <Link
+                      to={`/teams/${team.id}`}
+                      className="text-green-600 hover:text-green-900 mr-4"
+                      title="Ver estadisticas"
+                    >
+                      <BarChart3 className="h-4 w-4 inline" />
+                    </Link>
+                    {isAuthenticated && (
+                      <>
+                        <button
+                          onClick={() => handleOpenModal(team)}
+                          className="text-blue-600 hover:text-blue-900 mr-4"
+                          title="Editar"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(team.id)}
+                          className="text-red-600 hover:text-red-900"
+                          title="Eliminar"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
