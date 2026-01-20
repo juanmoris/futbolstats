@@ -41,7 +41,8 @@ export function TeamDetailPage() {
     }
   }, [championships]);
 
-  const isLoading = isLoadingTeam || isLoadingAllStats || (selectedChampionshipId && isLoadingFiltered);
+  const _isLoading = isLoadingTeam || isLoadingAllStats || (selectedChampionshipId && isLoadingFiltered);
+  void _isLoading; // Variable reservada para uso futuro
   const stats = selectedChampionshipId ? filteredStats : allStats;
 
   if (isLoadingTeam || isLoadingAllStats) {

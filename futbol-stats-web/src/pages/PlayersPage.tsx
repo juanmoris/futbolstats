@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Edit2, Trash2, User, Search } from 'lucide-react';
 import { playersApi } from '@/api/endpoints/players.api';
@@ -189,9 +190,9 @@ export function PlayersPage() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {data?.items?.map((player) => (
-                <tr key={player.id}>
+                <tr key={player.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
+                    <Link to={`/players/${player.id}`} className="flex items-center group">
                       {player.photoUrl ? (
                         <img src={player.photoUrl} alt={player.fullName} className="h-10 w-10 rounded-full object-cover" />
                       ) : (
@@ -200,10 +201,10 @@ export function PlayersPage() {
                         </div>
                       )}
                       <div className="ml-3">
-                        <p className="font-medium text-gray-900">{player.fullName}</p>
+                        <p className="font-medium text-gray-900 group-hover:text-purple-600">{player.fullName}</p>
                         <p className="text-sm text-gray-500">{player.nationality || '-'}</p>
                       </div>
-                    </div>
+                    </Link>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {player.teamName}

@@ -47,8 +47,13 @@ export interface Scorer {
 export interface PlayerStatisticsResponse {
   playerId: string;
   playerName: string;
+  photoUrl: string | null;
   teamName: string;
+  teamLogoUrl: string | null;
   position: string;
+  nationality: string | null;
+  birthDate: string | null;
+  number: number | null;
   matchesPlayed: number;
   matchesStarted: number;
   matchesAsSub: number;
@@ -60,12 +65,45 @@ export interface PlayerStatisticsResponse {
   penaltiesScored: number;
   penaltiesMissed: number;
   championshipStats: ChampionshipStats[] | null;
+  teamStats: TeamStats[] | null;
+  recentMatches: PlayerMatch[] | null;
 }
 
 export interface ChampionshipStats {
   championshipId: string;
   championshipName: string;
+  season: string;
   matchesPlayed: number;
+  goals: number;
+  assists: number;
+  yellowCards: number;
+  redCards: number;
+}
+
+export interface TeamStats {
+  teamId: string;
+  teamName: string;
+  teamLogoUrl: string | null;
+  matchesPlayed: number;
+  matchesStarted: number;
+  matchesAsSub: number;
+  goals: number;
+  assists: number;
+  yellowCards: number;
+  redCards: number;
+}
+
+export interface PlayerMatch {
+  matchId: string;
+  matchDate: string;
+  championshipName: string;
+  teamName: string;
+  opponentName: string;
+  opponentLogoUrl: string | null;
+  isHome: boolean;
+  teamScore: number;
+  opponentScore: number;
+  isStarter: boolean;
   goals: number;
   assists: number;
   yellowCards: number;
