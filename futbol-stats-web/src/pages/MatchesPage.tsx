@@ -121,9 +121,9 @@ export function MatchesPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Partidos</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Partidos</h1>
           <p className="mt-1 text-sm text-gray-500">
             Gestiona los partidos y registra eventos en vivo
           </p>
@@ -131,7 +131,7 @@ export function MatchesPage() {
         {isAuthenticated && (
           <button
             onClick={() => { createMutation.reset(); setIsModalOpen(true); }}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700"
+            className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700"
           >
             <Plus className="h-4 w-4 mr-2" />
             Nuevo Partido
@@ -140,7 +140,7 @@ export function MatchesPage() {
       </div>
 
       {/* Filters */}
-      <div className="mb-6 flex gap-4">
+      <div className="mb-6 flex flex-col sm:flex-row gap-4">
         <select
           value={championshipFilter || ''}
           onChange={(e) => {
@@ -148,7 +148,7 @@ export function MatchesPage() {
             setChampionshipFilter(e.target.value);
             setCurrentMatchday(selected?.maxMatchday || 1);
           }}
-          className="block w-64 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+          className="w-full sm:w-64 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm"
         >
           {championships?.items?.map((c) => (
             <option key={c.id} value={c.id}>{c.name} {c.season}</option>
@@ -157,7 +157,7 @@ export function MatchesPage() {
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); }}
-          className="block w-48 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+          className="w-full sm:w-48 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm"
         >
           <option value="">Todos los estados</option>
           <option value="0">Programado</option>
@@ -168,7 +168,7 @@ export function MatchesPage() {
         <select
           value={currentMatchday || ''}
           onChange={(e) => setCurrentMatchday(parseInt(e.target.value))}
-          className="block w-36 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+          className="w-full sm:w-36 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm"
         >
           {selectedChampionship && Array.from({ length: selectedChampionship.maxMatchday }, (_, i) => i + 1)
             .sort((a, b) => b - a)
@@ -219,25 +219,25 @@ export function MatchesPage() {
                 <div className="bg-white rounded-b-lg shadow divide-y divide-gray-100">
                   {group.matches.map((match) => (
                     <div key={match.id} className="p-4">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div className="flex-1">
-                          <div className="flex items-center justify-end mb-2">
+                          <div className="flex items-center justify-center sm:justify-end mb-2">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(match.status)}`}>
                               {getStatusLabel(match.status)}
                               {match.status === MatchStatus.Live && match.currentMinute && ` (${match.currentMinute}')`}
                             </span>
                           </div>
 
-                          <div className="flex items-center justify-center gap-8">
-                            <div className="flex items-center gap-3 flex-1 justify-end">
-                              <span className="font-medium text-gray-900">{match.homeTeamName}</span>
+                          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-8">
+                            <div className="flex items-center gap-2 sm:gap-3 sm:flex-1 sm:justify-end">
+                              <span className="font-medium text-gray-900 text-sm sm:text-base truncate max-w-[120px] sm:max-w-none">{match.homeTeamName}</span>
                               {match.homeTeamLogo && (
-                                <img src={match.homeTeamLogo} alt="" className="h-10 w-10 rounded-full object-cover" />
+                                <img src={match.homeTeamLogo} alt="" className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover flex-shrink-0" />
                               )}
                             </div>
 
-                            <div className="text-center px-4">
-                              <div className="text-2xl font-bold text-gray-900">
+                            <div className="text-center px-2 sm:px-4">
+                              <div className="text-xl sm:text-2xl font-bold text-gray-900">
                                 {match.homeScore} - {match.awayScore}
                               </div>
                               <div className="text-xs text-gray-500 mt-1">
@@ -252,11 +252,11 @@ export function MatchesPage() {
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-3 flex-1">
+                            <div className="flex items-center gap-2 sm:gap-3 sm:flex-1">
                               {match.awayTeamLogo && (
-                                <img src={match.awayTeamLogo} alt="" className="h-10 w-10 rounded-full object-cover" />
+                                <img src={match.awayTeamLogo} alt="" className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover flex-shrink-0" />
                               )}
-                              <span className="font-medium text-gray-900">{match.awayTeamName}</span>
+                              <span className="font-medium text-gray-900 text-sm sm:text-base truncate max-w-[120px] sm:max-w-none">{match.awayTeamName}</span>
                             </div>
                           </div>
 
@@ -267,7 +267,7 @@ export function MatchesPage() {
                           )}
                         </div>
 
-                        <div className="ml-6 flex items-center gap-2">
+                        <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2">
                           <Link
                             to={`/matches/${match.id}`}
                             className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md"
@@ -453,13 +453,13 @@ function CreateMatchModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit}>
-          <div className="px-6 py-4 border-b">
+          <div className="px-4 sm:px-6 py-4 border-b">
             <h3 className="text-lg font-medium text-gray-900">Nuevo Partido</h3>
           </div>
-          <div className="px-6 py-4 space-y-4">
+          <div className="px-4 sm:px-6 py-4 space-y-4">
             {errorMessage && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
                 {errorMessage}
@@ -479,7 +479,7 @@ function CreateMatchModal({
                 ))}
               </select>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Equipo Local</label>
                 <select
@@ -509,7 +509,7 @@ function CreateMatchModal({
                 </select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Fecha</label>
                 <input
@@ -531,7 +531,7 @@ function CreateMatchModal({
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Estadio</label>
                 <input
@@ -554,7 +554,7 @@ function CreateMatchModal({
               </div>
             </div>
           </div>
-          <div className="px-6 py-4 border-t flex justify-end space-x-3">
+          <div className="px-4 sm:px-6 py-4 border-t flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
             <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-700 bg-white border rounded-md">
               Cancelar
             </button>
@@ -614,22 +614,22 @@ function EditMatchModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit}>
-          <div className="px-6 py-4 border-b">
+          <div className="px-4 sm:px-6 py-4 border-b">
             <h3 className="text-lg font-medium text-gray-900">Editar Partido</h3>
             <p className="text-sm text-gray-500 mt-1">
               {match.homeTeamName} vs {match.awayTeamName}
             </p>
           </div>
-          <div className="px-6 py-4 space-y-4">
+          <div className="px-4 sm:px-6 py-4 space-y-4">
             {errorMessage && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
                 {errorMessage}
               </div>
             )}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Fecha</label>
                 <input
@@ -651,7 +651,7 @@ function EditMatchModal({
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Estadio</label>
                 <input
@@ -674,7 +674,7 @@ function EditMatchModal({
               </div>
             </div>
           </div>
-          <div className="px-6 py-4 border-t flex justify-end space-x-3">
+          <div className="px-4 sm:px-6 py-4 border-t flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
             <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-700 bg-white border rounded-md">
               Cancelar
             </button>
@@ -714,12 +714,12 @@ function DeleteMatchModal({
   const errorMessage = getErrorMessage();
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-        <div className="px-6 py-4 border-b">
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="px-4 sm:px-6 py-4 border-b">
           <h3 className="text-lg font-medium text-gray-900">Eliminar Partido</h3>
         </div>
-        <div className="px-6 py-4">
+        <div className="px-4 sm:px-6 py-4">
           {errorMessage && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm mb-4">
               {errorMessage}
@@ -738,7 +738,7 @@ function DeleteMatchModal({
             Esta acción no se puede deshacer.
           </p>
         </div>
-        <div className="px-6 py-4 border-t flex justify-end space-x-3">
+        <div className="px-4 sm:px-6 py-4 border-t flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
           <button
             type="button"
             onClick={onClose}

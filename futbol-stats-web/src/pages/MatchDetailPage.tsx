@@ -247,10 +247,10 @@ export function MatchDetailPage() {
       )}
 
       {/* Match Header */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
+      <div className="bg-white rounded-lg shadow p-4 sm:p-6 mb-6">
         <div className="text-center mb-4">
-          <span className="text-sm text-gray-500">{match.championshipName} - Jornada {match.matchday}</span>
-          <span className={`ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+          <span className="text-xs sm:text-sm text-gray-500 block sm:inline">{match.championshipName} - Jornada {match.matchday}</span>
+          <span className={`mt-2 sm:mt-0 sm:ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
             match.status === MatchStatus.Live ? 'bg-red-100 text-red-800 animate-pulse' :
             match.status === MatchStatus.HalfTime ? 'bg-yellow-100 text-yellow-800' :
             match.status === MatchStatus.Finished ? 'bg-green-100 text-green-800' :
@@ -261,53 +261,67 @@ export function MatchDetailPage() {
           </span>
         </div>
 
-        <div className="flex items-center justify-center gap-8">
-          <div className="flex items-center gap-4 flex-1 justify-end">
-            <div className="text-right">
-              <p className="text-xl font-bold text-gray-900">{match.homeTeamName}</p>
+        <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
+          {/* Home Team */}
+          <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 md:flex-1 md:justify-end text-center md:text-right order-1 md:order-1">
+            <div className="order-2 md:order-1">
+              <p className="text-lg md:text-xl font-bold text-gray-900">{match.homeTeamName}</p>
               {match.homeCoachName && (
-                <p className="text-sm text-gray-500">DT: {match.homeCoachName}</p>
+                <p className="text-xs sm:text-sm text-gray-500">DT: {match.homeCoachName}</p>
               )}
             </div>
             {match.homeTeamLogo ? (
-              <img src={match.homeTeamLogo} alt={match.homeTeamName} className="h-16 w-16 rounded-full object-cover" />
+              <img src={match.homeTeamLogo} alt={match.homeTeamName} className="h-12 w-12 md:h-16 md:w-16 rounded-full object-cover order-1 md:order-2" />
             ) : (
-              <div className="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center">
-                <Shield className="h-8 w-8 text-blue-600" />
+              <div className="h-12 w-12 md:h-16 md:w-16 rounded-full bg-blue-100 flex items-center justify-center order-1 md:order-2">
+                <Shield className="h-6 w-6 md:h-8 md:w-8 text-blue-600" />
               </div>
             )}
           </div>
 
-          <div className="text-center px-8">
-            <div className="text-4xl font-bold text-gray-900">
+          {/* Score */}
+          <div className="text-center px-4 md:px-8 order-2 md:order-2">
+            <div className="text-3xl md:text-4xl font-bold text-gray-900">
               {match.homeScore} - {match.awayScore}
             </div>
-            <div className="flex items-center justify-center text-sm text-gray-500 mt-2">
-              <Clock className="h-4 w-4 mr-1" />
-              {new Date(match.matchDate).toLocaleDateString('es', {
-                timeZone: 'UTC',
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
+            <div className="flex items-center justify-center text-xs sm:text-sm text-gray-500 mt-2">
+              <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              <span className="hidden sm:inline">
+                {new Date(match.matchDate).toLocaleDateString('es', {
+                  timeZone: 'UTC',
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </span>
+              <span className="sm:hidden">
+                {new Date(match.matchDate).toLocaleDateString('es', {
+                  timeZone: 'UTC',
+                  day: 'numeric',
+                  month: 'short',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 flex-1">
+          {/* Away Team */}
+          <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 md:flex-1 text-center md:text-left order-3 md:order-3">
             {match.awayTeamLogo ? (
-              <img src={match.awayTeamLogo} alt={match.awayTeamName} className="h-16 w-16 rounded-full object-cover" />
+              <img src={match.awayTeamLogo} alt={match.awayTeamName} className="h-12 w-12 md:h-16 md:w-16 rounded-full object-cover" />
             ) : (
-              <div className="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center">
-                <Shield className="h-8 w-8 text-blue-600" />
+              <div className="h-12 w-12 md:h-16 md:w-16 rounded-full bg-blue-100 flex items-center justify-center">
+                <Shield className="h-6 w-6 md:h-8 md:w-8 text-blue-600" />
               </div>
             )}
             <div>
-              <p className="text-xl font-bold text-gray-900">{match.awayTeamName}</p>
+              <p className="text-lg md:text-xl font-bold text-gray-900">{match.awayTeamName}</p>
               {match.awayCoachName && (
-                <p className="text-sm text-gray-500">DT: {match.awayCoachName}</p>
+                <p className="text-xs sm:text-sm text-gray-500">DT: {match.awayCoachName}</p>
               )}
             </div>
           </div>
@@ -332,15 +346,16 @@ export function MatchDetailPage() {
 
         {/* Match Controls */}
         {match.status !== MatchStatus.Finished && (
-          <div className="mt-6 flex justify-center gap-3">
+          <div className="mt-6 flex flex-wrap justify-center gap-2 sm:gap-3">
             {canStartMatch && (
               <button
                 onClick={() => startMutation.mutate()}
                 disabled={startMutation.isPending}
-                className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                className="inline-flex items-center px-3 sm:px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 text-sm"
               >
-                <Play className="h-4 w-4 mr-2" />
-                {match.status === MatchStatus.HalfTime ? 'Iniciar 2do Tiempo' : 'Iniciar Partido'}
+                <Play className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">{match.status === MatchStatus.HalfTime ? 'Iniciar 2do Tiempo' : 'Iniciar Partido'}</span>
+                <span className="sm:hidden">{match.status === MatchStatus.HalfTime ? '2do Tiempo' : 'Iniciar'}</span>
               </button>
             )}
 
@@ -348,10 +363,11 @@ export function MatchDetailPage() {
               <button
                 onClick={() => halftimeMutation.mutate()}
                 disabled={halftimeMutation.isPending}
-                className="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 disabled:opacity-50"
+                className="inline-flex items-center px-3 sm:px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 disabled:opacity-50 text-sm"
               >
-                <Pause className="h-4 w-4 mr-2" />
-                Medio Tiempo
+                <Pause className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Medio Tiempo</span>
+                <span className="sm:hidden">M. Tiempo</span>
               </button>
             )}
 
@@ -359,10 +375,10 @@ export function MatchDetailPage() {
               <button
                 onClick={() => endMutation.mutate()}
                 disabled={endMutation.isPending}
-                className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+                className="inline-flex items-center px-3 sm:px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 text-sm"
               >
-                <StopCircle className="h-4 w-4 mr-2" />
-                Finalizar Partido
+                <StopCircle className="h-4 w-4 mr-1 sm:mr-2" />
+                Finalizar
               </button>
             )}
           </div>
@@ -370,24 +386,24 @@ export function MatchDetailPage() {
 
         {/* Event Recording Buttons */}
         {canRecordEvents && (
-          <div className="mt-4 flex justify-center gap-3 flex-wrap">
+          <div className="mt-4 flex flex-wrap justify-center gap-2 sm:gap-3">
             <button
               onClick={() => setShowGoalModal(true)}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="inline-flex items-center px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
             >
-              ⚽ Registrar Gol
+              ⚽ <span className="hidden sm:inline ml-1">Registrar</span> Gol
             </button>
             <button
               onClick={() => setShowCardModal(true)}
-              className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700"
+              className="inline-flex items-center px-3 sm:px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 text-sm"
             >
-              🟨 Registrar Tarjeta
+              🟨 <span className="hidden sm:inline ml-1">Registrar</span> Tarjeta
             </button>
             <button
               onClick={() => setShowSubstitutionModal(true)}
-              className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+              className="inline-flex items-center px-3 sm:px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm"
             >
-              🔄 Registrar Cambio
+              🔄 <span className="hidden sm:inline ml-1">Registrar</span> Cambio
             </button>
           </div>
         )}
@@ -679,25 +695,25 @@ function LineupModal({ match, teamType, onClose }: { match: MatchDetail; teamTyp
   const substitutes = selectedPlayers.filter(p => !p.isStarter);
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] flex flex-col">
-        <div className="px-6 py-4 border-b flex justify-between items-center">
-          <div className="flex items-center gap-3">
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+        <div className="px-4 sm:px-6 py-4 border-b flex justify-between items-center">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             {teamLogo ? (
-              <img src={teamLogo} alt={teamName} className="h-8 w-8 rounded-full object-cover" />
+              <img src={teamLogo} alt={teamName} className="h-8 w-8 rounded-full object-cover flex-shrink-0" />
             ) : (
-              <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+              <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                 <Shield className="h-4 w-4 text-blue-600" />
               </div>
             )}
-            <h3 className="text-lg font-medium text-gray-900">Alineacion - {teamName}</h3>
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">Alineacion - {teamName}</h3>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-500 flex-shrink-0">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {error && (
             <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
               {error}
@@ -745,14 +761,14 @@ function LineupModal({ match, teamType, onClose }: { match: MatchDetail; teamTyp
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-700 bg-white border rounded-md hover:bg-gray-50">
+        <div className="px-4 sm:px-6 py-4 border-t flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+          <button onClick={onClose} className="w-full sm:w-auto px-4 py-2 text-sm text-gray-700 bg-white border rounded-md hover:bg-gray-50">
             Cancelar
           </button>
           <button
             onClick={handleSave}
             disabled={setLineupMutation.isPending || selectedPlayers.length === 0}
-            className="px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+            className="w-full sm:w-auto px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
           >
             {setLineupMutation.isPending ? 'Guardando...' : 'Guardar Alineacion'}
           </button>
@@ -798,17 +814,17 @@ function GoalModal({ match, onClose }: { match: MatchDetail; onClose: () => void
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit}>
-          <div className="px-6 py-4 border-b flex justify-between items-center">
+          <div className="px-4 sm:px-6 py-4 border-b flex justify-between items-center">
             <h3 className="text-lg font-medium text-gray-900">Registrar Gol</h3>
             <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-500">
               <X className="h-5 w-5" />
             </button>
           </div>
 
-          <div className="px-6 py-4 space-y-4">
+          <div className="px-4 sm:px-6 py-4 space-y-4">
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
                 {error}
@@ -821,7 +837,7 @@ function GoalModal({ match, onClose }: { match: MatchDetail; onClose: () => void
                 value={teamId}
                 onChange={(e) => { setTeamId(e.target.value); setScorerId(''); setAssistPlayerId(''); }}
                 required
-                className="mt-1 block w-full rounded-md border px-3 py-2"
+                className="mt-1 block w-full rounded-md border px-3 py-2 text-sm"
               >
                 <option value="">Seleccionar...</option>
                 <option value={match.homeTeamId}>{match.homeTeamName}</option>
@@ -836,7 +852,7 @@ function GoalModal({ match, onClose }: { match: MatchDetail; onClose: () => void
                 onChange={(e) => setScorerId(e.target.value)}
                 required
                 disabled={!teamId}
-                className="mt-1 block w-full rounded-md border px-3 py-2"
+                className="mt-1 block w-full rounded-md border px-3 py-2 text-sm"
               >
                 <option value="">Seleccionar...</option>
                 {lineup?.map((p) => (
@@ -851,7 +867,7 @@ function GoalModal({ match, onClose }: { match: MatchDetail; onClose: () => void
                 value={assistPlayerId}
                 onChange={(e) => setAssistPlayerId(e.target.value)}
                 disabled={!teamId || isOwnGoal}
-                className="mt-1 block w-full rounded-md border px-3 py-2"
+                className="mt-1 block w-full rounded-md border px-3 py-2 text-sm"
               >
                 <option value="">Sin asistencia</option>
                 {lineup?.filter(p => p.playerId !== scorerId).map((p) => (
@@ -870,11 +886,11 @@ function GoalModal({ match, onClose }: { match: MatchDetail; onClose: () => void
                   required
                   min={1}
                   max={120}
-                  className="mt-1 block w-full rounded-md border px-3 py-2"
+                  className="mt-1 block w-full rounded-md border px-3 py-2 text-sm"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Tiempo adicional</label>
+                <label className="block text-sm font-medium text-gray-700">Tiempo adic.</label>
                 <input
                   type="number"
                   value={extraMinute}
@@ -882,7 +898,7 @@ function GoalModal({ match, onClose }: { match: MatchDetail; onClose: () => void
                   min={1}
                   max={15}
                   placeholder="Opcional"
-                  className="mt-1 block w-full rounded-md border px-3 py-2"
+                  className="mt-1 block w-full rounded-md border px-3 py-2 text-sm"
                 />
               </div>
             </div>
@@ -909,14 +925,14 @@ function GoalModal({ match, onClose }: { match: MatchDetail; onClose: () => void
             </div>
           </div>
 
-          <div className="px-6 py-4 border-t flex justify-end gap-3">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-700 bg-white border rounded-md">
+          <div className="px-4 sm:px-6 py-4 border-t flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+            <button type="button" onClick={onClose} className="w-full sm:w-auto px-4 py-2 text-sm text-gray-700 bg-white border rounded-md">
               Cancelar
             </button>
             <button
               type="submit"
               disabled={recordGoalMutation.isPending}
-              className="px-4 py-2 text-sm text-white bg-blue-600 rounded-md disabled:opacity-50"
+              className="w-full sm:w-auto px-4 py-2 text-sm text-white bg-blue-600 rounded-md disabled:opacity-50"
             >
               {recordGoalMutation.isPending ? 'Guardando...' : 'Registrar Gol'}
             </button>

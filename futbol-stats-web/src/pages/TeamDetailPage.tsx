@@ -88,22 +88,22 @@ export function TeamDetailPage() {
           Volver a equipos
         </Link>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
             {team.logoUrl ? (
               <img
                 src={team.logoUrl}
                 alt={team.name}
-                className="h-20 w-20 rounded-full object-cover border-2 border-gray-200"
+                className="h-16 w-16 sm:h-20 sm:w-20 rounded-full object-cover border-2 border-gray-200 flex-shrink-0"
               />
             ) : (
-              <div className="h-20 w-20 rounded-full bg-blue-100 flex items-center justify-center">
-                <Users className="h-10 w-10 text-blue-600" />
+              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <Users className="h-8 w-8 sm:h-10 sm:w-10 text-blue-600" />
               </div>
             )}
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">{team.name}</h1>
-              <p className="text-gray-500">
+            <div className="text-center sm:text-left">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{team.name}</h1>
+              <p className="text-sm sm:text-base text-gray-500">
                 {team.stadium && <span>{team.stadium}</span>}
                 {team.stadium && team.foundedYear && <span> &bull; </span>}
                 {team.foundedYear && <span>Fundado en {team.foundedYear}</span>}
@@ -113,12 +113,12 @@ export function TeamDetailPage() {
 
           {/* Selector de Campeonato */}
           {hasMultipleChampionships && (
-            <div className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-yellow-500" />
+            <div className="flex items-center gap-2 w-full lg:w-auto">
+              <Trophy className="h-5 w-5 text-yellow-500 flex-shrink-0" />
               <select
                 value={selectedChampionshipId || ''}
                 onChange={(e) => setSelectedChampionshipId(e.target.value || null)}
-                className="block w-64 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="block w-full lg:w-64 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
               >
                 <option value="">Todos los campeonatos</option>
                 {championships.map((c) => (
@@ -142,11 +142,11 @@ export function TeamDetailPage() {
 
       {/* Estadísticas Generales */}
       <div className="bg-white rounded-lg shadow mb-6">
-        <div className="px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">Estadisticas Generales</h2>
+        <div className="px-4 sm:px-6 py-4 border-b">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900">Estadisticas Generales</h2>
         </div>
-        <div className="p-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div className="p-4 sm:p-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
             <StatCard
               icon={<Trophy className="h-5 w-5 text-yellow-500" />}
               label="Puntos"
@@ -180,29 +180,29 @@ export function TeamDetailPage() {
             />
           </div>
 
-          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-gray-50 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-green-600">{displayStats.goalsFor}</p>
-              <p className="text-sm text-gray-500">Goles a Favor</p>
+          <div className="mt-4 sm:mt-6 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4 text-center">
+              <p className="text-xl sm:text-2xl font-bold text-green-600">{displayStats.goalsFor}</p>
+              <p className="text-xs sm:text-sm text-gray-500">Goles a Favor</p>
             </div>
-            <div className="bg-gray-50 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-red-600">{displayStats.goalsAgainst}</p>
-              <p className="text-sm text-gray-500">Goles en Contra</p>
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4 text-center">
+              <p className="text-xl sm:text-2xl font-bold text-red-600">{displayStats.goalsAgainst}</p>
+              <p className="text-xs sm:text-sm text-gray-500">Goles en Contra</p>
             </div>
-            <div className="bg-gray-50 rounded-lg p-4 text-center">
-              <p className={`text-2xl font-bold ${displayStats.goalDifference >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4 text-center">
+              <p className={`text-xl sm:text-2xl font-bold ${displayStats.goalDifference >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {displayStats.goalDifference > 0 ? '+' : ''}{displayStats.goalDifference}
               </p>
-              <p className="text-sm text-gray-500">Diferencia de Goles</p>
+              <p className="text-xs sm:text-sm text-gray-500">Dif. Goles</p>
             </div>
-            <div className="bg-gray-50 rounded-lg p-4 text-center">
-              <div className="flex justify-center gap-4">
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4 text-center">
+              <div className="flex justify-center gap-3 sm:gap-4">
                 <div>
-                  <p className="text-xl font-bold text-yellow-500">{displayStats.yellowCards}</p>
+                  <p className="text-lg sm:text-xl font-bold text-yellow-500">{displayStats.yellowCards}</p>
                   <p className="text-xs text-gray-500">Amarillas</p>
                 </div>
                 <div>
-                  <p className="text-xl font-bold text-red-500">{displayStats.redCards}</p>
+                  <p className="text-lg sm:text-xl font-bold text-red-500">{displayStats.redCards}</p>
                   <p className="text-xs text-gray-500">Rojas</p>
                 </div>
               </div>
@@ -216,21 +216,21 @@ export function TeamDetailPage() {
         {/* Goleadores del Equipo */}
         {displayStats.topScorers && displayStats.topScorers.length > 0 && (
           <div className="bg-white rounded-lg shadow flex flex-col">
-            <div className="px-6 py-4 border-b flex items-center justify-between">
+            <div className="px-4 sm:px-6 py-4 border-b flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Target className="h-5 w-5 text-green-500" />
-                <h2 className="text-lg font-semibold text-gray-900">Goleadores</h2>
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900">Goleadores</h2>
               </div>
-              <span className="text-sm text-gray-500">{displayStats.topScorers.length} jugadores</span>
+              <span className="text-xs sm:text-sm text-gray-500">{displayStats.topScorers.length} jug.</span>
             </div>
             <div className="divide-y divide-gray-200 overflow-y-auto max-h-80">
               {displayStats.topScorers.map((scorer, index) => (
-                <div key={scorer.playerId} className="px-6 py-3 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg font-bold text-gray-400 w-6">{index + 1}</span>
-                    <span className="font-medium text-gray-900">{scorer.playerName}</span>
+                <div key={scorer.playerId} className="px-4 sm:px-6 py-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <span className="text-base sm:text-lg font-bold text-gray-400 w-5 sm:w-6 flex-shrink-0">{index + 1}</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base truncate">{scorer.playerName}</span>
                   </div>
-                  <span className="text-lg font-bold text-green-600">{scorer.goals} goles</span>
+                  <span className="text-base sm:text-lg font-bold text-green-600 flex-shrink-0 ml-2">{scorer.goals} goles</span>
                 </div>
               ))}
             </div>
@@ -240,21 +240,21 @@ export function TeamDetailPage() {
         {/* Partidos Jugados */}
         {displayStats.topPlayersByAppearances && displayStats.topPlayersByAppearances.length > 0 && (
           <div className="bg-white rounded-lg shadow flex flex-col">
-            <div className="px-6 py-4 border-b flex items-center justify-between">
+            <div className="px-4 sm:px-6 py-4 border-b flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-blue-500" />
-                <h2 className="text-lg font-semibold text-gray-900">Partidos Jugados</h2>
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900">Partidos Jugados</h2>
               </div>
-              <span className="text-sm text-gray-500">{displayStats.topPlayersByAppearances.length} jugadores</span>
+              <span className="text-xs sm:text-sm text-gray-500">{displayStats.topPlayersByAppearances.length} jug.</span>
             </div>
             <div className="divide-y divide-gray-200 overflow-y-auto max-h-80">
               {displayStats.topPlayersByAppearances.map((player, index) => (
-                <div key={player.playerId} className="px-6 py-3 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg font-bold text-gray-400 w-6">{index + 1}</span>
-                    <span className="font-medium text-gray-900">{player.playerName}</span>
+                <div key={player.playerId} className="px-4 sm:px-6 py-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <span className="text-base sm:text-lg font-bold text-gray-400 w-5 sm:w-6 flex-shrink-0">{index + 1}</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base truncate">{player.playerName}</span>
                   </div>
-                  <span className="text-lg font-bold text-blue-600">{player.matchesPlayed} PJ</span>
+                  <span className="text-base sm:text-lg font-bold text-blue-600 flex-shrink-0 ml-2">{player.matchesPlayed} PJ</span>
                 </div>
               ))}
             </div>
@@ -265,8 +265,8 @@ export function TeamDetailPage() {
       {/* Rendimiento por Campeonato */}
       {championships.length > 0 && (
         <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b">
-            <h2 className="text-lg font-semibold text-gray-900">
+          <div className="px-4 sm:px-6 py-4 border-b">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900">
               {selectedChampionshipId ? 'Rendimiento en el Campeonato' : 'Rendimiento por Campeonato'}
             </h2>
           </div>
@@ -274,25 +274,25 @@ export function TeamDetailPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Campeonato
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Posicion
+                  <th className="px-2 sm:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Pos.
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="hidden sm:table-cell px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     PJ
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 sm:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Pts
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="hidden md:table-cell px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     GF
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="hidden md:table-cell px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     GC
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 sm:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     DG
                   </th>
                 </tr>
@@ -305,14 +305,14 @@ export function TeamDetailPage() {
                   const gd = championship.goalsFor - championship.goalsAgainst;
                   return (
                     <tr key={championship.championshipId} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <Trophy className="h-4 w-4 text-yellow-500 mr-2" />
-                          <span className="font-medium text-gray-900">{championship.championshipName} {championship.season}</span>
+                          <Trophy className="h-4 w-4 text-yellow-500 mr-1 sm:mr-2 flex-shrink-0" />
+                          <span className="font-medium text-gray-900 text-xs sm:text-sm truncate max-w-[100px] sm:max-w-none">{championship.championshipName} {championship.season}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
+                      <td className="px-2 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center">
+                        <span className={`inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-bold ${
                           championship.position === 1 ? 'bg-yellow-100 text-yellow-800' :
                           championship.position === 2 ? 'bg-gray-200 text-gray-800' :
                           championship.position === 3 ? 'bg-orange-100 text-orange-800' :
@@ -321,19 +321,19 @@ export function TeamDetailPage() {
                           {championship.position}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                      <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
                         {championship.matchesPlayed}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-bold text-gray-900">
+                      <td className="px-2 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center text-xs sm:text-sm font-bold text-gray-900">
                         {championship.points}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-green-600">
+                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-center text-sm text-green-600">
                         {championship.goalsFor}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-red-600">
+                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-center text-sm text-red-600">
                         {championship.goalsAgainst}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
+                      <td className="px-2 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center text-xs sm:text-sm">
                         <span className={gd >= 0 ? 'text-green-600' : 'text-red-600'}>
                           {gd > 0 ? '+' : ''}{gd}
                         </span>
@@ -370,12 +370,12 @@ function StatCard({
   subtitle?: string;
 }) {
   return (
-    <div className="bg-gray-50 rounded-lg p-4">
-      <div className="flex items-center gap-2 mb-2">
+    <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+      <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
         {icon}
-        <span className="text-sm text-gray-500">{label}</span>
+        <span className="text-xs sm:text-sm text-gray-500">{label}</span>
       </div>
-      <p className="text-2xl font-bold text-gray-900">{value}</p>
+      <p className="text-xl sm:text-2xl font-bold text-gray-900">{value}</p>
       {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
     </div>
   );

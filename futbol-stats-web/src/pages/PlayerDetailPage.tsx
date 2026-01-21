@@ -126,48 +126,48 @@ export function PlayerDetailPage() {
           Volver a jugadores
         </Link>
 
-        <div className="flex items-start justify-between">
-          <div className="flex items-start gap-6">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
             {/* Foto del jugador */}
             {allStats.photoUrl ? (
               <img
                 src={allStats.photoUrl}
                 alt={allStats.playerName}
-                className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
+                className="h-20 w-20 sm:h-24 sm:w-24 rounded-full object-cover border-4 border-gray-200 flex-shrink-0"
               />
             ) : (
-              <div className="h-24 w-24 rounded-full bg-purple-100 flex items-center justify-center border-4 border-gray-200">
-                <User className="h-12 w-12 text-purple-600" />
+              <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-purple-100 flex items-center justify-center border-4 border-gray-200 flex-shrink-0">
+                <User className="h-10 w-10 sm:h-12 sm:w-12 text-purple-600" />
               </div>
             )}
 
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-bold text-gray-900">
+            <div className="text-center sm:text-left">
+              <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 mb-2">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                   {allStats.playerName}
                 </h1>
                 {allStats.number && (
-                  <span className="text-2xl font-bold text-gray-400">#{allStats.number}</span>
+                  <span className="text-xl sm:text-2xl font-bold text-gray-400">#{allStats.number}</span>
                 )}
               </div>
 
-              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-4 text-sm text-gray-600">
                 {/* Posicion */}
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${positionColors[allStats.position] || 'bg-gray-100 text-gray-800'}`}>
+                <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${positionColors[allStats.position] || 'bg-gray-100 text-gray-800'}`}>
                   {positionLabels[allStats.position] || allStats.position}
                 </span>
 
                 {/* Equipo actual */}
                 <div className="flex items-center gap-1">
                   <Users className="h-4 w-4 text-gray-400" />
-                  <span>{allStats.teamName}</span>
+                  <span className="text-xs sm:text-sm">{allStats.teamName}</span>
                 </div>
 
                 {/* Nacionalidad */}
                 {allStats.nationality && (
                   <div className="flex items-center gap-1">
                     <MapPin className="h-4 w-4 text-gray-400" />
-                    <span>{allStats.nationality}</span>
+                    <span className="text-xs sm:text-sm">{allStats.nationality}</span>
                   </div>
                 )}
 
@@ -175,7 +175,7 @@ export function PlayerDetailPage() {
                 {age !== null && (
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4 text-gray-400" />
-                    <span>{age} anos</span>
+                    <span className="text-xs sm:text-sm">{age} anos</span>
                   </div>
                 )}
               </div>
@@ -184,12 +184,12 @@ export function PlayerDetailPage() {
 
           {/* Selector de Campeonato */}
           {hasChampionships && (
-            <div className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-yellow-500" />
+            <div className="flex items-center gap-2 w-full lg:w-auto">
+              <Trophy className="h-5 w-5 text-yellow-500 flex-shrink-0" />
               <select
                 value={selectedChampionshipId || ''}
                 onChange={(e) => setSelectedChampionshipId(e.target.value || null)}
-                className="block w-64 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                className="block w-full lg:w-64 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 text-sm"
               >
                 <option value="">Todos los campeonatos</option>
                 {championships.map((c) => (
@@ -213,10 +213,10 @@ export function PlayerDetailPage() {
 
       {/* Estadisticas Generales */}
       <div className="bg-white rounded-lg shadow mb-6">
-        <div className="px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">Estadisticas Generales</h2>
+        <div className="px-4 sm:px-6 py-4 border-b">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900">Estadisticas Generales</h2>
         </div>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {isLoadingFiltered && selectedChampionshipId ? (
             <div className="text-center py-4">
               <p className="text-gray-500">Cargando estadisticas...</p>
@@ -257,22 +257,22 @@ export function PlayerDetailPage() {
                 />
               </div>
 
-              <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-gray-50 rounded-lg p-4 text-center">
-                  <p className="text-2xl font-bold text-blue-600">{displayStats.matchesStarted}</p>
-                  <p className="text-sm text-gray-500">Como Titular</p>
+              <div className="mt-4 sm:mt-6 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
+                <div className="bg-gray-50 rounded-lg p-3 sm:p-4 text-center">
+                  <p className="text-xl sm:text-2xl font-bold text-blue-600">{displayStats.matchesStarted}</p>
+                  <p className="text-xs sm:text-sm text-gray-500">Como Titular</p>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-4 text-center">
-                  <p className="text-2xl font-bold text-gray-600">{displayStats.matchesAsSub}</p>
-                  <p className="text-sm text-gray-500">Como Suplente</p>
+                <div className="bg-gray-50 rounded-lg p-3 sm:p-4 text-center">
+                  <p className="text-xl sm:text-2xl font-bold text-gray-600">{displayStats.matchesAsSub}</p>
+                  <p className="text-xs sm:text-sm text-gray-500">Como Suplente</p>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-4 text-center">
-                  <p className="text-2xl font-bold text-green-600">{displayStats.penaltiesScored}</p>
-                  <p className="text-sm text-gray-500">Penales Marcados</p>
+                <div className="bg-gray-50 rounded-lg p-3 sm:p-4 text-center">
+                  <p className="text-xl sm:text-2xl font-bold text-green-600">{displayStats.penaltiesScored}</p>
+                  <p className="text-xs sm:text-sm text-gray-500">Pen. Marcados</p>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-4 text-center">
-                  <p className="text-2xl font-bold text-red-600">{displayStats.penaltiesMissed}</p>
-                  <p className="text-sm text-gray-500">Penales Fallados</p>
+                <div className="bg-gray-50 rounded-lg p-3 sm:p-4 text-center">
+                  <p className="text-xl sm:text-2xl font-bold text-red-600">{displayStats.penaltiesMissed}</p>
+                  <p className="text-xs sm:text-sm text-gray-500">Pen. Fallados</p>
                 </div>
               </div>
             </>
@@ -285,34 +285,34 @@ export function PlayerDetailPage() {
         {/* Estadisticas por Equipo */}
         {allStats.teamStats && allStats.teamStats.length > 0 && (
           <div className="bg-white rounded-lg shadow flex flex-col">
-            <div className="px-6 py-4 border-b flex items-center justify-between">
+            <div className="px-4 sm:px-6 py-4 border-b flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-blue-500" />
-                <h2 className="text-lg font-semibold text-gray-900">Por Equipo</h2>
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900">Por Equipo</h2>
               </div>
-              <span className="text-sm text-gray-500">{allStats.teamStats.length} equipos</span>
+              <span className="text-xs sm:text-sm text-gray-500">{allStats.teamStats.length} equipos</span>
             </div>
             <div className="divide-y divide-gray-200 overflow-y-auto max-h-80">
               {allStats.teamStats.map((ts) => (
-                <div key={ts.teamId} className="px-6 py-3">
+                <div key={ts.teamId} className="px-4 sm:px-6 py-3">
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                       {ts.teamLogoUrl ? (
                         <img
                           src={ts.teamLogoUrl}
                           alt={ts.teamName}
-                          className="h-8 w-8 rounded-full object-cover"
+                          className="h-7 w-7 sm:h-8 sm:w-8 rounded-full object-cover flex-shrink-0"
                         />
                       ) : (
-                        <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                          <Users className="h-4 w-4 text-blue-600" />
+                        <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                          <Users className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
                         </div>
                       )}
-                      <span className="font-medium text-gray-900">{ts.teamName}</span>
+                      <span className="font-medium text-gray-900 text-sm sm:text-base truncate">{ts.teamName}</span>
                     </div>
-                    <span className="text-sm font-bold text-gray-600">{ts.matchesPlayed} PJ</span>
+                    <span className="text-xs sm:text-sm font-bold text-gray-600 flex-shrink-0 ml-2">{ts.matchesPlayed} PJ</span>
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-gray-500 ml-11">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-gray-500 ml-9 sm:ml-11">
                     <span className="text-green-600">{ts.goals} goles</span>
                     <span className="text-purple-600">{ts.assists} asist.</span>
                     <span className="text-yellow-600">{ts.yellowCards} TA</span>
@@ -327,27 +327,27 @@ export function PlayerDetailPage() {
         {/* Estadisticas por Campeonato */}
         {championships.length > 0 && (
           <div className="bg-white rounded-lg shadow flex flex-col">
-            <div className="px-6 py-4 border-b flex items-center justify-between">
+            <div className="px-4 sm:px-6 py-4 border-b flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Trophy className="h-5 w-5 text-yellow-500" />
-                <h2 className="text-lg font-semibold text-gray-900">Por Campeonato</h2>
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900">Por Campeonato</h2>
               </div>
-              <span className="text-sm text-gray-500">{championships.length} campeonatos</span>
+              <span className="text-xs sm:text-sm text-gray-500">{championships.length} camp.</span>
             </div>
             <div className="divide-y divide-gray-200 overflow-y-auto max-h-80">
               {(selectedChampionshipId
                 ? championships.filter(c => c.championshipId === selectedChampionshipId)
                 : championships
               ).map((cs) => (
-                <div key={cs.championshipId} className="px-6 py-3">
+                <div key={cs.championshipId} className="px-4 sm:px-6 py-3">
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Trophy className="h-4 w-4 text-yellow-500" />
-                      <span className="font-medium text-gray-900">{cs.championshipName} {cs.season}</span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Trophy className="h-4 w-4 text-yellow-500 flex-shrink-0" />
+                      <span className="font-medium text-gray-900 text-sm sm:text-base truncate">{cs.championshipName} {cs.season}</span>
                     </div>
-                    <span className="text-sm font-bold text-gray-600">{cs.matchesPlayed} PJ</span>
+                    <span className="text-xs sm:text-sm font-bold text-gray-600 flex-shrink-0 ml-2">{cs.matchesPlayed} PJ</span>
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-gray-500 ml-6">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-gray-500 ml-6">
                     <span className="text-green-600">{cs.goals} goles</span>
                     <span className="text-purple-600">{cs.assists} asist.</span>
                     <span className="text-yellow-600">{cs.yellowCards} TA</span>
@@ -363,39 +363,39 @@ export function PlayerDetailPage() {
       {/* Lista de Partidos */}
       {filteredMatches && filteredMatches.length > 0 && (
         <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b flex items-center justify-between">
+          <div className="px-4 sm:px-6 py-4 border-b flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-blue-500" />
-              <h2 className="text-lg font-semibold text-gray-900">Partidos Jugados</h2>
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900">Partidos Jugados</h2>
             </div>
-            <span className="text-sm text-gray-500">{filteredMatches.length} partidos</span>
+            <span className="text-xs sm:text-sm text-gray-500">{filteredMatches.length} partidos</span>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="sticky left-0 z-10 bg-gray-50 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                    Rival
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Fecha
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Campeonato
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Partido
+                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Res.
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Resultado
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Tipo
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Goles
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Asist.
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Tarjetas
                   </th>
                 </tr>
@@ -409,63 +409,59 @@ export function PlayerDetailPage() {
 
                   return (
                     <tr key={match.matchId} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(match.matchDate)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <Trophy className="h-4 w-4 text-yellow-500 mr-2" />
-                          <span className="text-sm text-gray-900">{match.championshipName}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="sticky left-0 z-10 bg-white px-3 py-3 whitespace-nowrap shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-gray-900">{match.teamName}</span>
-                          <span className="text-xs text-gray-400">vs</span>
-                          <div className="flex items-center gap-1">
-                            {match.opponentLogoUrl && (
-                              <img
-                                src={match.opponentLogoUrl}
-                                alt={match.opponentName}
-                                className="h-5 w-5 rounded-full object-cover"
-                              />
-                            )}
-                            <span className="text-sm text-gray-900">{match.opponentName}</span>
-                          </div>
+                          {match.opponentLogoUrl && (
+                            <img
+                              src={match.opponentLogoUrl}
+                              alt={match.opponentName}
+                              className="h-6 w-6 rounded-full object-cover flex-shrink-0"
+                            />
+                          )}
+                          <span className="text-xs sm:text-sm text-gray-900 whitespace-nowrap">{match.opponentName}</span>
                           <span className="text-xs text-gray-400">({match.isHome ? 'L' : 'V'})</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-bold ${resultBg} ${resultColor}`}>
-                          {match.teamScore} - {match.opponentScore}
+                      <td className="px-3 py-3 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+                        {formatDate(match.matchDate)}
+                      </td>
+                      <td className="px-3 py-3 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <Trophy className="h-4 w-4 text-yellow-500 mr-2 flex-shrink-0" />
+                          <span className="text-xs sm:text-sm text-gray-900 whitespace-nowrap">{match.championshipName}</span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 whitespace-nowrap text-center">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs sm:text-sm font-bold ${resultBg} ${resultColor}`}>
+                          {match.teamScore}-{match.opponentScore}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <td className="px-3 py-3 whitespace-nowrap text-center">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                           match.isStarter ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
                         }`}>
                           {match.isStarter ? 'Titular' : 'Suplente'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <td className="px-3 py-3 whitespace-nowrap text-center">
                         {match.goals > 0 ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-sm font-bold bg-green-100 text-green-800">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs sm:text-sm font-bold bg-green-100 text-green-800">
                             {match.goals}
                           </span>
                         ) : (
-                          <span className="text-gray-400">-</span>
+                          <span className="text-gray-400 text-xs sm:text-sm">-</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <td className="px-3 py-3 whitespace-nowrap text-center">
                         {match.assists > 0 ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-sm font-bold bg-purple-100 text-purple-800">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs sm:text-sm font-bold bg-purple-100 text-purple-800">
                             {match.assists}
                           </span>
                         ) : (
-                          <span className="text-gray-400">-</span>
+                          <span className="text-gray-400 text-xs sm:text-sm">-</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <td className="px-3 py-3 whitespace-nowrap text-center">
                         <div className="flex items-center justify-center gap-1">
                           {match.yellowCards > 0 && (
                             <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -514,12 +510,12 @@ function StatCard({
   subtitle?: string;
 }) {
   return (
-    <div className="bg-gray-50 rounded-lg p-4">
-      <div className="flex items-center gap-2 mb-2">
+    <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+      <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
         {icon}
-        <span className="text-sm text-gray-500">{label}</span>
+        <span className="text-xs sm:text-sm text-gray-500">{label}</span>
       </div>
-      <p className="text-2xl font-bold text-gray-900">{value}</p>
+      <p className="text-xl sm:text-2xl font-bold text-gray-900">{value}</p>
       {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
     </div>
   );

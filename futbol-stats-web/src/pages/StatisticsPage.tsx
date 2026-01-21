@@ -98,7 +98,7 @@ export function StatisticsPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Estadisticas</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Estadisticas</h1>
         <p className="mt-1 text-sm text-gray-500">
           Tabla de posiciones, goleadores y estadisticas de los campeonatos
         </p>
@@ -112,7 +112,7 @@ export function StatisticsPage() {
         <select
           value={selectedChampionship}
           onChange={(e) => setSelectedChampionship(e.target.value)}
-          className="block w-full md:w-96 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+          className="block w-full md:w-96 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm"
         >
           {championships?.items?.map((c) => (
             <option key={c.id} value={c.id}>{c.name} {c.season}</option>
@@ -129,27 +129,27 @@ export function StatisticsPage() {
         <>
           {/* Tabs */}
           <div className="border-b border-gray-200 mb-6">
-            <nav className="-mb-px flex space-x-8">
+            <nav className="-mb-px flex space-x-4 sm:space-x-8 overflow-x-auto">
               <button
                 onClick={() => setActiveTab('standings')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                className={`py-3 sm:py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                   activeTab === 'standings'
                     ? 'border-green-500 text-green-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                <Users className="h-5 w-5 inline mr-2" />
-                Tabla de Posiciones
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 inline mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Tabla de </span>Posiciones
               </button>
               <button
                 onClick={() => setActiveTab('scorers')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                className={`py-3 sm:py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                   activeTab === 'scorers'
                     ? 'border-green-500 text-green-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                <Target className="h-5 w-5 inline mr-2" />
+                <Target className="h-4 w-4 sm:h-5 sm:w-5 inline mr-1 sm:mr-2" />
                 Goleadores
               </button>
             </nav>
@@ -157,19 +157,20 @@ export function StatisticsPage() {
 
           {/* Standings Table */}
           {activeTab === 'standings' && (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="px-4 py-3 border-b flex justify-between items-center">
-                <span className="text-sm text-gray-500">
-                  Tabla de posiciones actualizada segun partidos finalizados
+            <div className="bg-white rounded-lg shadow">
+              <div className="px-4 py-3 border-b flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                <span className="text-xs sm:text-sm text-gray-500">
+                  Tabla actualizada segun partidos finalizados
                 </span>
                 <button
                   onClick={() => recalculateMutation.mutate()}
                   disabled={recalculateMutation.isPending}
-                  className="inline-flex items-center px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  className="inline-flex items-center justify-center px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
                   title="Recalcular estadisticas desde cero"
                 >
                   <RefreshCw className={`h-4 w-4 mr-1 ${recalculateMutation.isPending ? 'animate-spin' : ''}`} />
-                  {recalculateMutation.isPending ? 'Recalculando...' : 'Recalcular'}
+                  <span className="hidden sm:inline">{recalculateMutation.isPending ? 'Recalculando...' : 'Recalcular'}</span>
+                  <span className="sm:hidden">{recalculateMutation.isPending ? '...' : 'Recalc.'}</span>
                 </button>
               </div>
               {loadingStandings ? (
@@ -177,51 +178,56 @@ export function StatisticsPage() {
                   <p className="text-gray-500">Cargando...</p>
                 </div>
               ) : standings?.standings?.length ? (
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">#</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-12">PJ</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-12">G</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-12">E</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-12">P</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-12">GF</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-12">GC</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-12">DG</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16">Pts</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {standings.standings.map((team, index) => (
-                      <tr key={team.teamId} className={index < 4 ? 'bg-green-50' : index >= standings.standings.length - 3 ? 'bg-red-50' : ''}>
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{team.position}</td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center">
-                            {team.logoUrl ? (
-                              <img src={team.logoUrl} alt="" className="h-8 w-8 rounded-full object-cover mr-3" />
-                            ) : (
-                              <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-3">
-                                <Users className="h-4 w-4 text-gray-500" />
-                              </div>
-                            )}
-                            <span className="font-medium text-gray-900">{team.teamName}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-center text-gray-500">{team.gamesPlayed}</td>
-                        <td className="px-4 py-3 text-sm text-center text-gray-500">{team.wins}</td>
-                        <td className="px-4 py-3 text-sm text-center text-gray-500">{team.draws}</td>
-                        <td className="px-4 py-3 text-sm text-center text-gray-500">{team.losses}</td>
-                        <td className="px-4 py-3 text-sm text-center text-gray-500">{team.goalsFor}</td>
-                        <td className="px-4 py-3 text-sm text-center text-gray-500">{team.goalsAgainst}</td>
-                        <td className="px-4 py-3 text-sm text-center font-medium text-gray-900">
-                          {team.goalDifference > 0 ? '+' : ''}{team.goalDifference}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-center font-bold text-gray-900">{team.points}</td>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="sticky left-0 z-10 bg-gray-50 px-2 sm:px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase w-8 sm:w-10">#</th>
+                        <th className="sticky left-8 sm:left-10 z-10 bg-gray-50 px-2 sm:px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Equipo</th>
+                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase w-10">PJ</th>
+                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase w-10">G</th>
+                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase w-10">E</th>
+                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase w-10">P</th>
+                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase w-10">GF</th>
+                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase w-10">GC</th>
+                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase w-10">DG</th>
+                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase w-12">Pts</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {standings.standings.map((team, index) => {
+                        const rowBg = index < 4 ? 'bg-green-50' : index >= standings.standings.length - 3 ? 'bg-red-50' : 'bg-white';
+                        return (
+                          <tr key={team.teamId} className={rowBg}>
+                            <td className={`sticky left-0 z-10 ${rowBg} px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium text-gray-900`}>{team.position}</td>
+                            <td className={`sticky left-8 sm:left-10 z-10 ${rowBg} px-2 sm:px-3 py-2 sm:py-3 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]`}>
+                              <div className="flex items-center">
+                                {team.logoUrl ? (
+                                  <img src={team.logoUrl} alt="" className="h-6 w-6 sm:h-7 sm:w-7 rounded-full object-cover mr-2 flex-shrink-0" />
+                                ) : (
+                                  <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-gray-200 flex items-center justify-center mr-2 flex-shrink-0">
+                                    <Users className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
+                                  </div>
+                                )}
+                                <span className="font-medium text-gray-900 text-xs sm:text-sm whitespace-nowrap">{team.teamName}</span>
+                              </div>
+                            </td>
+                            <td className="px-3 py-2 sm:py-3 text-xs sm:text-sm text-center text-gray-500">{team.gamesPlayed}</td>
+                            <td className="px-3 py-2 sm:py-3 text-xs sm:text-sm text-center text-gray-500">{team.wins}</td>
+                            <td className="px-3 py-2 sm:py-3 text-xs sm:text-sm text-center text-gray-500">{team.draws}</td>
+                            <td className="px-3 py-2 sm:py-3 text-xs sm:text-sm text-center text-gray-500">{team.losses}</td>
+                            <td className="px-3 py-2 sm:py-3 text-xs sm:text-sm text-center text-gray-500">{team.goalsFor}</td>
+                            <td className="px-3 py-2 sm:py-3 text-xs sm:text-sm text-center text-gray-500">{team.goalsAgainst}</td>
+                            <td className="px-3 py-2 sm:py-3 text-xs sm:text-sm text-center font-medium text-gray-900">
+                              {team.goalDifference > 0 ? '+' : ''}{team.goalDifference}
+                            </td>
+                            <td className="px-3 py-2 sm:py-3 text-xs sm:text-sm text-center font-bold text-gray-900">{team.points}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               ) : (
                 <div className="text-center py-12">
                   <p className="text-gray-500">No hay equipos registrados en este campeonato</p>
@@ -264,8 +270,8 @@ export function StatisticsPage() {
                 </div>
               ) : topScorers?.scorers?.length ? (
                 <>
-                  <div className="px-4 py-3 border-b flex justify-between items-center">
-                    <span className="text-sm text-gray-500">
+                  <div className="px-3 sm:px-4 py-3 border-b flex justify-between items-center">
+                    <span className="text-xs sm:text-sm text-gray-500">
                       Mostrando {topScorers.scorers.length} de {topScorers.totalCount} goleadores
                     </span>
                   </div>
@@ -273,54 +279,58 @@ export function StatisticsPage() {
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">#</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jugador</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16">PJ</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16">Goles</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16">Pen.</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16">Asist.</th>
+                          <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-10 sm:w-12">#</th>
+                          <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jugador</th>
+                          <th className="hidden sm:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
+                          <th className="hidden md:table-cell px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16">PJ</th>
+                          <th className="px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-12 sm:w-16">Goles</th>
+                          <th className="hidden md:table-cell px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16">Pen.</th>
+                          <th className="hidden sm:table-cell px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16">Asist.</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {topScorers.scorers.map((scorer) => (
                           <tr key={scorer.playerId} className={scorer.rank <= 3 ? 'bg-yellow-50' : ''}>
-                            <td className="px-4 py-3">
-                              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${
+                            <td className="px-2 sm:px-4 py-2 sm:py-3">
+                              <span className={`inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full ${
                                 scorer.rank === 1 ? 'bg-yellow-400 text-yellow-900' :
                                 scorer.rank === 2 ? 'bg-gray-300 text-gray-900' :
                                 scorer.rank === 3 ? 'bg-amber-600 text-white' :
                                 'bg-gray-100 text-gray-600'
-                              } text-sm font-medium`}>
+                              } text-xs sm:text-sm font-medium`}>
                                 {scorer.rank}
                               </span>
                             </td>
-                            <td className="px-4 py-3">
+                            <td className="px-2 sm:px-4 py-2 sm:py-3">
                               <div className="flex items-center">
                                 {scorer.photoUrl ? (
-                                  <img src={scorer.photoUrl} alt="" className="h-10 w-10 rounded-full object-cover mr-3" />
+                                  <img src={scorer.photoUrl} alt="" className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover mr-2 sm:mr-3 flex-shrink-0" />
                                 ) : (
-                                  <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center mr-3">
-                                    <User className="h-5 w-5 text-purple-600" />
+                                  <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-purple-100 flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                                    <User className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
                                   </div>
                                 )}
-                                <span className="font-medium text-gray-900">{scorer.playerName}</span>
+                                <div className="min-w-0">
+                                  <span className="font-medium text-gray-900 text-xs sm:text-sm truncate block">{scorer.playerName}</span>
+                                  {/* Mostrar equipo debajo del nombre en movil */}
+                                  <span className="sm:hidden text-xs text-gray-500 truncate block">{scorer.teamName}</span>
+                                </div>
                               </div>
                             </td>
-                            <td className="px-4 py-3">
+                            <td className="hidden sm:table-cell px-4 py-3">
                               <div className="flex items-center">
                                 {scorer.teamLogoUrl && (
-                                  <img src={scorer.teamLogoUrl} alt="" className="h-6 w-6 rounded-full object-cover mr-2" />
+                                  <img src={scorer.teamLogoUrl} alt="" className="h-6 w-6 rounded-full object-cover mr-2 flex-shrink-0" />
                                 )}
-                                <span className="text-sm text-gray-500">{scorer.teamName}</span>
+                                <span className="text-sm text-gray-500 truncate">{scorer.teamName}</span>
                               </div>
                             </td>
-                            <td className="px-4 py-3 text-sm text-center text-gray-500">{scorer.matchesPlayed}</td>
-                            <td className="px-4 py-3 text-center">
-                              <span className="text-lg font-bold text-gray-900">{scorer.goals}</span>
+                            <td className="hidden md:table-cell px-4 py-3 text-sm text-center text-gray-500">{scorer.matchesPlayed}</td>
+                            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+                              <span className="text-base sm:text-lg font-bold text-gray-900">{scorer.goals}</span>
                             </td>
-                            <td className="px-4 py-3 text-sm text-center text-gray-500">{scorer.penaltyGoals}</td>
-                            <td className="px-4 py-3 text-sm text-center text-gray-500">{scorer.assists}</td>
+                            <td className="hidden md:table-cell px-4 py-3 text-sm text-center text-gray-500">{scorer.penaltyGoals}</td>
+                            <td className="hidden sm:table-cell px-4 py-3 text-sm text-center text-gray-500">{scorer.assists}</td>
                           </tr>
                         ))}
                       </tbody>
