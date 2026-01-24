@@ -182,7 +182,11 @@ export function PlayerDetailPage() {
                 {/* Nacionalidad */}
                 {allStats.countryName && (
                   <div className="flex items-center gap-1">
-                    <MapPin className="h-4 w-4 text-gray-400" />
+                    {allStats.countryFlagUrl ? (
+                      <img src={allStats.countryFlagUrl} alt={allStats.countryName} className="h-4 w-5 object-cover rounded-sm" />
+                    ) : (
+                      <MapPin className="h-4 w-4 text-gray-400" />
+                    )}
                     <span className="text-xs sm:text-sm">{allStats.countryName}</span>
                   </div>
                 )}

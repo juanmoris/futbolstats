@@ -294,16 +294,9 @@ export function StatisticsPage() {
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {topScorers.scorers.map((scorer) => (
-                          <tr key={scorer.playerId} className={scorer.rank <= 3 ? 'bg-yellow-50' : ''}>
-                            <td className="px-2 sm:px-4 py-2 sm:py-3">
-                              <span className={`inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full ${
-                                scorer.rank === 1 ? 'bg-yellow-400 text-yellow-900' :
-                                scorer.rank === 2 ? 'bg-gray-300 text-gray-900' :
-                                scorer.rank === 3 ? 'bg-amber-600 text-white' :
-                                'bg-gray-100 text-gray-600'
-                              } text-xs sm:text-sm font-medium`}>
-                                {scorer.rank}
-                              </span>
+                          <tr key={scorer.playerId} className="hover:bg-gray-50">
+                            <td className="px-2 sm:px-4 py-2 sm:py-3 text-center text-xs sm:text-sm text-gray-600">
+                              {scorer.rank}
                             </td>
                             <td className="px-2 sm:px-4 py-2 sm:py-3">
                               <div className="flex items-center">
@@ -318,6 +311,13 @@ export function StatisticsPage() {
                                   <Link to={`/players/${scorer.playerId}`} className="font-medium text-gray-900 text-xs sm:text-sm truncate block hover:text-green-600">
                                     {scorer.playerName}
                                   </Link>
+                                  {/* Mostrar bandera y pais debajo del nombre */}
+                                  {scorer.countryFlagUrl && (
+                                    <span className="text-xs text-gray-500 flex items-center gap-1">
+                                      <img src={scorer.countryFlagUrl} alt={scorer.countryName || ''} className="h-3 w-4 object-cover rounded-sm" />
+                                      <span className="hidden sm:inline">{scorer.countryName}</span>
+                                    </span>
+                                  )}
                                   {/* Mostrar equipo debajo del nombre en movil */}
                                   <Link to={`/teams/${scorer.teamId}`} className="sm:hidden text-xs text-gray-500 truncate block hover:text-green-600">
                                     {scorer.teamName}

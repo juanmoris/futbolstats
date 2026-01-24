@@ -29,6 +29,8 @@ public record ScorerDto(
     Guid PlayerId,
     string PlayerName,
     string? PhotoUrl,
+    string? CountryName,
+    string? CountryFlagUrl,
     Guid TeamId,
     string TeamName,
     string? TeamLogoUrl,
@@ -63,6 +65,8 @@ public class GetTopScorersQueryHandler : IRequestHandler<GetTopScorersQuery, Top
             .Include(e => e.Match)
             .Include(e => e.Player)
                 .ThenInclude(p => p.Team)
+            .Include(e => e.Player)
+                .ThenInclude(p => p.Country)
             .Where(e => e.Match.ChampionshipId == request.ChampionshipId
                         && (e.EventType == EventType.Goal || e.EventType == EventType.PenaltyScored))
             .AsNoTracking()
@@ -128,6 +132,8 @@ public class GetTopScorersQueryHandler : IRequestHandler<GetTopScorersQuery, Top
                 x.Player.Id,
                 $"{x.Player.FirstName} {x.Player.LastName}",
                 x.Player.PhotoUrl,
+                x.Player.Country?.Name,
+                x.Player.Country?.FlagUrl,
                 x.Player.TeamId,
                 x.Player.Team.Name,
                 x.Player.Team.LogoUrl,

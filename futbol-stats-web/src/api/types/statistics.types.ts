@@ -36,6 +36,8 @@ export interface Scorer {
   playerId: string;
   playerName: string;
   photoUrl: string | null;
+  countryName: string | null;
+  countryFlagUrl: string | null;
   teamId: string;
   teamName: string;
   teamLogoUrl: string | null;
@@ -53,6 +55,7 @@ export interface PlayerStatisticsResponse {
   teamLogoUrl: string | null;
   position: string;
   countryName: string | null;
+  countryFlagUrl: string | null;
   birthDate: string | null;
   number: number | null;
   matchesPlayed: number;

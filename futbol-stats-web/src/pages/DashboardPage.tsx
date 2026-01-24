@@ -339,7 +339,7 @@ export function DashboardPage() {
                                     <Users className="h-3 w-3 text-gray-500" />
                                   </div>
                                 )}
-                                <span className="truncate font-medium">{team.teamName}</span>
+                                <span className="truncate">{team.teamName}</span>
                               </Link>
                             </td>
                             <td className="px-3 py-2 text-center font-bold">{team.points}</td>
@@ -388,12 +388,7 @@ export function DashboardPage() {
                     {topScorers.scorers.slice(0, 6).map((scorer: Scorer) => (
                       <li key={scorer.playerId} className="px-4 py-3 flex items-center justify-between hover:bg-gray-50">
                         <div className="flex items-center gap-3">
-                          <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
-                            scorer.rank === 1 ? 'bg-yellow-400 text-yellow-900' :
-                            scorer.rank === 2 ? 'bg-gray-300 text-gray-800' :
-                            scorer.rank === 3 ? 'bg-amber-600 text-white' :
-                            'bg-gray-100 text-gray-600'
-                          }`}>
+                          <span className="w-6 text-center text-xs text-gray-600">
                             {scorer.rank}
                           </span>
 
@@ -406,10 +401,16 @@ export function DashboardPage() {
                               </div>
                             )}
                             <div>
-                              <Link to={`/players/${scorer.playerId}`} className="text-sm font-medium text-gray-900 hover:text-green-600">
+                              <Link to={`/players/${scorer.playerId}`} className="text-sm font-medium text-gray-900 hover:text-green-600 flex items-center gap-1">
                                 {scorer.playerName}
+                                {scorer.countryFlagUrl && (
+                                  <img src={scorer.countryFlagUrl} alt={scorer.countryName || ''} className="h-3 w-4 object-cover rounded-sm" />
+                                )}
                               </Link>
-                              <Link to={`/teams/${scorer.teamId}`} className="text-xs text-gray-500 hover:text-green-600 block">
+                              <Link to={`/teams/${scorer.teamId}`} className="text-xs text-gray-500 hover:text-green-600 flex items-center gap-1">
+                                {scorer.teamLogoUrl && (
+                                  <img src={scorer.teamLogoUrl} alt="" className="h-4 w-4 rounded-full object-cover" />
+                                )}
                                 {scorer.teamName}
                               </Link>
                             </div>
