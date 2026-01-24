@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit2, Trash2, User, Search } from 'lucide-react';
+import { Plus, Edit2, Trash2, User, Users, Search } from 'lucide-react';
 import { playersApi } from '@/api/endpoints/players.api';
 import { teamsApi } from '@/api/endpoints/teams.api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -169,23 +169,23 @@ export function PlayersPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="sticky left-0 z-10 bg-gray-50 px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                     Jugador
                   </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Equipo
                   </th>
-                  <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Posicion
                   </th>
-                  <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Numero
                   </th>
-                  <th className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Estado
                   </th>
                   {isAuthenticated && (
-                    <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 sm:px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Acciones
                     </th>
                   )}
@@ -193,8 +193,8 @@ export function PlayersPage() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {data?.items?.map((player) => (
-                  <tr key={player.id} className="hover:bg-gray-50">
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
+                  <tr key={player.id} className="hover:bg-gray-50 group/row">
+                    <td className="sticky left-0 z-10 bg-white group-hover/row:bg-gray-50 px-3 sm:px-4 py-3 whitespace-nowrap shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                       <Link to={`/players/${player.id}`} className="flex items-center group">
                         {player.photoUrl ? (
                           <img src={player.photoUrl} alt={player.fullName} className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover flex-shrink-0" />
@@ -203,24 +203,33 @@ export function PlayersPage() {
                             <User className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
                           </div>
                         )}
-                        <div className="ml-2 sm:ml-3">
-                          <p className="font-medium text-gray-900 group-hover:text-purple-600 text-sm sm:text-base truncate max-w-[100px] sm:max-w-none">{player.fullName}</p>
-                          <p className="text-xs sm:text-sm text-gray-500">{player.nationality || '-'}</p>
+                        <div className="ml-2 sm:ml-3 min-w-0">
+                          <p className="font-medium text-gray-900 group-hover:text-purple-600 text-sm sm:text-base truncate max-w-[120px] sm:max-w-[180px]">{player.fullName}</p>
+                          <p className="text-xs text-gray-500">{player.nationality || '-'}</p>
                         </div>
                       </Link>
                     </td>
-                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500 truncate max-w-[100px] sm:max-w-none">
-                      {player.teamName}
+                    <td className="px-3 sm:px-4 py-3 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+                      <Link to={`/teams/${player.teamId}`} className="flex items-center gap-2 hover:text-purple-600">
+                        {player.teamLogoUrl ? (
+                          <img src={player.teamLogoUrl} alt={player.teamName} className="h-6 w-6 rounded-full object-cover flex-shrink-0" />
+                        ) : (
+                          <div className="h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                            <Users className="h-3 w-3 text-gray-500" />
+                          </div>
+                        )}
+                        <span className="truncate max-w-[100px] sm:max-w-none">{player.teamName}</span>
+                      </Link>
                     </td>
-                    <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getPositionColor(player.position)}`}>
                         {getPositionLabel(player.position)}
                       </span>
                     </td>
-                    <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-3 sm:px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                       {player.number !== null ? `#${player.number}` : '-'}
                     </td>
-                    <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-4 py-3 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         player.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                       }`}>
@@ -228,7 +237,7 @@ export function PlayersPage() {
                       </span>
                     </td>
                     {isAuthenticated && (
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-3 sm:px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                         <button
                           onClick={() => handleOpenModal(player)}
                           className="text-purple-600 hover:text-purple-900 mr-2 sm:mr-4"

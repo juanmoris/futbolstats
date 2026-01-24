@@ -27,6 +27,7 @@ public record PlayerDto(
     string? PhotoUrl,
     Guid TeamId,
     string TeamName,
+    string? TeamLogoUrl,
     bool IsActive
 );
 
@@ -83,6 +84,7 @@ public class GetPlayersHandler(FutbolDbContext db)
                 p.PhotoUrl,
                 p.TeamId,
                 p.Team.Name,
+                p.Team.LogoUrl,
                 p.IsActive
             ))
             .ToListAsync(cancellationToken);

@@ -12,6 +12,7 @@ export interface Player {
   photoUrl: string | null;
   teamId: string;
   teamName: string;
+  teamLogoUrl: string | null;
   isActive: boolean;
 }
 

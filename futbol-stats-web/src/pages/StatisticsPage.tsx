@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Trophy, Users, User, Target, RefreshCw, Loader2, Search } from 'lucide-react';
 import { championshipsApi } from '@/api/endpoints/championships.api';
@@ -205,7 +205,7 @@ export function StatisticsPage() {
                           <tr key={team.teamId} className={rowBg}>
                             <td className={`sticky left-0 z-10 ${rowBg} px-2 sm:px-3 py-2 sm:py-3 text-xs sm:text-sm font-medium text-gray-900`}>{team.position}</td>
                             <td className={`sticky left-8 sm:left-10 z-10 ${rowBg} px-2 sm:px-3 py-2 sm:py-3 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]`}>
-                              <div className="flex items-center">
+                              <Link to={`/teams/${team.teamId}`} className="flex items-center hover:text-green-600">
                                 {team.logoUrl ? (
                                   <img src={team.logoUrl} alt="" className="h-6 w-6 sm:h-7 sm:w-7 rounded-full object-cover mr-2 flex-shrink-0" />
                                 ) : (
@@ -214,7 +214,7 @@ export function StatisticsPage() {
                                   </div>
                                 )}
                                 <span className="font-medium text-gray-900 text-xs sm:text-sm whitespace-nowrap">{team.teamName}</span>
-                              </div>
+                              </Link>
                             </td>
                             <td className="px-3 py-2 sm:py-3 text-xs sm:text-sm text-center text-gray-500">{team.gamesPlayed}</td>
                             <td className="px-3 py-2 sm:py-3 text-xs sm:text-sm text-center text-gray-500">{team.wins}</td>
@@ -315,19 +315,23 @@ export function StatisticsPage() {
                                   </div>
                                 )}
                                 <div className="min-w-0">
-                                  <span className="font-medium text-gray-900 text-xs sm:text-sm truncate block">{scorer.playerName}</span>
+                                  <Link to={`/players/${scorer.playerId}`} className="font-medium text-gray-900 text-xs sm:text-sm truncate block hover:text-green-600">
+                                    {scorer.playerName}
+                                  </Link>
                                   {/* Mostrar equipo debajo del nombre en movil */}
-                                  <span className="sm:hidden text-xs text-gray-500 truncate block">{scorer.teamName}</span>
+                                  <Link to={`/teams/${scorer.teamId}`} className="sm:hidden text-xs text-gray-500 truncate block hover:text-green-600">
+                                    {scorer.teamName}
+                                  </Link>
                                 </div>
                               </div>
                             </td>
                             <td className="hidden sm:table-cell px-4 py-3">
-                              <div className="flex items-center">
+                              <Link to={`/teams/${scorer.teamId}`} className="flex items-center hover:text-green-600">
                                 {scorer.teamLogoUrl && (
                                   <img src={scorer.teamLogoUrl} alt="" className="h-6 w-6 rounded-full object-cover mr-2 flex-shrink-0" />
                                 )}
                                 <span className="text-sm text-gray-500 truncate">{scorer.teamName}</span>
-                              </div>
+                              </Link>
                             </td>
                             <td className="hidden md:table-cell px-4 py-3 text-sm text-center text-gray-500">{scorer.matchesPlayed}</td>
                             <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">

@@ -210,7 +210,7 @@ export function DashboardPage() {
                               {formatMatchDate(match.matchDate)}
                             </span>
                           )}
-                          {match.currentMinute && (
+                          {match.currentMinute && match.status !== MatchStatus.Finished && (
                             <span className="text-xs font-medium text-red-600">
                               {match.currentMinute}'
                             </span>
@@ -219,7 +219,11 @@ export function DashboardPage() {
 
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <Link
+                              to={`/teams/${match.homeTeamId}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="flex items-center gap-2 flex-1 min-w-0 hover:text-green-600"
+                            >
                               {match.homeTeamLogo ? (
                                 <img src={match.homeTeamLogo} className="w-6 h-6 rounded-full flex-shrink-0" alt="" />
                               ) : (
@@ -228,12 +232,16 @@ export function DashboardPage() {
                                 </div>
                               )}
                               <span className="text-sm font-medium truncate">{match.homeTeamName}</span>
-                            </div>
+                            </Link>
                             <span className="font-bold text-lg ml-2">{match.homeScore}</span>
                           </div>
 
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <Link
+                              to={`/teams/${match.awayTeamId}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="flex items-center gap-2 flex-1 min-w-0 hover:text-green-600"
+                            >
                               {match.awayTeamLogo ? (
                                 <img src={match.awayTeamLogo} className="w-6 h-6 rounded-full flex-shrink-0" alt="" />
                               ) : (
@@ -242,7 +250,7 @@ export function DashboardPage() {
                                 </div>
                               )}
                               <span className="text-sm font-medium truncate">{match.awayTeamName}</span>
-                            </div>
+                            </Link>
                             <span className="font-bold text-lg ml-2">{match.awayScore}</span>
                           </div>
                         </div>
@@ -292,7 +300,7 @@ export function DashboardPage() {
                           <tr key={team.teamId} className="hover:bg-gray-50">
                             <td className="px-3 py-2 font-medium text-gray-900">{team.position}</td>
                             <td className="px-3 py-2">
-                              <div className="flex items-center gap-2">
+                              <Link to={`/teams/${team.teamId}`} className="flex items-center gap-2 hover:text-green-600">
                                 {team.logoUrl ? (
                                   <img src={team.logoUrl} className="w-5 h-5 rounded-full" alt="" />
                                 ) : (
@@ -301,7 +309,7 @@ export function DashboardPage() {
                                   </div>
                                 )}
                                 <span className="truncate font-medium">{team.teamName}</span>
-                              </div>
+                              </Link>
                             </td>
                             <td className="px-3 py-2 text-center font-bold">{team.points}</td>
                             <td className="px-3 py-2 text-center text-gray-500">{team.gamesPlayed}</td>
@@ -367,8 +375,12 @@ export function DashboardPage() {
                               </div>
                             )}
                             <div>
-                              <p className="text-sm font-medium text-gray-900">{scorer.playerName}</p>
-                              <p className="text-xs text-gray-500">{scorer.teamName}</p>
+                              <Link to={`/players/${scorer.playerId}`} className="text-sm font-medium text-gray-900 hover:text-green-600">
+                                {scorer.playerName}
+                              </Link>
+                              <Link to={`/teams/${scorer.teamId}`} className="text-xs text-gray-500 hover:text-green-600 block">
+                                {scorer.teamName}
+                              </Link>
                             </div>
                           </div>
                         </div>
