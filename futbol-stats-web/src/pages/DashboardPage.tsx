@@ -116,11 +116,34 @@ export function DashboardPage() {
   const formatMatchDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('es', {
+      timeZone: 'UTC',
       weekday: 'short',
       day: 'numeric',
       month: 'short',
       hour: '2-digit',
       minute: '2-digit',
+    });
+  };
+
+  const sortMatches = (matches: Match[]) => {
+    return [...matches].sort((a, b) => {
+      // Partidos en vivo primero
+      const liveStatuses = [MatchStatus.Live, MatchStatus.HalfTime];
+      const aIsLive = liveStatuses.includes(a.status);
+      const bIsLive = liveStatuses.includes(b.status);
+      if (aIsLive && !bIsLive) return -1;
+      if (!aIsLive && bIsLive) return 1;
+
+      // Partidos finalizados al final
+      const aIsFinished = a.status === MatchStatus.Finished;
+      const bIsFinished = b.status === MatchStatus.Finished;
+      if (aIsFinished && !bIsFinished) return 1;
+      if (!aIsFinished && bIsFinished) return -1;
+
+      // Para partidos programados, ordenar por fecha (más cercanos primero)
+      const dateA = new Date(a.matchDate);
+      const dateB = new Date(b.matchDate);
+      return dateA.getTime() - dateB.getTime();
     });
   };
 
@@ -192,7 +215,7 @@ export function DashboardPage() {
                 </div>
               ) : matchdayMatches?.items?.length ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {matchdayMatches.items.map((match: Match) => {
+                  {sortMatches(matchdayMatches.items).map((match: Match) => {
                     const statusLabel = getStatusLabel(match.status);
                     return (
                       <Link
