@@ -3,6 +3,7 @@ export interface StandingsResponse {
   championshipName: string;
   season: string;
   standings: StandingEntry[];
+  playersCount: number;
 }
 
 export interface StandingEntry {

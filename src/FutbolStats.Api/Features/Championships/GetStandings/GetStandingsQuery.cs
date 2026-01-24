@@ -12,7 +12,8 @@ public record StandingsResponse(
     Guid ChampionshipId,
     string ChampionshipName,
     string Season,
-    List<StandingEntryDto> Standings
+    List<StandingEntryDto> Standings,
+    int PlayersCount
 );
 
 public record StandingEntryDto(
@@ -77,11 +78,19 @@ public class GetStandingsQueryHandler : IRequestHandler<GetStandingsQuery, Stand
             ))
             .ToList();
 
+        // Count distinct players that appeared in lineups for this championship
+        var playersCount = await _context.MatchLineups
+            .Where(l => l.Match.ChampionshipId == request.ChampionshipId)
+            .Select(l => l.PlayerId)
+            .Distinct()
+            .CountAsync(cancellationToken);
+
         return new StandingsResponse(
             championship.Id,
             championship.Name,
             championship.Season,
-            standings
+            standings,
+            playersCount
         );
     }
 }

@@ -3,8 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Trophy, Users, User, Calendar, Target, ChevronRight } from 'lucide-react';
 import { championshipsApi } from '@/api/endpoints/championships.api';
-import { teamsApi } from '@/api/endpoints/teams.api';
-import { playersApi } from '@/api/endpoints/players.api';
 import { matchesApi } from '@/api/endpoints/matches.api';
 import { statisticsApi } from '@/api/endpoints/statistics.api';
 import { ChampionshipStatus, MatchStatus } from '@/api/types/common.types';
@@ -34,22 +32,6 @@ export function DashboardPage() {
   const selectedChampionship = allChampionships?.items?.find(
     (c) => c.id === selectedChampionshipId
   );
-
-  // Queries para las tarjetas de estadísticas
-  const { data: championships } = useQuery({
-    queryKey: ['championships', { page: 1, pageSize: 5 }],
-    queryFn: () => championshipsApi.getAll({ page: 1, pageSize: 5 }),
-  });
-
-  const { data: teams } = useQuery({
-    queryKey: ['teams', { page: 1, pageSize: 5 }],
-    queryFn: () => teamsApi.getAll({ page: 1, pageSize: 5 }),
-  });
-
-  const { data: players } = useQuery({
-    queryKey: ['players', { page: 1, pageSize: 5 }],
-    queryFn: () => playersApi.getAll({ page: 1, pageSize: 5 }),
-  });
 
   const { data: liveMatches } = useQuery({
     queryKey: ['matches', 'live'],
@@ -83,16 +65,8 @@ export function DashboardPage() {
 
   const stats = [
     {
-      name: 'Campeonatos',
-      value: championships?.totalCount || 0,
-      icon: Trophy,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100',
-      href: '/championships',
-    },
-    {
       name: 'Equipos',
-      value: teams?.totalCount || 0,
+      value: standings?.standings?.length || 0,
       icon: Users,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
@@ -100,7 +74,7 @@ export function DashboardPage() {
     },
     {
       name: 'Jugadores',
-      value: players?.totalCount || 0,
+      value: standings?.playersCount || 0,
       icon: User,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100',
@@ -190,7 +164,7 @@ export function DashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {stats.map((stat) => (
           <Link key={stat.name} to={stat.href} className="bg-white rounded-lg shadow p-6 hover:shadow-md hover:scale-[1.02] transition-all">
             <div className="flex items-center">
