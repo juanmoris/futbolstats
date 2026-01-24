@@ -1,12 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Trophy, Users, User, Target, RefreshCw, Loader2, Search } from 'lucide-react';
 import { championshipsApi } from '@/api/endpoints/championships.api';
 import { statisticsApi } from '@/api/endpoints/statistics.api';
 
 export function StatisticsPage() {
+  const [searchParams] = useSearchParams();
+  const initialTab = (searchParams.get('tab') as 'standings' | 'scorers') || 'standings';
+
   const [selectedChampionship, setSelectedChampionship] = useState('');
-  const [activeTab, setActiveTab] = useState<'standings' | 'scorers'>('standings');
+  const [activeTab, setActiveTab] = useState<'standings' | 'scorers'>(initialTab);
   const [scorerSearch, setScorerSearch] = useState('');
   const [scorerTeamFilter, setScorerTeamFilter] = useState('');
   const queryClient = useQueryClient();
