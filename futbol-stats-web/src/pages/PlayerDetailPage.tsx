@@ -149,10 +149,10 @@ export function PlayerDetailPage() {
               <img
                 src={allStats.photoUrl}
                 alt={allStats.playerName}
-                className="h-20 w-20 sm:h-24 sm:w-24 rounded-full object-cover border-4 border-gray-200 flex-shrink-0"
+                className="h-20 w-20 sm:h-24 sm:w-24 rounded-full object-cover border-4 border-gray-200 shrink-0"
               />
             ) : (
-              <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-purple-100 flex items-center justify-center border-4 border-gray-200 flex-shrink-0">
+              <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-purple-100 flex items-center justify-center border-4 border-gray-200 shrink-0">
                 <User className="h-10 w-10 sm:h-12 sm:w-12 text-purple-600" />
               </div>
             )}
@@ -201,7 +201,7 @@ export function PlayerDetailPage() {
           {/* Selector de Campeonato */}
           {hasChampionships && (
             <div className="flex items-center gap-2 w-full lg:w-auto">
-              <Trophy className="h-5 w-5 text-yellow-500 flex-shrink-0" />
+              <Trophy className="h-5 w-5 text-yellow-500 shrink-0" />
               <select
                 value={selectedChampionshipId || ''}
                 onChange={(e) => setSelectedChampionshipId(e.target.value || null)}
@@ -317,16 +317,16 @@ export function PlayerDetailPage() {
                         <img
                           src={ts.teamLogoUrl}
                           alt={ts.teamName}
-                          className="h-7 w-7 sm:h-8 sm:w-8 rounded-full object-cover flex-shrink-0"
+                          className="h-7 w-7 sm:h-8 sm:w-8 rounded-full object-cover shrink-0"
                         />
                       ) : (
-                        <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                        <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
                           <Users className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
                         </div>
                       )}
                       <span className="font-medium text-gray-900 text-sm sm:text-base truncate">{ts.teamName}</span>
                     </div>
-                    <span className="text-xs sm:text-sm font-bold text-gray-600 flex-shrink-0 ml-2">{ts.matchesPlayed} PJ</span>
+                    <span className="text-xs sm:text-sm font-bold text-gray-600 shrink-0 ml-2">{ts.matchesPlayed} PJ</span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-gray-500 ml-9 sm:ml-11">
                     <span className={isGoalkeeper ? 'text-red-600' : 'text-green-600'}>
@@ -360,10 +360,10 @@ export function PlayerDetailPage() {
                 <div key={cs.championshipId} className="px-4 sm:px-6 py-3">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2 min-w-0">
-                      <Trophy className="h-4 w-4 text-yellow-500 flex-shrink-0" />
+                      <Trophy className="h-4 w-4 text-yellow-500 shrink-0" />
                       <span className="font-medium text-gray-900 text-sm sm:text-base truncate">{cs.championshipName} {cs.season}</span>
                     </div>
-                    <span className="text-xs sm:text-sm font-bold text-gray-600 flex-shrink-0 ml-2">{cs.matchesPlayed} PJ</span>
+                    <span className="text-xs sm:text-sm font-bold text-gray-600 shrink-0 ml-2">{cs.matchesPlayed} PJ</span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-gray-500 ml-6">
                     <span className={isGoalkeeper ? 'text-red-600' : 'text-green-600'}>
@@ -435,7 +435,7 @@ export function PlayerDetailPage() {
                             <img
                               src={match.opponentLogoUrl}
                               alt={match.opponentName}
-                              className="h-6 w-6 rounded-full object-cover flex-shrink-0"
+                              className="h-6 w-6 rounded-full object-cover shrink-0"
                             />
                           )}
                           <span className="text-xs sm:text-sm text-gray-900 whitespace-nowrap">{match.opponentName}</span>
@@ -447,7 +447,7 @@ export function PlayerDetailPage() {
                       </td>
                       <td className="px-3 py-3 whitespace-nowrap">
                         <div className="flex items-center">
-                          <Trophy className="h-4 w-4 text-yellow-500 mr-2 flex-shrink-0" />
+                          <Trophy className="h-4 w-4 text-yellow-500 mr-2 shrink-0" />
                           <span className="text-xs sm:text-sm text-gray-900 whitespace-nowrap">{match.championshipName}</span>
                         </div>
                       </td>
