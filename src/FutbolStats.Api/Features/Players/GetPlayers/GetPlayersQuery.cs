@@ -23,7 +23,9 @@ public record PlayerDto(
     int? Number,
     PlayerPosition Position,
     DateOnly? BirthDate,
-    string? Nationality,
+    Guid? CountryId,
+    string? CountryName,
+    string? CountryFlagUrl,
     string? PhotoUrl,
     Guid TeamId,
     string TeamName,
@@ -38,7 +40,7 @@ public class GetPlayersHandler(FutbolDbContext db)
         GetPlayersQuery request,
         CancellationToken cancellationToken)
     {
-        var query = db.Players.Include(p => p.Team).AsQueryable();
+        var query = db.Players.Include(p => p.Team).Include(p => p.Country).AsQueryable();
 
         if (request.OnlyActive)
         {
@@ -80,7 +82,9 @@ public class GetPlayersHandler(FutbolDbContext db)
                 p.Number,
                 p.Position,
                 p.BirthDate,
-                p.Nationality,
+                p.CountryId,
+                p.Country != null ? p.Country.Name : null,
+                p.Country != null ? p.Country.FlagUrl : null,
                 p.PhotoUrl,
                 p.TeamId,
                 p.Team.Name,

@@ -4,8 +4,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Edit2, Trash2, User, Users, Search } from 'lucide-react';
 import { playersApi } from '@/api/endpoints/players.api';
 import { teamsApi } from '@/api/endpoints/teams.api';
+import { countriesApi } from '@/api/endpoints/countries.api';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Player, CreatePlayerRequest } from '@/api/types/player.types';
+import type { Country } from '@/api/types/country.types';
 import { PlayerPosition } from '@/api/types/common.types';
 
 export function PlayersPage() {
@@ -22,6 +24,11 @@ export function PlayersPage() {
   const { data: teams } = useQuery({
     queryKey: ['teams', 'all'],
     queryFn: () => teamsApi.getAll({ pageSize: 100 }),
+  });
+
+  const { data: countries } = useQuery({
+    queryKey: ['countries', 'all'],
+    queryFn: () => countriesApi.getAll({ pageSize: 200 }),
   });
 
   const { data, isLoading } = useQuery({
@@ -205,7 +212,12 @@ export function PlayersPage() {
                         )}
                         <div className="ml-2 sm:ml-3 min-w-0">
                           <p className="font-medium text-gray-900 group-hover:text-purple-600 text-sm sm:text-base truncate max-w-[120px] sm:max-w-[180px]">{player.fullName}</p>
-                          <p className="text-xs text-gray-500">{player.nationality || '-'}</p>
+                          <p className="text-xs text-gray-500 flex items-center gap-1">
+                            {player.countryFlagUrl && (
+                              <img src={player.countryFlagUrl} alt="" className="h-3 w-4 object-cover rounded-sm" />
+                            )}
+                            {player.countryName || '-'}
+                          </p>
                         </div>
                       </Link>
                     </td>
@@ -291,6 +303,7 @@ export function PlayersPage() {
         <PlayerModal
           player={editingPlayer}
           teams={teams?.items || []}
+          countries={countries?.items || []}
           onClose={() => setIsModalOpen(false)}
           onSave={handleSave}
           isLoading={createMutation.isPending || updateMutation.isPending}
@@ -317,6 +330,7 @@ function getErrorMessage(err: unknown): string {
 function PlayerModal({
   player,
   teams,
+  countries,
   onClose,
   onSave,
   isLoading,
@@ -324,6 +338,7 @@ function PlayerModal({
 }: {
   player: Player | null;
   teams: { id: string; name: string }[];
+  countries: Country[];
   onClose: () => void;
   onSave: (data: CreatePlayerRequest & { isActive?: boolean }) => void;
   isLoading: boolean;
@@ -334,7 +349,7 @@ function PlayerModal({
   const [number, setNumber] = useState(player?.number?.toString() || '');
   const [position, setPosition] = useState(player?.position?.toString() || '0');
   const [teamId, setTeamId] = useState(player?.teamId || '');
-  const [nationality, setNationality] = useState(player?.nationality || '');
+  const [countryId, setCountryId] = useState(player?.countryId || '');
   const [birthDate, setBirthDate] = useState(player?.birthDate?.split('T')[0] || '');
   const [photoUrl, setPhotoUrl] = useState(player?.photoUrl || '');
   const [isActive, setIsActive] = useState(player?.isActive ?? true);
@@ -347,7 +362,7 @@ function PlayerModal({
       number: number ? parseInt(number) : null,
       position: parseInt(position) as typeof PlayerPosition[keyof typeof PlayerPosition],
       teamId,
-      nationality: nationality || undefined,
+      countryId: countryId || undefined,
       birthDate: birthDate || undefined,
       photoUrl: photoUrl || undefined,
       isActive,
@@ -432,13 +447,26 @@ function PlayerModal({
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Nacionalidad</label>
-              <input
-                type="text"
-                value={nationality}
-                onChange={(e) => setNationality(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 text-sm border px-3 py-2"
-              />
+              <label className="block text-sm font-medium text-gray-700">Pais</label>
+              <div className="mt-1 flex items-center gap-2">
+                {countryId && countries.find(c => c.id === countryId)?.flagUrl && (
+                  <img
+                    src={countries.find(c => c.id === countryId)?.flagUrl}
+                    alt=""
+                    className="h-6 w-8 object-cover rounded shadow-sm"
+                  />
+                )}
+                <select
+                  value={countryId}
+                  onChange={(e) => setCountryId(e.target.value)}
+                  className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 text-sm border px-3 py-2"
+                >
+                  <option value="">Seleccionar pais</option>
+                  {countries.map((country) => (
+                    <option key={country.id} value={country.id}>{country.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Fecha de nacimiento</label>

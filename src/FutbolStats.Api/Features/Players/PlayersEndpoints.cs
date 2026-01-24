@@ -61,7 +61,7 @@ public static class PlayersEndpoints
                 request.Number,
                 request.Position,
                 request.BirthDate,
-                request.Nationality,
+                request.CountryId,
                 request.PhotoUrl,
                 request.TeamId,
                 request.IsActive
@@ -91,7 +91,7 @@ public record UpdatePlayerRequest(
     int? Number,
     PlayerPosition Position,
     DateOnly BirthDate,
-    string? Nationality,
+    Guid? CountryId,
     string? PhotoUrl,
     Guid TeamId,
     bool IsActive

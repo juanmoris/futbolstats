@@ -22,7 +22,7 @@ export interface TeamPlayer {
   lastName: string;
   number: number;
   position: PlayerPosition;
-  nationality: string | null;
+  countryName: string | null;
   isActive: boolean;
 }
 

@@ -26,7 +26,7 @@ public record TeamPlayerDto(
     string LastName,
     int? Number,
     PlayerPosition Position,
-    string? Nationality,
+    string? CountryName,
     bool IsActive
 );
 
@@ -39,6 +39,7 @@ public class GetTeamByIdHandler(FutbolDbContext db)
     {
         var team = await db.Teams
             .Include(t => t.Players.Where(p => p.IsActive))
+                .ThenInclude(p => p.Country)
             .FirstOrDefaultAsync(t => t.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException("Team", request.Id);
 
@@ -50,7 +51,7 @@ public class GetTeamByIdHandler(FutbolDbContext db)
                 p.LastName,
                 p.Number,
                 p.Position,
-                p.Nationality,
+                p.Country?.Name,
                 p.IsActive
             ))
             .ToList();

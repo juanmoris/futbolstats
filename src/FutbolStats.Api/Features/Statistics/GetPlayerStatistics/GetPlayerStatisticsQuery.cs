@@ -15,7 +15,7 @@ public record PlayerStatisticsResponse(
     string TeamName,
     string? TeamLogoUrl,
     string Position,
-    string? Nationality,
+    string? CountryName,
     DateOnly? BirthDate,
     int? Number,
     int MatchesPlayed,
@@ -87,6 +87,7 @@ public class GetPlayerStatisticsQueryHandler : IRequestHandler<GetPlayerStatisti
     {
         var player = await _context.Players
             .Include(p => p.Team)
+            .Include(p => p.Country)
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == request.PlayerId, cancellationToken);
 
@@ -231,7 +232,7 @@ public class GetPlayerStatisticsQueryHandler : IRequestHandler<GetPlayerStatisti
             player.Team.Name,
             player.Team.LogoUrl,
             player.Position.ToString(),
-            player.Nationality,
+            player.Country?.Name,
             player.BirthDate,
             player.Number,
             matchesPlayed,

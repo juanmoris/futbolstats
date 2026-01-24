@@ -8,7 +8,9 @@ export interface Player {
   number: number | null;
   position: PlayerPosition;
   birthDate: string | null;
-  nationality: string | null;
+  countryId: string | null;
+  countryName: string | null;
+  countryFlagUrl: string | null;
   photoUrl: string | null;
   teamId: string;
   teamName: string;
@@ -37,7 +39,7 @@ export interface CreatePlayerRequest {
   number: number | null;
   position: PlayerPosition;
   birthDate?: string;
-  nationality?: string;
+  countryId?: string;
   photoUrl?: string;
   teamId: string;
 }

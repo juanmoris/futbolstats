@@ -180,10 +180,10 @@ export function PlayerDetailPage() {
                 </div>
 
                 {/* Nacionalidad */}
-                {allStats.nationality && (
+                {allStats.countryName && (
                   <div className="flex items-center gap-1">
                     <MapPin className="h-4 w-4 text-gray-400" />
-                    <span className="text-xs sm:text-sm">{allStats.nationality}</span>
+                    <span className="text-xs sm:text-sm">{allStats.countryName}</span>
                   </div>
                 )}
 

@@ -52,7 +52,7 @@ export interface PlayerStatisticsResponse {
   teamName: string;
   teamLogoUrl: string | null;
   position: string;
-  nationality: string | null;
+  countryName: string | null;
   birthDate: string | null;
   number: number | null;
   matchesPlayed: number;

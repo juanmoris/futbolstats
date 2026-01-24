@@ -16,7 +16,8 @@ public record PlayerDetailDto(
     int? Number,
     PlayerPosition Position,
     DateOnly? BirthDate,
-    string? Nationality,
+    Guid? CountryId,
+    string? CountryName,
     string? PhotoUrl,
     Guid TeamId,
     string TeamName,
@@ -44,6 +45,7 @@ public class GetPlayerByIdHandler(FutbolDbContext db)
     {
         var player = await db.Players
             .Include(p => p.Team)
+            .Include(p => p.Country)
             .Include(p => p.Events)
             .FirstOrDefaultAsync(p => p.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException("Player", request.Id);
@@ -64,7 +66,8 @@ public class GetPlayerByIdHandler(FutbolDbContext db)
             player.Number,
             player.Position,
             player.BirthDate,
-            player.Nationality,
+            player.CountryId,
+            player.Country?.Name,
             player.PhotoUrl,
             player.TeamId,
             player.Team.Name,

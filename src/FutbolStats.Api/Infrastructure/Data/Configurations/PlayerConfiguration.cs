@@ -18,9 +18,6 @@ public class PlayerConfiguration : IEntityTypeConfiguration<Player>
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.Property(p => p.Nationality)
-            .HasMaxLength(100);
-
         builder.Property(p => p.PhotoUrl)
             .HasMaxLength(500);
 
@@ -32,7 +29,13 @@ public class PlayerConfiguration : IEntityTypeConfiguration<Player>
             .HasForeignKey(p => p.TeamId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(p => p.Country)
+            .WithMany(c => c.Players)
+            .HasForeignKey(p => p.CountryId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(p => p.TeamId);
+        builder.HasIndex(p => p.CountryId);
         builder.HasIndex(p => new { p.TeamId, p.Number });
 
         builder.Ignore(p => p.FullName);

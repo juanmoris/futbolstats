@@ -122,9 +122,8 @@ export function DashboardPage() {
   const sortMatches = (matches: Match[]) => {
     return [...matches].sort((a, b) => {
       // Partidos en vivo primero
-      const liveStatuses = [MatchStatus.Live, MatchStatus.HalfTime];
-      const aIsLive = liveStatuses.includes(a.status);
-      const bIsLive = liveStatuses.includes(b.status);
+      const aIsLive = a.status === MatchStatus.Live || a.status === MatchStatus.HalfTime;
+      const bIsLive = b.status === MatchStatus.Live || b.status === MatchStatus.HalfTime;
       if (aIsLive && !bIsLive) return -1;
       if (!aIsLive && bIsLive) return 1;
 

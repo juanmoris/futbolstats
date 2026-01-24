@@ -1,4 +1,5 @@
 using FutbolStats.Api.Common;
+using FutbolStats.Api.Features.Countries.Entities;
 using FutbolStats.Api.Features.MatchEvents.Entities;
 using FutbolStats.Api.Features.Teams.Entities;
 
@@ -12,7 +13,7 @@ public class Player
     public int? Number { get; set; }
     public PlayerPosition Position { get; set; }
     public DateOnly BirthDate { get; set; }
-    public string? Nationality { get; set; }
+    public Guid? CountryId { get; set; }
     public string? PhotoUrl { get; set; }
     public Guid TeamId { get; set; }
     public bool IsActive { get; set; } = true;
@@ -20,6 +21,7 @@ public class Player
     public DateTime UpdatedAt { get; set; }
 
     public Team Team { get; set; } = null!;
+    public Country? Country { get; set; }
     public ICollection<MatchEvent> Events { get; set; } = [];
 
     public string FullName => $"{FirstName} {LastName}";

@@ -14,7 +14,7 @@ public record UpdatePlayerCommand(
     int? Number,
     PlayerPosition Position,
     DateOnly BirthDate,
-    string? Nationality,
+    Guid? CountryId,
     string? PhotoUrl,
     Guid TeamId,
     bool IsActive
@@ -54,7 +54,7 @@ public class UpdatePlayerHandler(FutbolDbContext db)
         player.Number = request.Number;
         player.Position = request.Position;
         player.BirthDate = request.BirthDate;
-        player.Nationality = request.Nationality;
+        player.CountryId = request.CountryId;
         player.PhotoUrl = request.PhotoUrl;
         player.TeamId = request.TeamId;
         player.IsActive = request.IsActive;
@@ -108,9 +108,11 @@ public class UpdatePlayerValidator : AbstractValidator<UpdatePlayerCommand>
             .LessThan(DateOnly.FromDateTime(DateTime.UtcNow))
             .WithMessage("La fecha de nacimiento debe ser en el pasado");
 
-        RuleFor(x => x.Nationality)
-            .MaximumLength(100).WithMessage("La nacionalidad no debe exceder 100 caracteres")
-            .When(x => !string.IsNullOrEmpty(x.Nationality));
+        RuleFor(x => x.CountryId)
+            .MustAsync(async (countryId, ct) =>
+                !countryId.HasValue || await db.Countries.AnyAsync(c => c.Id == countryId, ct))
+            .WithMessage("El pais no existe")
+            .When(x => x.CountryId.HasValue);
 
         RuleFor(x => x.PhotoUrl)
             .MaximumLength(500).WithMessage("La URL de la foto no debe exceder 500 caracteres")

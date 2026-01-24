@@ -5,6 +5,7 @@ using FutbolStats.Api.Features.Auth;
 using FutbolStats.Api.Features.Championships;
 using FutbolStats.Api.Features.Championships.Services;
 using FutbolStats.Api.Features.Coaches;
+using FutbolStats.Api.Features.Countries;
 using FutbolStats.Api.Features.Matches;
 using FutbolStats.Api.Features.MatchEvents;
 using FutbolStats.Api.Features.Players;
@@ -134,5 +135,6 @@ app.MapMatchesEndpoints();
 app.MapMatchEventsEndpoints();
 app.MapStatisticsEndpoints();
 app.MapCoachesEndpoints();
+app.MapCountriesEndpoints();
 
 app.Run();
