@@ -225,13 +225,13 @@ export function TeamDetailPage() {
             </div>
             <div className="divide-y divide-gray-200 overflow-y-auto max-h-80">
               {displayStats.topScorers.map((scorer, index) => (
-                <div key={scorer.playerId} className="px-4 sm:px-6 py-3 flex items-center justify-between">
+                <Link key={scorer.playerId} to={`/players/${scorer.playerId}`} className="px-4 sm:px-6 py-3 flex items-center justify-between hover:bg-gray-50">
                   <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                     <span className="text-base sm:text-lg font-bold text-gray-400 w-5 sm:w-6 flex-shrink-0">{index + 1}</span>
-                    <span className="font-medium text-gray-900 text-sm sm:text-base truncate">{scorer.playerName}</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base truncate hover:text-green-600">{scorer.playerName}</span>
                   </div>
                   <span className="text-base sm:text-lg font-bold text-green-600 flex-shrink-0 ml-2">{scorer.goals} goles</span>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -249,13 +249,13 @@ export function TeamDetailPage() {
             </div>
             <div className="divide-y divide-gray-200 overflow-y-auto max-h-80">
               {displayStats.topPlayersByAppearances.map((player, index) => (
-                <div key={player.playerId} className="px-4 sm:px-6 py-3 flex items-center justify-between">
+                <Link key={player.playerId} to={`/players/${player.playerId}`} className="px-4 sm:px-6 py-3 flex items-center justify-between hover:bg-gray-50">
                   <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                     <span className="text-base sm:text-lg font-bold text-gray-400 w-5 sm:w-6 flex-shrink-0">{index + 1}</span>
-                    <span className="font-medium text-gray-900 text-sm sm:text-base truncate">{player.playerName}</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base truncate hover:text-blue-600">{player.playerName}</span>
                   </div>
                   <span className="text-base sm:text-lg font-bold text-blue-600 flex-shrink-0 ml-2">{player.matchesPlayed} PJ</span>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
