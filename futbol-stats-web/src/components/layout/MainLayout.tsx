@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Trophy, Users, User, UserCog, LayoutDashboard, Calendar, BarChart3, LogOut, Menu, X } from 'lucide-react';
+import { Trophy, Users, User, UserCog, Calendar, BarChart3, LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Campeonatos', href: '/championships', icon: Trophy },
   { name: 'Equipos', href: '/teams', icon: Users },
   { name: 'Jugadores', href: '/players', icon: User },
@@ -31,12 +30,12 @@ export function MainLayout() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             {/* Logo */}
-            <div className="flex items-center">
+            <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
               <Trophy className="h-8 w-8 text-green-600" />
               <span className="ml-2 text-xl font-bold text-gray-900">
                 FutbolStats
               </span>
-            </div>
+            </Link>
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex space-x-6">
