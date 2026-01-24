@@ -114,6 +114,22 @@ export function PlayerDetailPage() {
     ? allStats.recentMatches.filter(m => m.championshipName === selectedChampionship?.championshipName)
     : allStats.recentMatches;
 
+  // Calcular goles encajados para porteros
+  const isGoalkeeper = allStats.position === 'Goalkeeper';
+  const goalsConceded = filteredMatches?.reduce((total, match) => total + match.opponentScore, 0) || 0;
+
+  // Calcular goles encajados por equipo (para porteros)
+  const goalsConcededByTeam = allStats.recentMatches?.reduce((acc, match) => {
+    acc[match.teamName] = (acc[match.teamName] || 0) + match.opponentScore;
+    return acc;
+  }, {} as Record<string, number>) || {};
+
+  // Calcular goles encajados por campeonato (para porteros)
+  const goalsConcededByChampionship = allStats.recentMatches?.reduce((acc, match) => {
+    acc[match.championshipName] = (acc[match.championshipName] || 0) + match.opponentScore;
+    return acc;
+  }, {} as Record<string, number>) || {};
+
   return (
     <div>
       {/* Header */}
@@ -231,9 +247,9 @@ export function PlayerDetailPage() {
                   subtitle={`${displayStats.matchesStarted} titular`}
                 />
                 <StatCard
-                  icon={<Target className="h-5 w-5 text-green-500" />}
-                  label="Goles"
-                  value={displayStats.goals}
+                  icon={<Target className={`h-5 w-5 ${isGoalkeeper ? 'text-red-500' : 'text-green-500'}`} />}
+                  label={isGoalkeeper ? 'Goles Enc.' : 'Goles'}
+                  value={isGoalkeeper ? goalsConceded : displayStats.goals}
                 />
                 <StatCard
                   icon={<Award className="h-5 w-5 text-purple-500" />}
@@ -313,7 +329,9 @@ export function PlayerDetailPage() {
                     <span className="text-xs sm:text-sm font-bold text-gray-600 flex-shrink-0 ml-2">{ts.matchesPlayed} PJ</span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-gray-500 ml-9 sm:ml-11">
-                    <span className="text-green-600">{ts.goals} goles</span>
+                    <span className={isGoalkeeper ? 'text-red-600' : 'text-green-600'}>
+                      {isGoalkeeper ? (goalsConcededByTeam[ts.teamName] || 0) : ts.goals} {isGoalkeeper ? 'enc.' : 'goles'}
+                    </span>
                     <span className="text-purple-600">{ts.assists} asist.</span>
                     <span className="text-yellow-600">{ts.yellowCards} TA</span>
                     <span className="text-red-600">{ts.redCards} TR</span>
@@ -348,7 +366,9 @@ export function PlayerDetailPage() {
                     <span className="text-xs sm:text-sm font-bold text-gray-600 flex-shrink-0 ml-2">{cs.matchesPlayed} PJ</span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-gray-500 ml-6">
-                    <span className="text-green-600">{cs.goals} goles</span>
+                    <span className={isGoalkeeper ? 'text-red-600' : 'text-green-600'}>
+                      {isGoalkeeper ? (goalsConcededByChampionship[cs.championshipName] || 0) : cs.goals} {isGoalkeeper ? 'enc.' : 'goles'}
+                    </span>
                     <span className="text-purple-600">{cs.assists} asist.</span>
                     <span className="text-yellow-600">{cs.yellowCards} TA</span>
                     <span className="text-red-600">{cs.redCards} TR</span>
@@ -390,7 +410,7 @@ export function PlayerDetailPage() {
                     Tipo
                   </th>
                   <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Goles
+                    {isGoalkeeper ? 'G. Enc.' : 'Goles'}
                   </th>
                   <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Asist.
@@ -444,12 +464,24 @@ export function PlayerDetailPage() {
                         </span>
                       </td>
                       <td className="px-3 py-3 whitespace-nowrap text-center">
-                        {match.goals > 0 ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs sm:text-sm font-bold bg-green-100 text-green-800">
-                            {match.goals}
-                          </span>
+                        {isGoalkeeper ? (
+                          match.opponentScore > 0 ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs sm:text-sm font-bold bg-red-100 text-red-800">
+                              {match.opponentScore}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs sm:text-sm font-bold bg-green-100 text-green-800">
+                              0
+                            </span>
+                          )
                         ) : (
-                          <span className="text-gray-400 text-xs sm:text-sm">-</span>
+                          match.goals > 0 ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs sm:text-sm font-bold bg-green-100 text-green-800">
+                              {match.goals}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 text-xs sm:text-sm">-</span>
+                          )
                         )}
                       </td>
                       <td className="px-3 py-3 whitespace-nowrap text-center">
