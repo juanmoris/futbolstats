@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Trophy, Users, User, Calendar, Target, ChevronRight } from 'lucide-react';
@@ -9,8 +10,31 @@ import { statisticsApi } from '@/api/endpoints/statistics.api';
 import { ChampionshipStatus, MatchStatus } from '@/api/types/common.types';
 import type { Match } from '@/api/types/match.types';
 import type { StandingEntry, Scorer } from '@/api/types/statistics.types';
+import type { Championship } from '@/api/types/championship.types';
 
 export function DashboardPage() {
+  const [selectedChampionshipId, setSelectedChampionshipId] = useState<string>('');
+
+  // Query para obtener todos los campeonatos
+  const { data: allChampionships } = useQuery({
+    queryKey: ['championships', 'all'],
+    queryFn: () => championshipsApi.getAll({ pageSize: 100 }),
+  });
+
+  // Establecer el campeonato activo por defecto
+  useEffect(() => {
+    if (allChampionships?.items?.length && !selectedChampionshipId) {
+      const activeChampionship = allChampionships.items.find(
+        (c) => c.status === ChampionshipStatus.InProgress
+      );
+      setSelectedChampionshipId(activeChampionship?.id || allChampionships.items[0].id);
+    }
+  }, [allChampionships, selectedChampionshipId]);
+
+  const selectedChampionship = allChampionships?.items?.find(
+    (c) => c.id === selectedChampionshipId
+  );
+
   // Queries para las tarjetas de estadísticas
   const { data: championships } = useQuery({
     queryKey: ['championships', { page: 1, pageSize: 5 }],
@@ -32,37 +56,29 @@ export function DashboardPage() {
     queryFn: () => matchesApi.getLive(),
   });
 
-  // Query para obtener el campeonato activo
-  const { data: activeChampionships } = useQuery({
-    queryKey: ['championships', { status: ChampionshipStatus.InProgress }],
-    queryFn: () => championshipsApi.getAll({ status: ChampionshipStatus.InProgress, pageSize: 1 }),
-  });
-
-  const currentChampionship = activeChampionships?.items?.[0];
-
   // Query para partidos de la jornada actual
   const { data: matchdayMatches, isLoading: loadingMatches } = useQuery({
-    queryKey: ['matches', 'dashboard', currentChampionship?.id, currentChampionship?.maxMatchday],
+    queryKey: ['matches', 'dashboard', selectedChampionship?.id, selectedChampionship?.maxMatchday],
     queryFn: () => matchesApi.getAll({
-      championshipId: currentChampionship!.id,
-      matchday: currentChampionship!.maxMatchday,
+      championshipId: selectedChampionship!.id,
+      matchday: selectedChampionship!.maxMatchday,
       pageSize: 20,
     }),
-    enabled: !!currentChampionship,
+    enabled: !!selectedChampionship,
   });
 
   // Query para tabla de posiciones
   const { data: standings, isLoading: loadingStandings } = useQuery({
-    queryKey: ['standings', 'dashboard', currentChampionship?.id],
-    queryFn: () => statisticsApi.getStandings(currentChampionship!.id),
-    enabled: !!currentChampionship,
+    queryKey: ['standings', 'dashboard', selectedChampionship?.id],
+    queryFn: () => statisticsApi.getStandings(selectedChampionship!.id),
+    enabled: !!selectedChampionship,
   });
 
   // Query para top goleadores
   const { data: topScorers, isLoading: loadingScorers } = useQuery({
-    queryKey: ['topScorers', 'dashboard', currentChampionship?.id],
-    queryFn: () => statisticsApi.getTopScorers(currentChampionship!.id, 1, 6),
-    enabled: !!currentChampionship,
+    queryKey: ['topScorers', 'dashboard', selectedChampionship?.id],
+    queryFn: () => statisticsApi.getTopScorers(selectedChampionship!.id, 1, 6),
+    enabled: !!selectedChampionship,
   });
 
   const stats = [
@@ -72,6 +88,7 @@ export function DashboardPage() {
       icon: Trophy,
       color: 'text-green-600',
       bgColor: 'bg-green-100',
+      href: '/championships',
     },
     {
       name: 'Equipos',
@@ -79,6 +96,7 @@ export function DashboardPage() {
       icon: Users,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
+      href: '/teams',
     },
     {
       name: 'Jugadores',
@@ -86,6 +104,7 @@ export function DashboardPage() {
       icon: User,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100',
+      href: '/players',
     },
     {
       name: 'Partidos en vivo',
@@ -93,6 +112,7 @@ export function DashboardPage() {
       icon: Calendar,
       color: 'text-red-600',
       bgColor: 'bg-red-100',
+      href: '/matches',
     },
   ];
 
@@ -149,17 +169,30 @@ export function DashboardPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Resumen general de FutbolStats
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Resumen general de FutbolStats
+          </p>
+        </div>
+        <select
+          value={selectedChampionshipId}
+          onChange={(e) => setSelectedChampionshipId(e.target.value)}
+          className="w-full sm:w-64 py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm"
+        >
+          {allChampionships?.items?.map((c: Championship) => (
+            <option key={c.id} value={c.id}>
+              {c.name} {c.season} {c.status === ChampionshipStatus.InProgress ? '(En curso)' : ''}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {stats.map((stat) => (
-          <div key={stat.name} className="bg-white rounded-lg shadow p-6">
+          <Link key={stat.name} to={stat.href} className="bg-white rounded-lg shadow p-6 hover:shadow-md hover:scale-[1.02] transition-all">
             <div className="flex items-center">
               <div className={`${stat.bgColor} rounded-lg p-3`}>
                 <stat.icon className={`h-6 w-6 ${stat.color}`} />
@@ -169,12 +202,12 @@ export function DashboardPage() {
                 <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
               </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 
-      {/* Campeonato Activo Section */}
-      {currentChampionship ? (
+      {/* Campeonato Section */}
+      {selectedChampionship ? (
         <>
           {/* Championship Header */}
           <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-lg shadow p-4 mb-6">
@@ -182,13 +215,15 @@ export function DashboardPage() {
               <div className="flex items-center text-white">
                 <Trophy className="h-6 w-6 mr-3" />
                 <div>
-                  <h2 className="text-lg font-bold">{currentChampionship.name}</h2>
-                  <p className="text-green-100 text-sm">Temporada {currentChampionship.season}</p>
+                  <h2 className="text-lg font-bold">{selectedChampionship.name}</h2>
+                  <p className="text-green-100 text-sm">Temporada {selectedChampionship.season}</p>
                 </div>
               </div>
-              <span className="bg-white/20 text-white text-xs font-medium px-3 py-1 rounded-full">
-                En curso
-              </span>
+              {selectedChampionship.status === ChampionshipStatus.InProgress && (
+                <span className="bg-white/20 text-white text-xs font-medium px-3 py-1 rounded-full">
+                  En curso
+                </span>
+              )}
             </div>
           </div>
 
@@ -197,7 +232,7 @@ export function DashboardPage() {
             <div className="px-4 py-3 border-b flex items-center justify-between">
               <h3 className="font-semibold text-gray-900 flex items-center">
                 <Calendar className="h-5 w-5 mr-2 text-green-600" />
-                Jornada {currentChampionship.maxMatchday}
+                Jornada {selectedChampionship.maxMatchday}
               </h3>
               <Link
                 to="/matches"
@@ -432,18 +467,18 @@ export function DashboardPage() {
           </div>
         </>
       ) : (
-        /* No Active Championship Message */
+        /* No Championship Message */
         <div className="bg-white rounded-lg shadow p-12 text-center">
           <Trophy className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No hay campeonato en curso</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No hay campeonatos disponibles</h3>
           <p className="text-gray-500">
-            Los partidos, tabla de posiciones y goleadores se mostrarán cuando haya un campeonato activo.
+            Crea un campeonato para ver partidos, tabla de posiciones y goleadores.
           </p>
           <Link
             to="/championships"
             className="inline-flex items-center mt-4 text-green-600 hover:text-green-700 font-medium"
           >
-            Ver campeonatos
+            Ir a campeonatos
             <ChevronRight className="h-4 w-4 ml-1" />
           </Link>
         </div>
