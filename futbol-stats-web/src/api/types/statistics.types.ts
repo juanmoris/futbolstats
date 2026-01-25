@@ -152,13 +152,34 @@ export interface PlayerAppearance {
   matchesPlayed: number;
 }
 
+export interface CoachSummary {
+  coachId: string;
+  coachName: string;
+  photoUrl: string | null;
+  countryName: string | null;
+  countryFlagUrl: string | null;
+  matchesManaged: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  firstMatchDate: string | null;
+  lastMatchDate: string | null;
+  isCurrentCoach: boolean;
+}
+
 export interface ChampionshipSummary {
   championshipId: string;
   championshipName: string;
   season: string;
   position: number;
   matchesPlayed: number;
+  wins: number;
+  draws: number;
+  losses: number;
   points: number;
   goalsFor: number;
   goalsAgainst: number;
+  coaches: CoachSummary[];
 }

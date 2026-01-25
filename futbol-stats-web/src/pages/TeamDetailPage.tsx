@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Users, Trophy, Target, Shield, AlertTriangle, Award, Calendar, User } from 'lucide-react';
+import { ArrowLeft, Users, Trophy, Target, Shield, Award, Calendar, User } from 'lucide-react';
 import { statisticsApi } from '@/api/endpoints/statistics.api';
 import { teamsApi } from '@/api/endpoints/teams.api';
 
@@ -76,6 +76,56 @@ export function TeamDetailPage() {
     ? `${selectedChampionship.championshipName} ${selectedChampionship.season}`.trim()
     : null;
 
+  // Agregar estadísticas de entrenadores cuando se muestran todos los campeonatos
+  const aggregatedCoaches = !selectedChampionshipId ? (() => {
+    const coachMap = new Map<string, {
+      coachId: string;
+      coachName: string;
+      photoUrl: string | null;
+      countryName: string | null;
+      countryFlagUrl: string | null;
+      matchesManaged: number;
+      wins: number;
+      draws: number;
+      losses: number;
+      goalsFor: number;
+      goalsAgainst: number;
+      firstMatchDate: string | null;
+      lastMatchDate: string | null;
+      isCurrentCoach: boolean;
+    }>();
+
+    championships.forEach(champ => {
+      champ.coaches?.forEach(coach => {
+        const existing = coachMap.get(coach.coachId);
+        if (existing) {
+          existing.matchesManaged += coach.matchesManaged;
+          existing.wins += coach.wins;
+          existing.draws += coach.draws;
+          existing.losses += coach.losses;
+          existing.goalsFor += coach.goalsFor;
+          existing.goalsAgainst += coach.goalsAgainst;
+          // Actualizar primera fecha si es anterior
+          if (coach.firstMatchDate && (!existing.firstMatchDate || new Date(coach.firstMatchDate) < new Date(existing.firstMatchDate))) {
+            existing.firstMatchDate = coach.firstMatchDate;
+          }
+          // Actualizar última fecha si es posterior
+          if (coach.lastMatchDate && (!existing.lastMatchDate || new Date(coach.lastMatchDate) > new Date(existing.lastMatchDate))) {
+            existing.lastMatchDate = coach.lastMatchDate;
+          }
+          // Si alguno es entrenador actual, mantenerlo como actual
+          if (coach.isCurrentCoach) {
+            existing.isCurrentCoach = true;
+          }
+        } else {
+          coachMap.set(coach.coachId, { ...coach });
+        }
+      });
+    });
+
+    return Array.from(coachMap.values()).sort((a, b) => b.matchesManaged - a.matchesManaged);
+  })() : null;
+
   return (
     <div>
       {/* Header */}
@@ -140,118 +190,33 @@ export function TeamDetailPage() {
         )}
       </div>
 
-      {/* Estadísticas Generales */}
-      <div className="bg-white rounded-lg shadow mb-6">
-        <div className="px-4 sm:px-6 py-4 border-b">
-          <h2 className="text-base sm:text-lg font-semibold text-gray-900">Estadisticas Generales</h2>
+      {/* Estadísticas Complementarias */}
+      <div className="bg-white rounded-lg shadow mb-6 px-4 sm:px-6 py-3 flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-sm">
+        <div className="flex items-center gap-2">
+          <Award className="h-4 w-4 text-blue-500" />
+          <span className="text-gray-600">Efectividad:</span>
+          <span className="font-semibold text-gray-900">{winRate}%</span>
         </div>
-        <div className="p-4 sm:p-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
-            <StatCard
-              icon={<Trophy className="h-5 w-5 text-yellow-500" />}
-              label="Puntos"
-              value={displayStats.points}
-            />
-            <StatCard
-              icon={<Target className="h-5 w-5 text-green-500" />}
-              label="Partidos"
-              value={displayStats.matchesPlayed}
-            />
-            <StatCard
-              icon={<Award className="h-5 w-5 text-blue-500" />}
-              label="Victorias"
-              value={displayStats.wins}
-              subtitle={`${winRate}%`}
-            />
-            <StatCard
-              icon={<Shield className="h-5 w-5 text-gray-500" />}
-              label="Empates"
-              value={displayStats.draws}
-            />
-            <StatCard
-              icon={<AlertTriangle className="h-5 w-5 text-red-500" />}
-              label="Derrotas"
-              value={displayStats.losses}
-            />
-            <StatCard
-              icon={<Shield className="h-5 w-5 text-purple-500" />}
-              label="Vallas Invictas"
-              value={displayStats.cleanSheets}
-            />
-          </div>
-
-          <div className="mt-4 sm:mt-6 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
-            <div className="bg-gray-50 rounded-lg p-3 sm:p-4 text-center">
-              <p className="text-xl sm:text-2xl font-bold text-green-600">{displayStats.goalsFor}</p>
-              <p className="text-xs sm:text-sm text-gray-500">Goles a Favor</p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3 sm:p-4 text-center">
-              <p className="text-xl sm:text-2xl font-bold text-red-600">{displayStats.goalsAgainst}</p>
-              <p className="text-xs sm:text-sm text-gray-500">Goles en Contra</p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3 sm:p-4 text-center">
-              <p className={`text-xl sm:text-2xl font-bold ${displayStats.goalDifference >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {displayStats.goalDifference > 0 ? '+' : ''}{displayStats.goalDifference}
-              </p>
-              <p className="text-xs sm:text-sm text-gray-500">Dif. Goles</p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3 sm:p-4 text-center">
-              <div className="flex justify-center gap-3 sm:gap-4">
-                <div>
-                  <p className="text-lg sm:text-xl font-bold text-yellow-500">{displayStats.yellowCards}</p>
-                  <p className="text-xs text-gray-500">Amarillas</p>
-                </div>
-                <div>
-                  <p className="text-lg sm:text-xl font-bold text-red-500">{displayStats.redCards}</p>
-                  <p className="text-xs text-gray-500">Rojas</p>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div className="flex items-center gap-2">
+          <Shield className="h-4 w-4 text-purple-500" />
+          <span className="text-gray-600">Vallas invictas:</span>
+          <span className="font-semibold text-gray-900">{displayStats.cleanSheets}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-gray-600">Tarjetas:</span>
+          <span className="inline-flex items-center gap-1">
+            <span className="w-3 h-4 bg-yellow-400 rounded-sm"></span>
+            <span className="font-semibold text-gray-900">{displayStats.yellowCards}</span>
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="w-3 h-4 bg-red-500 rounded-sm"></span>
+            <span className="font-semibold text-gray-900">{displayStats.redCards}</span>
+          </span>
         </div>
       </div>
 
-      {/* Goleadores y Partidos Jugados */}
+      {/* Partidos Jugados y Goleadores */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        {/* Goleadores del Equipo */}
-        {displayStats.topScorers && displayStats.topScorers.length > 0 && (
-          <div className="bg-white rounded-lg shadow flex flex-col">
-            <div className="px-4 sm:px-6 py-4 border-b flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-green-500" />
-                <h2 className="text-base sm:text-lg font-semibold text-gray-900">Goleadores</h2>
-              </div>
-              <span className="text-xs sm:text-sm text-gray-500">{displayStats.topScorers.length} jug.</span>
-            </div>
-            <div className="divide-y divide-gray-200 overflow-y-auto max-h-80">
-              {displayStats.topScorers.map((scorer, index) => (
-                <Link key={scorer.playerId} to={`/players/${scorer.playerId}`} className="px-4 sm:px-6 py-3 flex items-center justify-between hover:bg-gray-50">
-                  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                    <span className="text-base sm:text-lg font-bold text-gray-400 w-5 sm:w-6 shrink-0">{index + 1}</span>
-                    {scorer.photoUrl ? (
-                      <img src={scorer.photoUrl} alt={scorer.playerName} className="h-8 w-8 rounded-full object-cover shrink-0" />
-                    ) : (
-                      <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                        <User className="h-4 w-4 text-green-600" />
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <span className="font-medium text-gray-900 text-sm sm:text-base truncate block">{scorer.playerName}</span>
-                      {scorer.countryFlagUrl && (
-                        <span className="text-xs text-gray-500 flex items-center gap-1">
-                          <img src={scorer.countryFlagUrl} alt={scorer.countryName || ''} className="h-3 w-4 object-cover rounded-sm" />
-                          <span className="hidden sm:inline">{scorer.countryName}</span>
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <span className="text-base sm:text-lg font-bold text-green-600 shrink-0 ml-2">{scorer.goals}</span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Partidos Jugados */}
         {displayStats.topPlayersByAppearances && displayStats.topPlayersByAppearances.length > 0 && (
           <div className="bg-white rounded-lg shadow flex flex-col">
@@ -290,7 +255,275 @@ export function TeamDetailPage() {
             </div>
           </div>
         )}
+
+        {/* Goleadores del Equipo */}
+        {displayStats.topScorers && displayStats.topScorers.length > 0 && (
+          <div className="bg-white rounded-lg shadow flex flex-col">
+            <div className="px-4 sm:px-6 py-4 border-b flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-green-500" />
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900">Goleadores</h2>
+              </div>
+              <span className="text-xs sm:text-sm text-gray-500">{displayStats.topScorers.length} jug.</span>
+            </div>
+            <div className="divide-y divide-gray-200 overflow-y-auto max-h-80">
+              {displayStats.topScorers.map((scorer, index) => (
+                <Link key={scorer.playerId} to={`/players/${scorer.playerId}`} className="px-4 sm:px-6 py-3 flex items-center justify-between hover:bg-gray-50">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <span className="text-base sm:text-lg font-bold text-gray-400 w-5 sm:w-6 shrink-0">{index + 1}</span>
+                    {scorer.photoUrl ? (
+                      <img src={scorer.photoUrl} alt={scorer.playerName} className="h-8 w-8 rounded-full object-cover shrink-0" />
+                    ) : (
+                      <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                        <User className="h-4 w-4 text-green-600" />
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <span className="font-medium text-gray-900 text-sm sm:text-base truncate block">{scorer.playerName}</span>
+                      {scorer.countryFlagUrl && (
+                        <span className="text-xs text-gray-500 flex items-center gap-1">
+                          <img src={scorer.countryFlagUrl} alt={scorer.countryName || ''} className="h-3 w-4 object-cover rounded-sm" />
+                          <span className="hidden sm:inline">{scorer.countryName}</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-base sm:text-lg font-bold text-green-600 shrink-0 ml-2">{scorer.goals}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Entrenadores */}
+      {(selectedChampionshipId
+        ? championships.filter(c => c.championshipId === selectedChampionshipId).some(c => c.coaches && c.coaches.length > 0)
+        : aggregatedCoaches && aggregatedCoaches.length > 0
+      ) && (
+        <div className="bg-white rounded-lg shadow mb-6">
+          <div className="px-4 sm:px-6 py-4 border-b">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900">
+              {selectedChampionshipId ? 'Entrenadores en el Campeonato' : 'Entrenadores'}
+            </h2>
+          </div>
+          <div className="px-4 sm:px-6 py-4">
+            {selectedChampionshipId ? (
+              // Mostrar entrenadores del campeonato seleccionado
+              championships.filter(c => c.championshipId === selectedChampionshipId).map((championship) => (
+                <div key={championship.championshipId} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {championship.coaches?.map((coach) => {
+                    const winRate = coach.matchesManaged > 0
+                      ? ((coach.wins / coach.matchesManaged) * 100).toFixed(0)
+                      : '0';
+                    const goalDiff = coach.goalsFor - coach.goalsAgainst;
+                    return (
+                      <div
+                        key={coach.coachId}
+                        className="bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 p-4"
+                      >
+                        <div className="flex items-center gap-3 mb-3">
+                          {coach.photoUrl ? (
+                            <img
+                              src={coach.photoUrl}
+                              alt={coach.coachName}
+                              className="h-14 w-14 rounded-full object-cover border-2 border-white shadow-sm"
+                            />
+                          ) : (
+                            <div className="h-14 w-14 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center border-2 border-white shadow-sm">
+                              <User className="h-7 w-7 text-gray-500" />
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <div className="font-semibold text-gray-900 truncate">{coach.coachName}</div>
+                            {coach.countryName && (
+                              <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-0.5">
+                                {coach.countryFlagUrl && (
+                                  <img
+                                    src={coach.countryFlagUrl}
+                                    alt={coach.countryName}
+                                    className="h-3 w-4 object-cover rounded-sm"
+                                  />
+                                )}
+                                <span>{coach.countryName}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-4 gap-2 text-center">
+                          <div className="bg-white rounded-lg py-2 px-1 border border-gray-100">
+                            <div className="text-lg font-bold text-gray-900">{coach.matchesManaged}</div>
+                            <div className="text-[10px] text-gray-500 uppercase tracking-wide">PJ</div>
+                          </div>
+                          <div className="bg-white rounded-lg py-2 px-1 border border-gray-100">
+                            <div className="text-lg font-bold text-green-600">{coach.wins}</div>
+                            <div className="text-[10px] text-gray-500 uppercase tracking-wide">PG</div>
+                          </div>
+                          <div className="bg-white rounded-lg py-2 px-1 border border-gray-100">
+                            <div className="text-lg font-bold text-gray-500">{coach.draws}</div>
+                            <div className="text-[10px] text-gray-500 uppercase tracking-wide">PE</div>
+                          </div>
+                          <div className="bg-white rounded-lg py-2 px-1 border border-gray-100">
+                            <div className="text-lg font-bold text-red-600">{coach.losses}</div>
+                            <div className="text-[10px] text-gray-500 uppercase tracking-wide">PP</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 text-xs">
+                          <div className="flex items-center gap-3">
+                            <span className="text-gray-500">
+                              <span className="font-medium text-gray-700">{coach.goalsFor}</span> GF
+                            </span>
+                            <span className="text-gray-500">
+                              <span className="font-medium text-gray-700">{coach.goalsAgainst}</span> GC
+                            </span>
+                            <span className={goalDiff >= 0 ? 'text-green-600' : 'text-red-600'}>
+                              {goalDiff > 0 ? '+' : ''}{goalDiff}
+                            </span>
+                          </div>
+                          <div className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                            {winRate}% efect.
+                          </div>
+                        </div>
+                        {coach.firstMatchDate && (
+                          <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
+                            {coach.isCurrentCoach ? (
+                              <span>
+                                Desde: <span className="font-medium text-gray-700">
+                                  {new Date(coach.firstMatchDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                </span>
+                              </span>
+                            ) : (
+                              <div className="flex items-center justify-between">
+                                <span>
+                                  Inicio: <span className="font-medium text-gray-700">
+                                    {new Date(coach.firstMatchDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                  </span>
+                                </span>
+                                {coach.lastMatchDate && (
+                                  <span>
+                                    Fin: <span className="font-medium text-gray-700">
+                                      {new Date(coach.lastMatchDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                    </span>
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))
+            ) : (
+              // Mostrar entrenadores agregados (todos los campeonatos)
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {aggregatedCoaches?.map((coach) => {
+                  const winRate = coach.matchesManaged > 0
+                    ? ((coach.wins / coach.matchesManaged) * 100).toFixed(0)
+                    : '0';
+                  const goalDiff = coach.goalsFor - coach.goalsAgainst;
+                  return (
+                    <div
+                      key={coach.coachId}
+                      className="bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 p-4"
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        {coach.photoUrl ? (
+                          <img
+                            src={coach.photoUrl}
+                            alt={coach.coachName}
+                            className="h-14 w-14 rounded-full object-cover border-2 border-white shadow-sm"
+                          />
+                        ) : (
+                          <div className="h-14 w-14 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center border-2 border-white shadow-sm">
+                            <User className="h-7 w-7 text-gray-500" />
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="font-semibold text-gray-900 truncate">{coach.coachName}</div>
+                          {coach.countryName && (
+                            <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-0.5">
+                              {coach.countryFlagUrl && (
+                                <img
+                                  src={coach.countryFlagUrl}
+                                  alt={coach.countryName}
+                                  className="h-3 w-4 object-cover rounded-sm"
+                                />
+                              )}
+                              <span>{coach.countryName}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-4 gap-2 text-center">
+                        <div className="bg-white rounded-lg py-2 px-1 border border-gray-100">
+                          <div className="text-lg font-bold text-gray-900">{coach.matchesManaged}</div>
+                          <div className="text-[10px] text-gray-500 uppercase tracking-wide">PJ</div>
+                        </div>
+                        <div className="bg-white rounded-lg py-2 px-1 border border-gray-100">
+                          <div className="text-lg font-bold text-green-600">{coach.wins}</div>
+                          <div className="text-[10px] text-gray-500 uppercase tracking-wide">PG</div>
+                        </div>
+                        <div className="bg-white rounded-lg py-2 px-1 border border-gray-100">
+                          <div className="text-lg font-bold text-gray-500">{coach.draws}</div>
+                          <div className="text-[10px] text-gray-500 uppercase tracking-wide">PE</div>
+                        </div>
+                        <div className="bg-white rounded-lg py-2 px-1 border border-gray-100">
+                          <div className="text-lg font-bold text-red-600">{coach.losses}</div>
+                          <div className="text-[10px] text-gray-500 uppercase tracking-wide">PP</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 text-xs">
+                        <div className="flex items-center gap-3">
+                          <span className="text-gray-500">
+                            <span className="font-medium text-gray-700">{coach.goalsFor}</span> GF
+                          </span>
+                          <span className="text-gray-500">
+                            <span className="font-medium text-gray-700">{coach.goalsAgainst}</span> GC
+                          </span>
+                          <span className={goalDiff >= 0 ? 'text-green-600' : 'text-red-600'}>
+                            {goalDiff > 0 ? '+' : ''}{goalDiff}
+                          </span>
+                        </div>
+                        <div className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                          {winRate}% efect.
+                        </div>
+                      </div>
+                      {coach.firstMatchDate && (
+                        <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
+                          {coach.isCurrentCoach ? (
+                            <span>
+                              Desde: <span className="font-medium text-gray-700">
+                                {new Date(coach.firstMatchDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                              </span>
+                            </span>
+                          ) : (
+                            <div className="flex items-center justify-between">
+                              <span>
+                                Inicio: <span className="font-medium text-gray-700">
+                                  {new Date(coach.firstMatchDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                </span>
+                              </span>
+                              {coach.lastMatchDate && (
+                                <span>
+                                  Fin: <span className="font-medium text-gray-700">
+                                    {new Date(coach.lastMatchDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                  </span>
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Rendimiento por Campeonato */}
       {championships.length > 0 && (
@@ -307,23 +540,32 @@ export function TeamDetailPage() {
                   <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Campeonato
                   </th>
-                  <th className="px-2 sm:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Pos.
                   </th>
-                  <th className="hidden sm:table-cell px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="hidden sm:table-cell px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     PJ
                   </th>
-                  <th className="px-2 sm:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Pts
+                  <th className="hidden sm:table-cell px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    PG
                   </th>
-                  <th className="hidden md:table-cell px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="hidden sm:table-cell px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    PE
+                  </th>
+                  <th className="hidden sm:table-cell px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    PP
+                  </th>
+                  <th className="hidden md:table-cell px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     GF
                   </th>
-                  <th className="hidden md:table-cell px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="hidden md:table-cell px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     GC
                   </th>
-                  <th className="px-2 sm:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     DG
+                  </th>
+                  <th className="px-2 sm:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Pts
                   </th>
                 </tr>
               </thead>
@@ -337,12 +579,12 @@ export function TeamDetailPage() {
                     <tr key={championship.championshipId} className="hover:bg-gray-50">
                       <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <Trophy className="h-4 w-4 text-yellow-500 mr-1 sm:mr-2 flex-shrink-0" />
+                          <Trophy className="h-4 w-4 text-yellow-500 mr-1 sm:mr-2 shrink-0" />
                           <span className="font-medium text-gray-900 text-xs sm:text-sm truncate max-w-[100px] sm:max-w-none">{championship.championshipName} {championship.season}</span>
                         </div>
                       </td>
-                      <td className="px-2 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center">
-                        <span className={`inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-bold ${
+                      <td className="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-center">
+                        <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
                           championship.position === 1 ? 'bg-yellow-100 text-yellow-800' :
                           championship.position === 2 ? 'bg-gray-200 text-gray-800' :
                           championship.position === 3 ? 'bg-orange-100 text-orange-800' :
@@ -351,22 +593,31 @@ export function TeamDetailPage() {
                           {championship.position}
                         </span>
                       </td>
-                      <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                      <td className="hidden sm:table-cell px-2 sm:px-4 py-4 whitespace-nowrap text-center text-sm text-gray-500">
                         {championship.matchesPlayed}
                       </td>
-                      <td className="px-2 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center text-xs sm:text-sm font-bold text-gray-900">
-                        {championship.points}
+                      <td className="hidden sm:table-cell px-2 sm:px-4 py-4 whitespace-nowrap text-center text-sm text-green-600">
+                        {championship.wins}
                       </td>
-                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-center text-sm text-green-600">
+                      <td className="hidden sm:table-cell px-2 sm:px-4 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                        {championship.draws}
+                      </td>
+                      <td className="hidden sm:table-cell px-2 sm:px-4 py-4 whitespace-nowrap text-center text-sm text-red-600">
+                        {championship.losses}
+                      </td>
+                      <td className="hidden md:table-cell px-2 sm:px-4 py-4 whitespace-nowrap text-center text-sm text-gray-600">
                         {championship.goalsFor}
                       </td>
-                      <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-center text-sm text-red-600">
+                      <td className="hidden md:table-cell px-2 sm:px-4 py-4 whitespace-nowrap text-center text-sm text-gray-600">
                         {championship.goalsAgainst}
                       </td>
-                      <td className="px-2 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-center text-xs sm:text-sm">
+                      <td className="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-center text-xs sm:text-sm">
                         <span className={gd >= 0 ? 'text-green-600' : 'text-red-600'}>
                           {gd > 0 ? '+' : ''}{gd}
                         </span>
+                      </td>
+                      <td className="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-center text-xs sm:text-sm font-bold text-gray-900">
+                        {championship.points}
                       </td>
                     </tr>
                   );
@@ -384,29 +635,6 @@ export function TeamDetailPage() {
           <p className="text-gray-500">Este equipo no participa en ningun campeonato</p>
         </div>
       )}
-    </div>
-  );
-}
-
-function StatCard({
-  icon,
-  label,
-  value,
-  subtitle,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: number;
-  subtitle?: string;
-}) {
-  return (
-    <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
-      <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
-        {icon}
-        <span className="text-xs sm:text-sm text-gray-500">{label}</span>
-      </div>
-      <p className="text-xl sm:text-2xl font-bold text-gray-900">{value}</p>
-      {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
     </div>
   );
 }

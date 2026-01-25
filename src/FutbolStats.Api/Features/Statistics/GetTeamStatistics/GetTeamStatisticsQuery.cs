@@ -53,9 +53,30 @@ public record ChampionshipSummaryDto(
     string Season,
     int Position,
     int MatchesPlayed,
+    int Wins,
+    int Draws,
+    int Losses,
     int Points,
     int GoalsFor,
-    int GoalsAgainst
+    int GoalsAgainst,
+    List<CoachSummaryDto> Coaches
+);
+
+public record CoachSummaryDto(
+    Guid CoachId,
+    string CoachName,
+    string? PhotoUrl,
+    string? CountryName,
+    string? CountryFlagUrl,
+    int MatchesManaged,
+    int Wins,
+    int Draws,
+    int Losses,
+    int GoalsFor,
+    int GoalsAgainst,
+    DateTime? FirstMatchDate,
+    DateTime? LastMatchDate,
+    bool IsCurrentCoach
 );
 
 public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQuery, TeamStatisticsResponse>
@@ -195,6 +216,14 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
                 .AsNoTracking()
                 .ToListAsync(cancellationToken);
 
+            // Get all coach assignments for this team
+            var coachAssignments = await _context.CoachTeamAssignments
+                .Include(a => a.Coach)
+                    .ThenInclude(c => c.Country)
+                .Where(a => a.TeamId == request.TeamId)
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
+
             championshipSummaries = new List<ChampionshipSummaryDto>();
 
             foreach (var ct in championshipTeams)
@@ -215,15 +244,84 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
 
                 var position = sortedStandings.FindIndex(x => x.TeamId == request.TeamId) + 1;
 
+                // Find coaches active during this championship
+                var championshipStart = ct.Championship.StartDate;
+                var championshipEnd = ct.Championship.EndDate;
+
+                // Get matches for this championship to calculate coach stats
+                var championshipMatches = matches
+                    .Where(m => m.ChampionshipId == ct.ChampionshipId)
+                    .ToList();
+
+                var activeCoachAssignments = coachAssignments
+                    .Where(a =>
+                        a.StartDate <= championshipEnd &&
+                        (a.EndDate == null || a.EndDate >= championshipStart))
+                    .ToList();
+
+                var coaches = new List<CoachSummaryDto>();
+                foreach (var assignment in activeCoachAssignments)
+                {
+                    // Calculate stats for matches during this coach's tenure
+                    var coachMatches = championshipMatches
+                        .Where(m =>
+                        {
+                            var matchDate = DateOnly.FromDateTime(m.MatchDate);
+                            return matchDate >= assignment.StartDate &&
+                                   (assignment.EndDate == null || matchDate <= assignment.EndDate);
+                        })
+                        .ToList();
+
+                    int coachWins = 0, coachDraws = 0, coachLosses = 0, coachGF = 0, coachGA = 0;
+                    foreach (var match in coachMatches)
+                    {
+                        bool isHome = match.HomeTeamId == request.TeamId;
+                        int teamGoals = isHome ? match.HomeScore : match.AwayScore;
+                        int opponentGoals = isHome ? match.AwayScore : match.HomeScore;
+
+                        coachGF += teamGoals;
+                        coachGA += opponentGoals;
+
+                        if (teamGoals > opponentGoals) coachWins++;
+                        else if (teamGoals < opponentGoals) coachLosses++;
+                        else coachDraws++;
+                    }
+
+                    var firstMatchDate = coachMatches.OrderBy(m => m.MatchDate).FirstOrDefault()?.MatchDate;
+                    var lastMatchDate = coachMatches.OrderByDescending(m => m.MatchDate).FirstOrDefault()?.MatchDate;
+                    var isCurrentCoach = assignment.EndDate == null;
+
+                    coaches.Add(new CoachSummaryDto(
+                        assignment.CoachId,
+                        assignment.Coach.FullName,
+                        assignment.Coach.PhotoUrl,
+                        assignment.Coach.Country?.Name,
+                        assignment.Coach.Country?.FlagUrl,
+                        coachMatches.Count,
+                        coachWins,
+                        coachDraws,
+                        coachLosses,
+                        coachGF,
+                        coachGA,
+                        firstMatchDate,
+                        lastMatchDate,
+                        isCurrentCoach
+                    ));
+                }
+
                 championshipSummaries.Add(new ChampionshipSummaryDto(
                     ct.ChampionshipId,
                     ct.Championship.Name,
                     ct.Championship.Season,
                     position,
                     ct.GamesPlayed,
+                    ct.Wins,
+                    ct.Draws,
+                    ct.Losses,
                     ct.Points,
                     ct.GoalsFor,
-                    ct.GoalsAgainst
+                    ct.GoalsAgainst,
+                    coaches
                 ));
             }
         }
