@@ -148,23 +148,29 @@ public class GetPlayerStatisticsQueryHandler : IRequestHandler<GetPlayerStatisti
         {
             // Group by championship (using lineups to include all championships where player participated)
             var championships = lineups
-                .GroupBy(l => new { l.Match.ChampionshipId, l.Match.Championship.Name, l.Match.Championship.Season })
+                .GroupBy(l => new { l.Match.ChampionshipId, l.Match.Championship.Name, l.Match.Championship.Season, l.Match.Championship.Status })
                 .Select(g =>
                 {
                     var championshipMatchIds = g.Select(l => l.MatchId).ToHashSet();
                     var championshipEvents = events.Where(e => championshipMatchIds.Contains(e.MatchId)).ToList();
-                    return new ChampionshipStatsDto(
-                        g.Key.ChampionshipId,
-                        g.Key.Name,
-                        g.Key.Season,
-                        g.Count(),
-                        championshipEvents.Count(e => e.EventType == EventType.Goal || e.EventType == EventType.PenaltyScored),
-                        championshipEvents.Count(e => e.EventType == EventType.Assist),
-                        championshipEvents.Count(e => e.EventType == EventType.YellowCard || e.EventType == EventType.SecondYellow),
-                        championshipEvents.Count(e => e.EventType == EventType.RedCard || e.EventType == EventType.SecondYellow)
-                    );
+                    return new
+                    {
+                        Stats = new ChampionshipStatsDto(
+                            g.Key.ChampionshipId,
+                            g.Key.Name,
+                            g.Key.Season,
+                            g.Count(),
+                            championshipEvents.Count(e => e.EventType == EventType.Goal || e.EventType == EventType.PenaltyScored),
+                            championshipEvents.Count(e => e.EventType == EventType.Assist),
+                            championshipEvents.Count(e => e.EventType == EventType.YellowCard || e.EventType == EventType.SecondYellow),
+                            championshipEvents.Count(e => e.EventType == EventType.RedCard || e.EventType == EventType.SecondYellow)
+                        ),
+                        Status = g.Key.Status
+                    };
                 })
-                .OrderByDescending(c => c.MatchesPlayed)
+                .OrderByDescending(c => c.Status == ChampionshipStatus.InProgress)
+                .ThenByDescending(c => c.Stats.MatchesPlayed)
+                .Select(c => c.Stats)
                 .ToList();
 
             championshipStats = championships;

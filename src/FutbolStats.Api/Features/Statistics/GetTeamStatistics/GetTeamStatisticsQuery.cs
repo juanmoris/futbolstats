@@ -32,12 +32,18 @@ public record TeamStatisticsResponse(
 public record TopScorerDto(
     Guid PlayerId,
     string PlayerName,
+    string? PhotoUrl,
+    string? CountryName,
+    string? CountryFlagUrl,
     int Goals
 );
 
 public record PlayerAppearanceDto(
     Guid PlayerId,
     string PlayerName,
+    string? PhotoUrl,
+    string? CountryName,
+    string? CountryFlagUrl,
     int MatchesPlayed
 );
 
@@ -130,6 +136,7 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
 
         var scorerPlayerIds = topScorers.Select(ts => ts.PlayerId).ToList();
         var scorerPlayers = await _context.Players
+            .Include(p => p.Country)
             .Where(p => scorerPlayerIds.Contains(p.Id))
             .AsNoTracking()
             .ToDictionaryAsync(p => p.Id, cancellationToken);
@@ -139,6 +146,9 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
             .Select(ts => new TopScorerDto(
                 ts.PlayerId,
                 $"{scorerPlayers[ts.PlayerId].FirstName} {scorerPlayers[ts.PlayerId].LastName}",
+                scorerPlayers[ts.PlayerId].PhotoUrl,
+                scorerPlayers[ts.PlayerId].Country?.Name,
+                scorerPlayers[ts.PlayerId].Country?.FlagUrl,
                 ts.Goals
             ))
             .ToList();
@@ -147,6 +157,7 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
         var appearancesQuery = _context.MatchLineups
             .Include(l => l.Match)
             .Include(l => l.Player)
+                .ThenInclude(p => p.Country)
             .Where(l => l.Match.Status == MatchStatus.Finished
                         && l.Player.TeamId == request.TeamId);
 
@@ -156,8 +167,8 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
         }
 
         var topPlayersByAppearances = await appearancesQuery
-            .GroupBy(l => new { l.PlayerId, l.Player.FirstName, l.Player.LastName })
-            .Select(g => new { g.Key.PlayerId, g.Key.FirstName, g.Key.LastName, MatchesPlayed = g.Count() })
+            .GroupBy(l => new { l.PlayerId, l.Player.FirstName, l.Player.LastName, l.Player.PhotoUrl, CountryName = l.Player.Country != null ? l.Player.Country.Name : null, CountryFlagUrl = l.Player.Country != null ? l.Player.Country.FlagUrl : null })
+            .Select(g => new { g.Key.PlayerId, g.Key.FirstName, g.Key.LastName, g.Key.PhotoUrl, g.Key.CountryName, g.Key.CountryFlagUrl, MatchesPlayed = g.Count() })
             .OrderByDescending(x => x.MatchesPlayed)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
@@ -166,6 +177,9 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
             .Select(p => new PlayerAppearanceDto(
                 p.PlayerId,
                 $"{p.FirstName} {p.LastName}",
+                p.PhotoUrl,
+                p.CountryName,
+                p.CountryFlagUrl,
                 p.MatchesPlayed
             ))
             .ToList();

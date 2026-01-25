@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Users, Trophy, Target, Shield, AlertTriangle, Award, Calendar } from 'lucide-react';
+import { ArrowLeft, Users, Trophy, Target, Shield, AlertTriangle, Award, Calendar, User } from 'lucide-react';
 import { statisticsApi } from '@/api/endpoints/statistics.api';
 import { teamsApi } from '@/api/endpoints/teams.api';
 
@@ -227,10 +227,25 @@ export function TeamDetailPage() {
               {displayStats.topScorers.map((scorer, index) => (
                 <Link key={scorer.playerId} to={`/players/${scorer.playerId}`} className="px-4 sm:px-6 py-3 flex items-center justify-between hover:bg-gray-50">
                   <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                    <span className="text-base sm:text-lg font-bold text-gray-400 w-5 sm:w-6 flex-shrink-0">{index + 1}</span>
-                    <span className="font-medium text-gray-900 text-sm sm:text-base truncate hover:text-green-600">{scorer.playerName}</span>
+                    <span className="text-base sm:text-lg font-bold text-gray-400 w-5 sm:w-6 shrink-0">{index + 1}</span>
+                    {scorer.photoUrl ? (
+                      <img src={scorer.photoUrl} alt={scorer.playerName} className="h-8 w-8 rounded-full object-cover shrink-0" />
+                    ) : (
+                      <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                        <User className="h-4 w-4 text-green-600" />
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <span className="font-medium text-gray-900 text-sm sm:text-base truncate block">{scorer.playerName}</span>
+                      {scorer.countryFlagUrl && (
+                        <span className="text-xs text-gray-500 flex items-center gap-1">
+                          <img src={scorer.countryFlagUrl} alt={scorer.countryName || ''} className="h-3 w-4 object-cover rounded-sm" />
+                          <span className="hidden sm:inline">{scorer.countryName}</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <span className="text-base sm:text-lg font-bold text-green-600 flex-shrink-0 ml-2">{scorer.goals} goles</span>
+                  <span className="text-base sm:text-lg font-bold text-green-600 shrink-0 ml-2">{scorer.goals}</span>
                 </Link>
               ))}
             </div>
@@ -251,10 +266,25 @@ export function TeamDetailPage() {
               {displayStats.topPlayersByAppearances.map((player, index) => (
                 <Link key={player.playerId} to={`/players/${player.playerId}`} className="px-4 sm:px-6 py-3 flex items-center justify-between hover:bg-gray-50">
                   <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                    <span className="text-base sm:text-lg font-bold text-gray-400 w-5 sm:w-6 flex-shrink-0">{index + 1}</span>
-                    <span className="font-medium text-gray-900 text-sm sm:text-base truncate hover:text-blue-600">{player.playerName}</span>
+                    <span className="text-base sm:text-lg font-bold text-gray-400 w-5 sm:w-6 shrink-0">{index + 1}</span>
+                    {player.photoUrl ? (
+                      <img src={player.photoUrl} alt={player.playerName} className="h-8 w-8 rounded-full object-cover shrink-0" />
+                    ) : (
+                      <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                        <User className="h-4 w-4 text-blue-600" />
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <span className="font-medium text-gray-900 text-sm sm:text-base truncate block">{player.playerName}</span>
+                      {player.countryFlagUrl && (
+                        <span className="text-xs text-gray-500 flex items-center gap-1">
+                          <img src={player.countryFlagUrl} alt={player.countryName || ''} className="h-3 w-4 object-cover rounded-sm" />
+                          <span className="hidden sm:inline">{player.countryName}</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <span className="text-base sm:text-lg font-bold text-blue-600 flex-shrink-0 ml-2">{player.matchesPlayed} PJ</span>
+                  <span className="text-base sm:text-lg font-bold text-blue-600 shrink-0 ml-2">{player.matchesPlayed}</span>
                 </Link>
               ))}
             </div>

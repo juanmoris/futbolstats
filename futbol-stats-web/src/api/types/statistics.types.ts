@@ -137,12 +137,18 @@ export interface TeamStatisticsResponse {
 export interface TopScorer {
   playerId: string;
   playerName: string;
+  photoUrl: string | null;
+  countryName: string | null;
+  countryFlagUrl: string | null;
   goals: number;
 }
 
 export interface PlayerAppearance {
   playerId: string;
   playerName: string;
+  photoUrl: string | null;
+  countryName: string | null;
+  countryFlagUrl: string | null;
   matchesPlayed: number;
 }
 
