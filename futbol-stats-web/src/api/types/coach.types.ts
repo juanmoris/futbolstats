@@ -3,11 +3,14 @@ export interface Coach {
   firstName: string;
   lastName: string;
   fullName: string;
-  nationality: string | null;
+  countryId: string | null;
+  countryName: string | null;
+  countryFlagUrl: string | null;
   photoUrl: string | null;
   birthDate: string | null;
   currentTeamId: string | null;
   currentTeamName: string | null;
+  currentTeamLogo: string | null;
 }
 
 export interface CoachDetail extends Omit<Coach, 'currentTeamId' | 'currentTeamName'> {
@@ -28,7 +31,7 @@ export interface CoachTeamHistory {
 export interface CreateCoachRequest {
   firstName: string;
   lastName: string;
-  nationality?: string;
+  countryId?: string;
   photoUrl?: string;
   birthDate?: string;
 }
@@ -36,7 +39,7 @@ export interface CreateCoachRequest {
 export interface UpdateCoachRequest {
   firstName: string;
   lastName: string;
-  nationality?: string;
+  countryId?: string;
   photoUrl?: string;
   birthDate?: string;
 }

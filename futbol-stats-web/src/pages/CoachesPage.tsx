@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit2, Trash2, User, Search, Link2, Unlink2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Plus, Edit2, Trash2, User, Search, Link2, Unlink2, Shield } from 'lucide-react';
 import { coachesApi } from '@/api/endpoints/coaches.api';
 import { teamsApi } from '@/api/endpoints/teams.api';
+import { countriesApi } from '@/api/endpoints/countries.api';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Coach, CreateCoachRequest, UpdateCoachRequest } from '@/api/types/coach.types';
 
@@ -162,13 +164,30 @@ export function CoachesPage() {
                       </div>
                     </td>
                     <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {coach.nationality || '-'}
+                      {coach.countryName ? (
+                        <div className="flex items-center gap-2">
+                          {coach.countryFlagUrl && (
+                            <img src={coach.countryFlagUrl} alt={coach.countryName} className="h-4 w-6 object-cover rounded" />
+                          )}
+                          <span>{coach.countryName}</span>
+                        </div>
+                      ) : '-'}
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {coach.currentTeamName ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 truncate max-w-[80px] sm:max-w-none">
-                          {coach.currentTeamName}
-                        </span>
+                      {coach.currentTeamId && coach.currentTeamName ? (
+                        <Link
+                          to={`/teams/${coach.currentTeamId}`}
+                          className="inline-flex items-center gap-2 hover:opacity-70 transition-opacity"
+                        >
+                          {coach.currentTeamLogo ? (
+                            <img src={coach.currentTeamLogo} alt={coach.currentTeamName} className="h-6 w-6 object-contain" />
+                          ) : (
+                            <Shield className="h-5 w-5 text-gray-400" />
+                          )}
+                          <span className="text-xs sm:text-sm font-medium text-gray-700 truncate max-w-[60px] sm:max-w-none">
+                            {coach.currentTeamName}
+                          </span>
+                        </Link>
                       ) : (
                         <span className="text-gray-400 text-xs sm:text-sm">Sin equipo</span>
                       )}
@@ -272,16 +291,21 @@ function CoachModal({
 }) {
   const [firstName, setFirstName] = useState(coach?.firstName || '');
   const [lastName, setLastName] = useState(coach?.lastName || '');
-  const [nationality, setNationality] = useState(coach?.nationality || '');
+  const [countryId, setCountryId] = useState(coach?.countryId || '');
   const [photoUrl, setPhotoUrl] = useState(coach?.photoUrl || '');
   const [birthDate, setBirthDate] = useState(coach?.birthDate || '');
+
+  const { data: countries } = useQuery({
+    queryKey: ['countries', { pageSize: 100 }],
+    queryFn: () => countriesApi.getAll({ pageSize: 100 }),
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave({
       firstName,
       lastName,
-      nationality: nationality || undefined,
+      countryId: countryId || undefined,
       photoUrl: photoUrl || undefined,
       birthDate: birthDate || undefined,
     });
@@ -318,13 +342,19 @@ function CoachModal({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Nacionalidad</label>
-              <input
-                type="text"
-                value={nationality}
-                onChange={(e) => setNationality(e.target.value)}
+              <label className="block text-sm font-medium text-gray-700">País</label>
+              <select
+                value={countryId}
+                onChange={(e) => setCountryId(e.target.value)}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm border px-3 py-2"
-              />
+              >
+                <option value="">Seleccione un país</option>
+                {countries?.items?.map((country) => (
+                  <option key={country.id} value={country.id}>
+                    {country.name}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">URL de Foto</label>

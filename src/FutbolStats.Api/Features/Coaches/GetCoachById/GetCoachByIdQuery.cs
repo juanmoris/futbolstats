@@ -12,7 +12,9 @@ public record CoachDetailDto(
     string FirstName,
     string LastName,
     string FullName,
-    string? Nationality,
+    Guid? CountryId,
+    string? CountryName,
+    string? CountryFlagUrl,
     string? PhotoUrl,
     DateOnly? BirthDate,
     DateTime CreatedAt,
@@ -37,6 +39,7 @@ public class GetCoachByIdHandler(FutbolDbContext db)
         CancellationToken cancellationToken)
     {
         var coach = await db.Coaches
+            .Include(c => c.Country)
             .Include(c => c.TeamAssignments)
                 .ThenInclude(a => a.Team)
             .FirstOrDefaultAsync(c => c.Id == request.Id, cancellationToken)
@@ -59,7 +62,9 @@ public class GetCoachByIdHandler(FutbolDbContext db)
             coach.FirstName,
             coach.LastName,
             coach.FullName,
-            coach.Nationality,
+            coach.CountryId,
+            coach.Country?.Name,
+            coach.Country?.FlagUrl,
             coach.PhotoUrl,
             coach.BirthDate,
             coach.CreatedAt,

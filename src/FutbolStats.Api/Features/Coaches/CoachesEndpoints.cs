@@ -55,7 +55,7 @@ public static class CoachesEndpoints
                 id,
                 request.FirstName,
                 request.LastName,
-                request.Nationality,
+                request.CountryId,
                 request.PhotoUrl,
                 request.BirthDate
             );
@@ -103,7 +103,7 @@ public static class CoachesEndpoints
 public record UpdateCoachRequest(
     string FirstName,
     string LastName,
-    string? Nationality,
+    Guid? CountryId,
     string? PhotoUrl,
     DateOnly? BirthDate
 );

@@ -16,11 +16,14 @@ public record CoachDto(
     string FirstName,
     string LastName,
     string FullName,
-    string? Nationality,
+    Guid? CountryId,
+    string? CountryName,
+    string? CountryFlagUrl,
     string? PhotoUrl,
     DateOnly? BirthDate,
     Guid? CurrentTeamId,
-    string? CurrentTeamName
+    string? CurrentTeamName,
+    string? CurrentTeamLogo
 );
 
 public class GetCoachesHandler(FutbolDbContext db)
@@ -31,6 +34,7 @@ public class GetCoachesHandler(FutbolDbContext db)
         CancellationToken cancellationToken)
     {
         var query = db.Coaches
+            .Include(c => c.Country)
             .Include(c => c.TeamAssignments)
                 .ThenInclude(a => a.Team)
             .AsQueryable();
@@ -58,7 +62,9 @@ public class GetCoachesHandler(FutbolDbContext db)
                 c.FirstName,
                 c.LastName,
                 c.FirstName + " " + c.LastName,
-                c.Nationality,
+                c.CountryId,
+                c.Country != null ? c.Country.Name : null,
+                c.Country != null ? c.Country.FlagUrl : null,
                 c.PhotoUrl,
                 c.BirthDate,
                 c.TeamAssignments
@@ -68,6 +74,10 @@ public class GetCoachesHandler(FutbolDbContext db)
                 c.TeamAssignments
                     .Where(a => a.EndDate == null)
                     .Select(a => a.Team.Name)
+                    .FirstOrDefault(),
+                c.TeamAssignments
+                    .Where(a => a.EndDate == null)
+                    .Select(a => a.Team.LogoUrl)
                     .FirstOrDefault()
             ))
             .ToListAsync(cancellationToken);

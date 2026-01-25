@@ -10,7 +10,7 @@ public record UpdateCoachCommand(
     Guid Id,
     string FirstName,
     string LastName,
-    string? Nationality,
+    Guid? CountryId,
     string? PhotoUrl,
     DateOnly? BirthDate
 ) : IRequest<UpdateCoachResponse>;
@@ -30,7 +30,7 @@ public class UpdateCoachHandler(FutbolDbContext db)
 
         coach.FirstName = request.FirstName;
         coach.LastName = request.LastName;
-        coach.Nationality = request.Nationality;
+        coach.CountryId = request.CountryId;
         coach.PhotoUrl = request.PhotoUrl;
         coach.BirthDate = request.BirthDate;
 
@@ -42,7 +42,7 @@ public class UpdateCoachHandler(FutbolDbContext db)
 
 public class UpdateCoachValidator : AbstractValidator<UpdateCoachCommand>
 {
-    public UpdateCoachValidator()
+    public UpdateCoachValidator(FutbolDbContext db)
     {
         RuleFor(x => x.Id)
             .NotEmpty().WithMessage("El Id es requerido");
@@ -55,9 +55,10 @@ public class UpdateCoachValidator : AbstractValidator<UpdateCoachCommand>
             .NotEmpty().WithMessage("El apellido es requerido")
             .MaximumLength(100).WithMessage("El apellido no debe exceder 100 caracteres");
 
-        RuleFor(x => x.Nationality)
-            .MaximumLength(100).WithMessage("La nacionalidad no debe exceder 100 caracteres")
-            .When(x => !string.IsNullOrEmpty(x.Nationality));
+        RuleFor(x => x.CountryId)
+            .MustAsync(async (countryId, ct) =>
+                !countryId.HasValue || await db.Countries.AnyAsync(c => c.Id == countryId.Value, ct))
+            .WithMessage("El país seleccionado no existe");
 
         RuleFor(x => x.PhotoUrl)
             .MaximumLength(500).WithMessage("La URL de foto no debe exceder 500 caracteres")

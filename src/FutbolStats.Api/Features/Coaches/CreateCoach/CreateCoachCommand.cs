@@ -2,13 +2,14 @@ using FluentValidation;
 using FutbolStats.Api.Features.Coaches.Entities;
 using FutbolStats.Api.Infrastructure.Data;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace FutbolStats.Api.Features.Coaches.CreateCoach;
 
 public record CreateCoachCommand(
     string FirstName,
     string LastName,
-    string? Nationality,
+    Guid? CountryId,
     string? PhotoUrl,
     DateOnly? BirthDate
 ) : IRequest<CreateCoachResponse>;
@@ -27,7 +28,7 @@ public class CreateCoachHandler(FutbolDbContext db)
             Id = Guid.NewGuid(),
             FirstName = request.FirstName,
             LastName = request.LastName,
-            Nationality = request.Nationality,
+            CountryId = request.CountryId,
             PhotoUrl = request.PhotoUrl,
             BirthDate = request.BirthDate
         };
@@ -41,7 +42,7 @@ public class CreateCoachHandler(FutbolDbContext db)
 
 public class CreateCoachValidator : AbstractValidator<CreateCoachCommand>
 {
-    public CreateCoachValidator()
+    public CreateCoachValidator(FutbolDbContext db)
     {
         RuleFor(x => x.FirstName)
             .NotEmpty().WithMessage("El nombre es requerido")
@@ -51,9 +52,10 @@ public class CreateCoachValidator : AbstractValidator<CreateCoachCommand>
             .NotEmpty().WithMessage("El apellido es requerido")
             .MaximumLength(100).WithMessage("El apellido no debe exceder 100 caracteres");
 
-        RuleFor(x => x.Nationality)
-            .MaximumLength(100).WithMessage("La nacionalidad no debe exceder 100 caracteres")
-            .When(x => !string.IsNullOrEmpty(x.Nationality));
+        RuleFor(x => x.CountryId)
+            .MustAsync(async (countryId, ct) =>
+                !countryId.HasValue || await db.Countries.AnyAsync(c => c.Id == countryId.Value, ct))
+            .WithMessage("El país seleccionado no existe");
 
         RuleFor(x => x.PhotoUrl)
             .MaximumLength(500).WithMessage("La URL de foto no debe exceder 500 caracteres")

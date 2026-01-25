@@ -3,6 +3,7 @@ using System;
 using FutbolStats.Api.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FutbolStats.Api.Migrations
 {
     [DbContext(typeof(FutbolDbContext))]
-    partial class FutbolDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260125143314_AddCoachCountryRelation")]
+    partial class AddCoachCountryRelation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

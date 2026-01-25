@@ -18,11 +18,13 @@ public class CoachConfiguration : IEntityTypeConfiguration<Coach>
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.Property(c => c.Nationality)
-            .HasMaxLength(100);
-
         builder.Property(c => c.PhotoUrl)
             .HasMaxLength(500);
+
+        builder.HasOne(c => c.Country)
+            .WithMany()
+            .HasForeignKey(c => c.CountryId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasMany(c => c.TeamAssignments)
             .WithOne(a => a.Coach)
