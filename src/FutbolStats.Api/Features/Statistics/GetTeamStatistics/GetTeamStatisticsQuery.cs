@@ -262,13 +262,13 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
                 var coaches = new List<CoachSummaryDto>();
                 foreach (var assignment in activeCoachAssignments)
                 {
-                    // Calculate stats for matches during this coach's tenure
+                    // Calculate stats for matches managed by this coach (using the coach registered in the match)
                     var coachMatches = championshipMatches
                         .Where(m =>
                         {
-                            var matchDate = DateOnly.FromDateTime(m.MatchDate);
-                            return matchDate >= assignment.StartDate &&
-                                   (assignment.EndDate == null || matchDate <= assignment.EndDate);
+                            bool isHome = m.HomeTeamId == request.TeamId;
+                            var coachId = isHome ? m.HomeCoachId : m.AwayCoachId;
+                            return coachId == assignment.CoachId;
                         })
                         .ToList();
 
