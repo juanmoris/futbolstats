@@ -88,6 +88,7 @@ export function TeamDetailPage() {
       wins: number;
       draws: number;
       losses: number;
+      points: number;
       goalsFor: number;
       goalsAgainst: number;
       firstMatchDate: string | null;
@@ -103,6 +104,7 @@ export function TeamDetailPage() {
           existing.wins += coach.wins;
           existing.draws += coach.draws;
           existing.losses += coach.losses;
+          existing.points += coach.points;
           existing.goalsFor += coach.goalsFor;
           existing.goalsAgainst += coach.goalsAgainst;
           // Actualizar primera fecha si es anterior
@@ -123,11 +125,21 @@ export function TeamDetailPage() {
       });
     });
 
-    return Array.from(coachMap.values()).sort((a, b) => b.matchesManaged - a.matchesManaged);
+    return Array.from(coachMap.values()).sort((a, b) => {
+      // Ordenar por última fecha de partido (más reciente primero)
+      if (a.lastMatchDate && b.lastMatchDate) {
+        return new Date(b.lastMatchDate).getTime() - new Date(a.lastMatchDate).getTime();
+      }
+      // Si solo uno tiene fecha, ese va primero
+      if (a.lastMatchDate) return -1;
+      if (b.lastMatchDate) return 1;
+      // Si ninguno tiene fecha, ordenar por partidos dirigidos
+      return b.matchesManaged - a.matchesManaged;
+    });
   })() : null;
 
   return (
-    <div>
+    <div className="min-w-0">
       {/* Header */}
       <div className="mb-6">
         <Link
@@ -304,14 +316,16 @@ export function TeamDetailPage() {
         <div className="bg-white rounded-lg shadow mb-6">
           <div className="px-4 sm:px-6 py-4 border-b">
             <h2 className="text-base sm:text-lg font-semibold text-gray-900">
-              {selectedChampionshipId ? 'Entrenadores en el Campeonato' : 'Entrenadores'}
+              {selectedChampionshipId
+                ? (championships.find(c => c.championshipId === selectedChampionshipId)?.coaches?.length ?? 0) === 1 ? 'Entrenador' : 'Entrenadores'
+                : (aggregatedCoaches?.length === 1 ? 'Entrenador' : 'Entrenadores')}
             </h2>
           </div>
-          <div className="px-4 sm:px-6 py-4">
+          <div className="px-4 sm:px-6 py-4 overflow-x-auto">
             {selectedChampionshipId ? (
               // Mostrar entrenadores del campeonato seleccionado
               championships.filter(c => c.championshipId === selectedChampionshipId).map((championship) => (
-                <div key={championship.championshipId} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div key={championship.championshipId} className="inline-flex gap-4">
                   {championship.coaches?.map((coach) => {
                     const winRate = coach.matchesManaged > 0
                       ? ((coach.wins / coach.matchesManaged) * 100).toFixed(0)
@@ -320,7 +334,7 @@ export function TeamDetailPage() {
                     return (
                       <div
                         key={coach.coachId}
-                        className="bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 p-4"
+                        className="bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 p-4 w-[365px] flex-shrink-0"
                       >
                         <div className="flex items-center gap-3 mb-3">
                           {coach.photoUrl ? (
@@ -350,7 +364,7 @@ export function TeamDetailPage() {
                             )}
                           </div>
                         </div>
-                        <div className="grid grid-cols-4 gap-2 text-center">
+                        <div className="grid grid-cols-5 gap-2 text-center">
                           <div className="bg-white rounded-lg py-2 px-1 border border-gray-100">
                             <div className="text-lg font-bold text-gray-900">{coach.matchesManaged}</div>
                             <div className="text-[10px] text-gray-500 uppercase tracking-wide">PJ</div>
@@ -366,6 +380,10 @@ export function TeamDetailPage() {
                           <div className="bg-white rounded-lg py-2 px-1 border border-gray-100">
                             <div className="text-lg font-bold text-red-600">{coach.losses}</div>
                             <div className="text-[10px] text-gray-500 uppercase tracking-wide">PP</div>
+                          </div>
+                          <div className="bg-white rounded-lg py-2 px-1 border border-gray-100">
+                            <div className="text-lg font-bold text-blue-600">{coach.points}</div>
+                            <div className="text-[10px] text-gray-500 uppercase tracking-wide">Pts</div>
                           </div>
                         </div>
                         <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 text-xs">
@@ -417,7 +435,7 @@ export function TeamDetailPage() {
               ))
             ) : (
               // Mostrar entrenadores agregados (todos los campeonatos)
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="inline-flex gap-4">
                 {aggregatedCoaches?.map((coach) => {
                   const winRate = coach.matchesManaged > 0
                     ? ((coach.wins / coach.matchesManaged) * 100).toFixed(0)
@@ -426,7 +444,7 @@ export function TeamDetailPage() {
                   return (
                     <div
                       key={coach.coachId}
-                      className="bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 p-4"
+                      className="bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 p-4 w-[365px] flex-shrink-0"
                     >
                       <div className="flex items-center gap-3 mb-3">
                         {coach.photoUrl ? (
@@ -456,7 +474,7 @@ export function TeamDetailPage() {
                           )}
                         </div>
                       </div>
-                      <div className="grid grid-cols-4 gap-2 text-center">
+                      <div className="grid grid-cols-5 gap-2 text-center">
                         <div className="bg-white rounded-lg py-2 px-1 border border-gray-100">
                           <div className="text-lg font-bold text-gray-900">{coach.matchesManaged}</div>
                           <div className="text-[10px] text-gray-500 uppercase tracking-wide">PJ</div>
@@ -472,6 +490,10 @@ export function TeamDetailPage() {
                         <div className="bg-white rounded-lg py-2 px-1 border border-gray-100">
                           <div className="text-lg font-bold text-red-600">{coach.losses}</div>
                           <div className="text-[10px] text-gray-500 uppercase tracking-wide">PP</div>
+                        </div>
+                        <div className="bg-white rounded-lg py-2 px-1 border border-gray-100">
+                          <div className="text-lg font-bold text-blue-600">{coach.points}</div>
+                          <div className="text-[10px] text-gray-500 uppercase tracking-wide">Pts</div>
                         </div>
                       </div>
                       <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 text-xs">

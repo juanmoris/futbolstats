@@ -72,6 +72,7 @@ public record CoachSummaryDto(
     int Wins,
     int Draws,
     int Losses,
+    int Points,
     int GoalsFor,
     int GoalsAgainst,
     DateTime? FirstMatchDate,
@@ -291,6 +292,8 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
                     var lastMatchDate = coachMatches.OrderByDescending(m => m.MatchDate).FirstOrDefault()?.MatchDate;
                     var isCurrentCoach = assignment.EndDate == null;
 
+                    var coachPoints = coachWins * 3 + coachDraws;
+
                     coaches.Add(new CoachSummaryDto(
                         assignment.CoachId,
                         assignment.Coach.FullName,
@@ -301,6 +304,7 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
                         coachWins,
                         coachDraws,
                         coachLosses,
+                        coachPoints,
                         coachGF,
                         coachGA,
                         firstMatchDate,

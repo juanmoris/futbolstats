@@ -162,6 +162,7 @@ export interface CoachSummary {
   wins: number;
   draws: number;
   losses: number;
+  points: number;
   goalsFor: number;
   goalsAgainst: number;
   firstMatchDate: string | null;
