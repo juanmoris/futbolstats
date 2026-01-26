@@ -156,10 +156,10 @@ export function TeamDetailPage() {
               <img
                 src={team.logoUrl}
                 alt={team.name}
-                className="h-16 w-16 sm:h-20 sm:w-20 rounded-full object-cover border-2 border-gray-200 flex-shrink-0"
+                className="h-16 w-16 sm:h-20 sm:w-20 rounded-full object-cover border-2 border-gray-200 shrink-0"
               />
             ) : (
-              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
                 <Users className="h-8 w-8 sm:h-10 sm:w-10 text-blue-600" />
               </div>
             )}
@@ -176,7 +176,7 @@ export function TeamDetailPage() {
           {/* Selector de Campeonato */}
           {hasMultipleChampionships && (
             <div className="flex items-center gap-2 w-full lg:w-auto">
-              <Trophy className="h-5 w-5 text-yellow-500 flex-shrink-0" />
+              <Trophy className="h-5 w-5 text-yellow-500 shrink-0" />
               <select
                 value={selectedChampionshipId || ''}
                 onChange={(e) => setSelectedChampionshipId(e.target.value || null)}
@@ -334,7 +334,7 @@ export function TeamDetailPage() {
                     return (
                       <div
                         key={coach.coachId}
-                        className="bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 p-4 w-[365px] flex-shrink-0"
+                        className="bg-linear-to-br from-gray-50 to-white rounded-xl border border-gray-200 p-4 w-91.25 shrink-0"
                       >
                         <div className="flex items-center gap-3 mb-3">
                           {coach.photoUrl ? (
@@ -344,7 +344,7 @@ export function TeamDetailPage() {
                               className="h-14 w-14 rounded-full object-cover border-2 border-white shadow-sm"
                             />
                           ) : (
-                            <div className="h-14 w-14 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center border-2 border-white shadow-sm">
+                            <div className="h-14 w-14 rounded-full bg-linear-to-br from-gray-200 to-gray-300 flex items-center justify-center border-2 border-white shadow-sm">
                               <User className="h-7 w-7 text-gray-500" />
                             </div>
                           )}
@@ -444,7 +444,7 @@ export function TeamDetailPage() {
                   return (
                     <div
                       key={coach.coachId}
-                      className="bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 p-4 w-[365px] flex-shrink-0"
+                      className="bg-linear-to-br from-gray-50 to-white rounded-xl border border-gray-200 p-4 w-91.25 shrink-0"
                     >
                       <div className="flex items-center gap-3 mb-3">
                         {coach.photoUrl ? (
@@ -454,7 +454,7 @@ export function TeamDetailPage() {
                             className="h-14 w-14 rounded-full object-cover border-2 border-white shadow-sm"
                           />
                         ) : (
-                          <div className="h-14 w-14 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center border-2 border-white shadow-sm">
+                          <div className="h-14 w-14 rounded-full bg-linear-to-br from-gray-200 to-gray-300 flex items-center justify-center border-2 border-white shadow-sm">
                             <User className="h-7 w-7 text-gray-500" />
                           </div>
                         )}
@@ -602,7 +602,7 @@ export function TeamDetailPage() {
                       <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <Trophy className="h-4 w-4 text-yellow-500 mr-1 sm:mr-2 shrink-0" />
-                          <span className="font-medium text-gray-900 text-xs sm:text-sm truncate max-w-[100px] sm:max-w-none">{championship.championshipName} {championship.season}</span>
+                          <span className="font-medium text-gray-900 text-xs sm:text-sm truncate max-w-25 sm:max-w-none">{championship.championshipName} {championship.season}</span>
                         </div>
                       </td>
                       <td className="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-center">
