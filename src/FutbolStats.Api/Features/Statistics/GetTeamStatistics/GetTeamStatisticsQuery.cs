@@ -217,14 +217,6 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
                 .AsNoTracking()
                 .ToListAsync(cancellationToken);
 
-            // Get all coach assignments for this team
-            var coachAssignments = await _context.CoachTeamAssignments
-                .Include(a => a.Coach)
-                    .ThenInclude(c => c.Country)
-                .Where(a => a.TeamId == request.TeamId)
-                .AsNoTracking()
-                .ToListAsync(cancellationToken);
-
             championshipSummaries = new List<ChampionshipSummaryDto>();
 
             foreach (var ct in championshipTeams)
@@ -245,31 +237,37 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
 
                 var position = sortedStandings.FindIndex(x => x.TeamId == request.TeamId) + 1;
 
-                // Find coaches active during this championship
-                var championshipStart = ct.Championship.StartDate;
-                var championshipEnd = ct.Championship.EndDate;
-
                 // Get matches for this championship to calculate coach stats
                 var championshipMatches = matches
                     .Where(m => m.ChampionshipId == ct.ChampionshipId)
                     .ToList();
 
-                var activeCoachAssignments = coachAssignments
-                    .Where(a =>
-                        a.StartDate <= championshipEnd &&
-                        (a.EndDate == null || a.EndDate >= championshipStart))
+                // Get coaches who actually managed matches in this championship
+                // This fixes the bug where coaches assigned to matches in past championships
+                // weren't showing because their CoachTeamAssignment.StartDate was after the championship
+                var coachIdsInChampionship = championshipMatches
+                    .Select(m => m.HomeTeamId == request.TeamId ? m.HomeCoachId : m.AwayCoachId)
+                    .Where(id => id.HasValue)
+                    .Select(id => id!.Value)
+                    .Distinct()
                     .ToList();
 
+                var coachesData = await _context.Coaches
+                    .Include(c => c.Country)
+                    .Include(c => c.TeamAssignments)
+                    .Where(c => coachIdsInChampionship.Contains(c.Id))
+                    .AsNoTracking()
+                    .ToListAsync(cancellationToken);
+
                 var coaches = new List<CoachSummaryDto>();
-                foreach (var assignment in activeCoachAssignments)
+                foreach (var coach in coachesData)
                 {
-                    // Calculate stats for matches managed by this coach (using the coach registered in the match)
                     var coachMatches = championshipMatches
                         .Where(m =>
                         {
                             bool isHome = m.HomeTeamId == request.TeamId;
                             var coachId = isHome ? m.HomeCoachId : m.AwayCoachId;
-                            return coachId == assignment.CoachId;
+                            return coachId == coach.Id;
                         })
                         .ToList();
 
@@ -290,16 +288,19 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
 
                     var firstMatchDate = coachMatches.OrderBy(m => m.MatchDate).FirstOrDefault()?.MatchDate;
                     var lastMatchDate = coachMatches.OrderByDescending(m => m.MatchDate).FirstOrDefault()?.MatchDate;
-                    var isCurrentCoach = assignment.EndDate == null;
+
+                    // Determine if this coach is currently assigned to the team
+                    var isCurrentCoach = coach.TeamAssignments
+                        .Any(a => a.TeamId == request.TeamId && a.EndDate == null);
 
                     var coachPoints = coachWins * 3 + coachDraws;
 
                     coaches.Add(new CoachSummaryDto(
-                        assignment.CoachId,
-                        assignment.Coach.FullName,
-                        assignment.Coach.PhotoUrl,
-                        assignment.Coach.Country?.Name,
-                        assignment.Coach.Country?.FlagUrl,
+                        coach.Id,
+                        coach.FullName,
+                        coach.PhotoUrl,
+                        coach.Country?.Name,
+                        coach.Country?.FlagUrl,
                         coachMatches.Count,
                         coachWins,
                         coachDraws,
