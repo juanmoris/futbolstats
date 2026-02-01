@@ -31,8 +31,10 @@ export interface MatchDetail extends Match {
 
 export interface MatchEvent {
   id: string;
-  playerId: string;
-  playerName: string;
+  playerId: string | null;
+  playerName: string | null;
+  coachId: string | null;
+  coachName: string | null;
   teamId: string;
   eventType: EventType;
   minute: number;
@@ -88,6 +90,23 @@ export interface RecordSubstitutionRequest {
   teamId: string;
   minute: number;
   extraMinute?: number;
+}
+
+export interface RecordPenaltyMissedRequest {
+  playerId: string;
+  teamId: string;
+  minute: number;
+  extraMinute?: number;
+  description?: string;
+}
+
+export interface RecordCoachCardRequest {
+  coachId: string;
+  teamId: string;
+  minute: number;
+  extraMinute?: number;
+  isRed: boolean;
+  reason?: string;
 }
 
 export interface SetLineupRequest {

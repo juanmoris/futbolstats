@@ -148,10 +148,10 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
         var yellowCards = events.Count(e => e.EventType == EventType.YellowCard || e.EventType == EventType.SecondYellow);
         var redCards = events.Count(e => e.EventType == EventType.RedCard || e.EventType == EventType.SecondYellow);
 
-        // All scorers for the team
+        // All scorers for the team (only player events)
         var topScorers = events
-            .Where(e => e.EventType == EventType.Goal || e.EventType == EventType.PenaltyScored)
-            .GroupBy(e => e.PlayerId)
+            .Where(e => e.PlayerId.HasValue && (e.EventType == EventType.Goal || e.EventType == EventType.PenaltyScored))
+            .GroupBy(e => e.PlayerId!.Value)
             .Select(g => new { PlayerId = g.Key, Goals = g.Count() })
             .OrderByDescending(x => x.Goals)
             .ToList();

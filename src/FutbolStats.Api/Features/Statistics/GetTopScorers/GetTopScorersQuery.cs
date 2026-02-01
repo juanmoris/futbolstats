@@ -60,21 +60,23 @@ public class GetTopScorersQueryHandler : IRequestHandler<GetTopScorersQuery, Top
             throw new NotFoundException("Championship", request.ChampionshipId);
         }
 
-        // Get all goal events for this championship
+        // Get all goal events for this championship (only player events)
         var goalEvents = await _context.MatchEvents
             .Include(e => e.Match)
             .Include(e => e.Player)
-                .ThenInclude(p => p.Team)
+                .ThenInclude(p => p!.Team)
             .Include(e => e.Player)
-                .ThenInclude(p => p.Country)
+                .ThenInclude(p => p!.Country)
             .Where(e => e.Match.ChampionshipId == request.ChampionshipId
+                        && e.PlayerId.HasValue
                         && (e.EventType == EventType.Goal || e.EventType == EventType.PenaltyScored))
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        // Get assist events
+        // Get assist events (only player events)
         var assistEvents = await _context.MatchEvents
             .Where(e => e.Match.ChampionshipId == request.ChampionshipId
+                        && e.PlayerId.HasValue
                         && e.EventType == EventType.Assist)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
@@ -91,10 +93,11 @@ public class GetTopScorersQueryHandler : IRequestHandler<GetTopScorersQuery, Top
 
         // Group goals by player
         var allScorers = goalEvents
-            .GroupBy(e => e.PlayerId)
+            .Where(e => e.PlayerId.HasValue && e.Player != null)
+            .GroupBy(e => e.PlayerId!.Value)
             .Select(g => new
             {
-                Player = g.First().Player,
+                Player = g.First().Player!,
                 Goals = g.Count(),
                 PenaltyGoals = g.Count(e => e.EventType == EventType.PenaltyScored),
                 Assists = assistEvents.Count(a => a.PlayerId == g.Key),

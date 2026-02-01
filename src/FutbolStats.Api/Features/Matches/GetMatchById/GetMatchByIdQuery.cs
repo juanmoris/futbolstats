@@ -49,8 +49,10 @@ public record MatchLineupDto(
 
 public record MatchEventDto(
     Guid Id,
-    Guid PlayerId,
-    string PlayerName,
+    Guid? PlayerId,
+    string? PlayerName,
+    Guid? CoachId,
+    string? CoachName,
     Guid? SecondPlayerId,
     string? SecondPlayerName,
     Guid TeamId,
@@ -78,6 +80,8 @@ public class GetMatchByIdHandler(FutbolDbContext db)
                 .ThenInclude(l => l.Player)
             .Include(m => m.Events)
                 .ThenInclude(e => e.Player)
+            .Include(m => m.Events)
+                .ThenInclude(e => e.Coach)
             .Include(m => m.Events)
                 .ThenInclude(e => e.SecondPlayer)
             .Include(m => m.Events)
@@ -117,7 +121,9 @@ public class GetMatchByIdHandler(FutbolDbContext db)
             .Select(e => new MatchEventDto(
                 e.Id,
                 e.PlayerId,
-                $"{e.Player.FirstName} {e.Player.LastName}",
+                e.Player != null ? $"{e.Player.FirstName} {e.Player.LastName}" : null,
+                e.CoachId,
+                e.Coach != null ? $"{e.Coach.FirstName} {e.Coach.LastName}" : null,
                 e.SecondPlayerId,
                 e.SecondPlayer != null ? $"{e.SecondPlayer.FirstName} {e.SecondPlayer.LastName}" : null,
                 e.TeamId,

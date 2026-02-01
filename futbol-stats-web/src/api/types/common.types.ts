@@ -52,6 +52,8 @@ export const EventType = {
   SubstitutionOut: 7,
   PenaltyScored: 8,
   PenaltyMissed: 9,
+  CoachYellowCard: 10,
+  CoachRedCard: 11,
 } as const;
 
 export type EventType = typeof EventType[keyof typeof EventType];

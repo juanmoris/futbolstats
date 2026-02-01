@@ -10,9 +10,11 @@ public record GetMatchEventsQuery(Guid MatchId) : IRequest<IReadOnlyList<MatchEv
 
 public record MatchEventDto(
     Guid Id,
-    Guid PlayerId,
-    string PlayerName,
+    Guid? PlayerId,
+    string? PlayerName,
     int? PlayerNumber,
+    Guid? CoachId,
+    string? CoachName,
     Guid? SecondPlayerId,
     string? SecondPlayerName,
     Guid TeamId,
@@ -40,6 +42,7 @@ public class GetMatchEventsHandler(FutbolDbContext db)
 
         return await db.MatchEvents
             .Include(e => e.Player)
+            .Include(e => e.Coach)
             .Include(e => e.SecondPlayer)
             .Include(e => e.Team)
             .Where(e => e.MatchId == request.MatchId)
@@ -49,8 +52,10 @@ public class GetMatchEventsHandler(FutbolDbContext db)
             .Select(e => new MatchEventDto(
                 e.Id,
                 e.PlayerId,
-                e.Player.FirstName + " " + e.Player.LastName,
-                e.Player.Number,
+                e.Player != null ? e.Player.FirstName + " " + e.Player.LastName : null,
+                e.Player != null ? e.Player.Number : null,
+                e.CoachId,
+                e.Coach != null ? e.Coach.FirstName + " " + e.Coach.LastName : null,
                 e.SecondPlayerId,
                 e.SecondPlayer != null ? e.SecondPlayer.FirstName + " " + e.SecondPlayer.LastName : null,
                 e.TeamId,

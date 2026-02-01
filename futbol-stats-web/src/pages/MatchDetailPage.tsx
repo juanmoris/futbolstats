@@ -11,6 +11,8 @@ import type {
   RecordGoalRequest,
   RecordCardRequest,
   RecordSubstitutionRequest,
+  RecordPenaltyMissedRequest,
+  RecordCoachCardRequest,
   SetLineupRequest,
   LineupPlayerRequest
 } from '@/api/types/match.types';
@@ -111,6 +113,8 @@ export function MatchDetailPage() {
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [showCardModal, setShowCardModal] = useState(false);
   const [showSubstitutionModal, setShowSubstitutionModal] = useState(false);
+  const [showPenaltyMissedModal, setShowPenaltyMissedModal] = useState(false);
+  const [showCoachCardModal, setShowCoachCardModal] = useState(false);
   const [showCoachesModal, setShowCoachesModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -175,11 +179,17 @@ export function MatchDetailPage() {
         return '⚽';
       case EventType.OwnGoal:
         return '⚽ (AG)';
+      case EventType.PenaltyMissed:
+        return '❌';
       case EventType.YellowCard:
         return '🟨';
       case EventType.RedCard:
       case EventType.SecondYellow:
         return '🟥';
+      case EventType.CoachYellowCard:
+        return '🟨 DT';
+      case EventType.CoachRedCard:
+        return '🟥 DT';
       case EventType.SubstitutionIn:
         return '🔼';
       case EventType.SubstitutionOut:
@@ -196,9 +206,12 @@ export function MatchDetailPage() {
       case EventType.Goal: return 'Gol';
       case EventType.PenaltyScored: return 'Gol (Penal)';
       case EventType.OwnGoal: return 'Autogol';
+      case EventType.PenaltyMissed: return 'Penal fallado';
       case EventType.YellowCard: return 'Tarjeta amarilla';
       case EventType.RedCard: return 'Tarjeta roja';
       case EventType.SecondYellow: return 'Segunda amarilla';
+      case EventType.CoachYellowCard: return 'Tarjeta amarilla (DT)';
+      case EventType.CoachRedCard: return 'Tarjeta roja (DT)';
       case EventType.SubstitutionIn: return 'Entra';
       case EventType.SubstitutionOut: return 'Sale';
       case EventType.Assist: return 'Asistencia';
@@ -405,6 +418,18 @@ export function MatchDetailPage() {
             >
               🔄 <span className="hidden sm:inline ml-1">Registrar</span> Cambio
             </button>
+            <button
+              onClick={() => setShowPenaltyMissedModal(true)}
+              className="inline-flex items-center px-3 sm:px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
+            >
+              ❌ <span className="hidden sm:inline ml-1">Penal</span> Fallado
+            </button>
+            <button
+              onClick={() => setShowCoachCardModal(true)}
+              className="inline-flex items-center px-3 sm:px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 text-sm"
+            >
+              🟨 <span className="hidden sm:inline ml-1">Tarjeta</span> DT
+            </button>
           </div>
         )}
       </div>
@@ -435,7 +460,7 @@ export function MatchDetailPage() {
                     </div>
                     <div className="text-2xl">{getEventIcon(event.eventType)}</div>
                     <div className="flex-1">
-                      <p className="font-medium text-gray-900">{event.playerName}</p>
+                      <p className="font-medium text-gray-900">{event.coachName || event.playerName}</p>
                       <p className="text-sm text-gray-500">{getEventLabel(event.eventType)}</p>
                       {assist && (
                         <p className="text-sm text-gray-500">
@@ -620,6 +645,20 @@ export function MatchDetailPage() {
         <SubstitutionModal
           match={match}
           onClose={() => setShowSubstitutionModal(false)}
+        />
+      )}
+
+      {showPenaltyMissedModal && (
+        <PenaltyMissedModal
+          match={match}
+          onClose={() => setShowPenaltyMissedModal(false)}
+        />
+      )}
+
+      {showCoachCardModal && (
+        <CoachCardModal
+          match={match}
+          onClose={() => setShowCoachCardModal(false)}
         />
       )}
 
@@ -1258,6 +1297,313 @@ function SubstitutionModal({ match, onClose }: { match: MatchDetail; onClose: ()
               className="px-4 py-2 text-sm text-white bg-purple-600 rounded-md disabled:opacity-50"
             >
               {recordSubstitutionMutation.isPending ? 'Guardando...' : 'Registrar Cambio'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function PenaltyMissedModal({ match, onClose }: { match: MatchDetail; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const [teamId, setTeamId] = useState('');
+  const [playerId, setPlayerId] = useState('');
+  const [minute, setMinute] = useState('');
+  const [extraMinute, setExtraMinute] = useState('');
+  const [description, setDescription] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  const lineup = teamId === match.homeTeamId ? match.homeLineup : match.awayLineup;
+
+  const recordPenaltyMissedMutation = useMutation({
+    mutationFn: (data: RecordPenaltyMissedRequest) => matchesApi.recordPenaltyMissed(match.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['match', match.id] });
+      onClose();
+    },
+    onError: (err) => setError(getErrorMessage(err)),
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    recordPenaltyMissedMutation.mutate({
+      playerId,
+      teamId,
+      minute: parseInt(minute),
+      extraMinute: extraMinute ? parseInt(extraMinute) : undefined,
+      description: description || undefined,
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <form onSubmit={handleSubmit}>
+          <div className="px-6 py-4 border-b flex justify-between items-center">
+            <h3 className="text-lg font-medium text-gray-900">Registrar Penal Fallado</h3>
+            <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-500">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="px-6 py-4 space-y-4">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                {error}
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Equipo</label>
+              <select
+                value={teamId}
+                onChange={(e) => { setTeamId(e.target.value); setPlayerId(''); }}
+                required
+                className="mt-1 block w-full rounded-md border px-3 py-2"
+              >
+                <option value="">Seleccionar...</option>
+                <option value={match.homeTeamId}>{match.homeTeamName}</option>
+                <option value={match.awayTeamId}>{match.awayTeamName}</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Jugador</label>
+              <select
+                value={playerId}
+                onChange={(e) => setPlayerId(e.target.value)}
+                required
+                disabled={!teamId}
+                className="mt-1 block w-full rounded-md border px-3 py-2"
+              >
+                <option value="">Seleccionar...</option>
+                {lineup?.map((p) => (
+                  <option key={p.playerId} value={p.playerId}>{p.jerseyNumber} - {p.playerName}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Minuto</label>
+                <input
+                  type="number"
+                  value={minute}
+                  onChange={(e) => setMinute(e.target.value)}
+                  required
+                  min={1}
+                  max={120}
+                  className="mt-1 block w-full rounded-md border px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Tiempo adicional</label>
+                <input
+                  type="number"
+                  value={extraMinute}
+                  onChange={(e) => setExtraMinute(e.target.value)}
+                  min={1}
+                  max={15}
+                  placeholder="Opcional"
+                  className="mt-1 block w-full rounded-md border px-3 py-2"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Descripcion (opcional)</label>
+              <input
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Ej: Atajado por el portero, al poste..."
+                className="mt-1 block w-full rounded-md border px-3 py-2"
+              />
+            </div>
+          </div>
+
+          <div className="px-6 py-4 border-t flex justify-end gap-3">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-700 bg-white border rounded-md">
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={recordPenaltyMissedMutation.isPending}
+              className="px-4 py-2 text-sm text-white bg-red-600 rounded-md disabled:opacity-50"
+            >
+              {recordPenaltyMissedMutation.isPending ? 'Guardando...' : 'Registrar Penal Fallado'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function CoachCardModal({ match, onClose }: { match: MatchDetail; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const [teamId, setTeamId] = useState('');
+  const [coachId, setCoachId] = useState('');
+  const [minute, setMinute] = useState('');
+  const [extraMinute, setExtraMinute] = useState('');
+  const [isRed, setIsRed] = useState(false);
+  const [reason, setReason] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  // Get coach for selected team
+  const getCoachForTeam = (selectedTeamId: string) => {
+    if (selectedTeamId === match.homeTeamId) {
+      return { id: match.homeCoachId, name: match.homeCoachName };
+    }
+    return { id: match.awayCoachId, name: match.awayCoachName };
+  };
+
+  const selectedCoach = teamId ? getCoachForTeam(teamId) : null;
+
+  const recordCoachCardMutation = useMutation({
+    mutationFn: (data: RecordCoachCardRequest) => matchesApi.recordCoachCard(match.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['match', match.id] });
+      onClose();
+    },
+    onError: (err) => setError(getErrorMessage(err)),
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!coachId) {
+      setError('No hay entrenador asignado a este equipo');
+      return;
+    }
+    recordCoachCardMutation.mutate({
+      coachId,
+      teamId,
+      minute: parseInt(minute),
+      extraMinute: extraMinute ? parseInt(extraMinute) : undefined,
+      isRed,
+      reason: reason || undefined,
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <form onSubmit={handleSubmit}>
+          <div className="px-6 py-4 border-b flex justify-between items-center">
+            <h3 className="text-lg font-medium text-gray-900">Tarjeta a Entrenador</h3>
+            <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-500">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="px-6 py-4 space-y-4">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                {error}
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Equipo</label>
+              <select
+                value={teamId}
+                onChange={(e) => {
+                  setTeamId(e.target.value);
+                  const coach = getCoachForTeam(e.target.value);
+                  setCoachId(coach.id || '');
+                }}
+                required
+                className="mt-1 block w-full rounded-md border px-3 py-2"
+              >
+                <option value="">Seleccionar...</option>
+                <option value={match.homeTeamId}>{match.homeTeamName}</option>
+                <option value={match.awayTeamId}>{match.awayTeamName}</option>
+              </select>
+            </div>
+
+            {teamId && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Entrenador</label>
+                <div className="mt-1 block w-full rounded-md border px-3 py-2 bg-gray-50">
+                  {selectedCoach?.name || <span className="text-red-500">Sin entrenador asignado</span>}
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Minuto</label>
+                <input
+                  type="number"
+                  value={minute}
+                  onChange={(e) => setMinute(e.target.value)}
+                  required
+                  min={1}
+                  max={120}
+                  className="mt-1 block w-full rounded-md border px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Tiempo adicional</label>
+                <input
+                  type="number"
+                  value={extraMinute}
+                  onChange={(e) => setExtraMinute(e.target.value)}
+                  min={1}
+                  max={15}
+                  placeholder="Opcional"
+                  className="mt-1 block w-full rounded-md border px-3 py-2"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de tarjeta</label>
+              <div className="flex gap-4">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    checked={!isRed}
+                    onChange={() => setIsRed(false)}
+                    className="text-yellow-500"
+                  />
+                  <span className="ml-2 text-sm">🟨 Amarilla</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    checked={isRed}
+                    onChange={() => setIsRed(true)}
+                    className="text-red-500"
+                  />
+                  <span className="ml-2 text-sm">🟥 Roja</span>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Motivo (opcional)</label>
+              <input
+                type="text"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Ej: Protestas, conducta antideportiva..."
+                className="mt-1 block w-full rounded-md border px-3 py-2"
+              />
+            </div>
+          </div>
+
+          <div className="px-6 py-4 border-t flex justify-end gap-3">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-700 bg-white border rounded-md">
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={recordCoachCardMutation.isPending || !coachId}
+              className="px-4 py-2 text-sm text-white bg-yellow-600 rounded-md disabled:opacity-50"
+            >
+              {recordCoachCardMutation.isPending ? 'Guardando...' : 'Registrar Tarjeta'}
             </button>
           </div>
         </form>

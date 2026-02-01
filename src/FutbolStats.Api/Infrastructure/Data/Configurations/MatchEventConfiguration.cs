@@ -21,7 +21,14 @@ public class MatchEventConfiguration : IEntityTypeConfiguration<MatchEvent>
         builder.HasOne(e => e.Player)
             .WithMany(p => p.Events)
             .HasForeignKey(e => e.PlayerId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false);
+
+        builder.HasOne(e => e.Coach)
+            .WithMany()
+            .HasForeignKey(e => e.CoachId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false);
 
         builder.HasOne(e => e.SecondPlayer)
             .WithMany()
@@ -36,6 +43,7 @@ public class MatchEventConfiguration : IEntityTypeConfiguration<MatchEvent>
 
         builder.HasIndex(e => e.MatchId);
         builder.HasIndex(e => e.PlayerId);
+        builder.HasIndex(e => e.CoachId);
         builder.HasIndex(e => e.EventType);
         builder.HasIndex(e => new { e.MatchId, e.Minute });
     }

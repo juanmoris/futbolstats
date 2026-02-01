@@ -1,7 +1,9 @@
 using FutbolStats.Api.Features.MatchEvents.DeleteEvent;
 using FutbolStats.Api.Features.MatchEvents.GetMatchEvents;
 using FutbolStats.Api.Features.MatchEvents.RecordCard;
+using FutbolStats.Api.Features.MatchEvents.RecordCoachCard;
 using FutbolStats.Api.Features.MatchEvents.RecordGoal;
+using FutbolStats.Api.Features.MatchEvents.RecordPenaltyMissed;
 using FutbolStats.Api.Features.MatchEvents.RecordSubstitution;
 using MediatR;
 
@@ -80,6 +82,43 @@ public static class MatchEventsEndpoints
         .RequireAuthorization()
         .WithOpenApi();
 
+        // POST /api/matches/{matchId}/events/penalty-missed
+        group.MapPost("/penalty-missed", async (Guid matchId, RecordPenaltyMissedRequest request, IMediator mediator) =>
+        {
+            var command = new RecordPenaltyMissedCommand(
+                matchId,
+                request.PlayerId,
+                request.TeamId,
+                request.Minute,
+                request.ExtraMinute,
+                request.Description
+            );
+            var result = await mediator.Send(command);
+            return Results.Created($"/api/matches/{matchId}/events/{result.EventId}", result);
+        })
+        .WithName("RecordPenaltyMissed")
+        .RequireAuthorization()
+        .WithOpenApi();
+
+        // POST /api/matches/{matchId}/events/coach-card
+        group.MapPost("/coach-card", async (Guid matchId, RecordCoachCardRequest request, IMediator mediator) =>
+        {
+            var command = new RecordCoachCardCommand(
+                matchId,
+                request.CoachId,
+                request.TeamId,
+                request.Minute,
+                request.ExtraMinute,
+                request.IsRed,
+                request.Reason
+            );
+            var result = await mediator.Send(command);
+            return Results.Created($"/api/matches/{matchId}/events/{result.EventId}", result);
+        })
+        .WithName("RecordCoachCard")
+        .RequireAuthorization()
+        .WithOpenApi();
+
         // DELETE /api/matches/{matchId}/events/{eventId}
         group.MapDelete("/{eventId:guid}", async (Guid matchId, Guid eventId, IMediator mediator) =>
         {
@@ -117,4 +156,21 @@ public record RecordSubstitutionRequest(
     Guid TeamId,
     int Minute,
     int? ExtraMinute
+);
+
+public record RecordPenaltyMissedRequest(
+    Guid PlayerId,
+    Guid TeamId,
+    int Minute,
+    int? ExtraMinute,
+    string? Description
+);
+
+public record RecordCoachCardRequest(
+    Guid CoachId,
+    Guid TeamId,
+    int Minute,
+    int? ExtraMinute,
+    bool IsRed,
+    string? Reason
 );

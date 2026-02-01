@@ -21,7 +21,9 @@ public enum EventType
     SubstitutionIn,
     SubstitutionOut,
     PenaltyScored,
-    PenaltyMissed
+    PenaltyMissed,
+    CoachYellowCard,
+    CoachRedCard
 }
 
 public enum PlayerPosition

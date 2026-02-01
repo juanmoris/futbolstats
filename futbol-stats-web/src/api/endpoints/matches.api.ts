@@ -9,6 +9,8 @@ import type {
   RecordGoalRequest,
   RecordCardRequest,
   RecordSubstitutionRequest,
+  RecordPenaltyMissedRequest,
+  RecordCoachCardRequest,
 } from '../types/match.types';
 
 export const matchesApi = {
@@ -73,6 +75,14 @@ export const matchesApi = {
 
   recordSubstitution: async (matchId: string, data: RecordSubstitutionRequest): Promise<void> => {
     await apiClient.post(`/matches/${matchId}/events/substitution`, data);
+  },
+
+  recordPenaltyMissed: async (matchId: string, data: RecordPenaltyMissedRequest): Promise<void> => {
+    await apiClient.post(`/matches/${matchId}/events/penalty-missed`, data);
+  },
+
+  recordCoachCard: async (matchId: string, data: RecordCoachCardRequest): Promise<void> => {
+    await apiClient.post(`/matches/${matchId}/events/coach-card`, data);
   },
 
   deleteEvent: async (matchId: string, eventId: string): Promise<void> => {
