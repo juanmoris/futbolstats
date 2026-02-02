@@ -181,7 +181,7 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
             .Include(l => l.Player)
                 .ThenInclude(p => p.Country)
             .Where(l => l.Match.Status == MatchStatus.Finished
-                        && l.Player.TeamId == request.TeamId);
+                        && l.TeamId == request.TeamId);
 
         if (request.ChampionshipId.HasValue)
         {

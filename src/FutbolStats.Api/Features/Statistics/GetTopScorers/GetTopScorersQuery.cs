@@ -63,8 +63,7 @@ public class GetTopScorersQueryHandler : IRequestHandler<GetTopScorersQuery, Top
         // Get all goal events for this championship (only player events)
         var goalEvents = await _context.MatchEvents
             .Include(e => e.Match)
-            .Include(e => e.Player)
-                .ThenInclude(p => p!.Team)
+            .Include(e => e.Team)
             .Include(e => e.Player)
                 .ThenInclude(p => p!.Country)
             .Where(e => e.Match.ChampionshipId == request.ChampionshipId
@@ -95,13 +94,23 @@ public class GetTopScorersQueryHandler : IRequestHandler<GetTopScorersQuery, Top
         var allScorers = goalEvents
             .Where(e => e.PlayerId.HasValue && e.Player != null)
             .GroupBy(e => e.PlayerId!.Value)
-            .Select(g => new
+            .Select(g =>
             {
-                Player = g.First().Player!,
-                Goals = g.Count(),
-                PenaltyGoals = g.Count(e => e.EventType == EventType.PenaltyScored),
-                Assists = assistEvents.Count(a => a.PlayerId == g.Key),
-                MatchesPlayed = matchCounts.GetValueOrDefault(g.Key, 0)
+                // Get the team where the player scored most goals in this championship
+                var teamWithMostGoals = g
+                    .GroupBy(e => e.TeamId)
+                    .OrderByDescending(tg => tg.Count())
+                    .First();
+
+                return new
+                {
+                    Player = g.First().Player!,
+                    Team = teamWithMostGoals.First().Team,
+                    Goals = g.Count(),
+                    PenaltyGoals = g.Count(e => e.EventType == EventType.PenaltyScored),
+                    Assists = assistEvents.Count(a => a.PlayerId == g.Key),
+                    MatchesPlayed = matchCounts.GetValueOrDefault(g.Key, 0)
+                };
             })
             .OrderByDescending(x => x.Goals)
             .ThenByDescending(x => x.Assists)
@@ -111,7 +120,7 @@ public class GetTopScorersQueryHandler : IRequestHandler<GetTopScorersQuery, Top
         // Filtrar por equipo
         if (request.TeamId.HasValue)
         {
-            allScorers = allScorers.Where(x => x.Player.TeamId == request.TeamId.Value).ToList();
+            allScorers = allScorers.Where(x => x.Team.Id == request.TeamId.Value).ToList();
         }
 
         // Filtrar por nombre de jugador
@@ -137,9 +146,9 @@ public class GetTopScorersQueryHandler : IRequestHandler<GetTopScorersQuery, Top
                 x.Player.PhotoUrl,
                 x.Player.Country?.Name,
                 x.Player.Country?.FlagUrl,
-                x.Player.TeamId,
-                x.Player.Team.Name,
-                x.Player.Team.LogoUrl,
+                x.Team.Id,
+                x.Team.Name,
+                x.Team.LogoUrl,
                 x.Goals,
                 x.PenaltyGoals,
                 x.Assists,

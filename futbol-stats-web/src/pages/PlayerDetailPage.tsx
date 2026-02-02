@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
   User,
@@ -12,8 +12,16 @@ import {
   Shirt,
   Award,
   AlertTriangle,
+  Pencil,
 } from 'lucide-react';
 import { statisticsApi } from '@/api/endpoints/statistics.api';
+import { playersApi } from '@/api/endpoints/players.api';
+import { teamsApi } from '@/api/endpoints/teams.api';
+import { countriesApi } from '@/api/endpoints/countries.api';
+import { useAuth } from '@/contexts/AuthContext';
+import type { Player, CreatePlayerRequest } from '@/api/types/player.types';
+import type { Country } from '@/api/types/country.types';
+import { PlayerPosition } from '@/api/types/common.types';
 
 const positionLabels: Record<string, string> = {
   Goalkeeper: 'Portero',
@@ -51,8 +59,13 @@ function formatDate(dateString: string): string {
 
 export function PlayerDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [selectedChampionshipId, setSelectedChampionshipId] = useState<string | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
   const hasInitializedDefault = useRef(false);
+  const isAdmin = user?.role === 'Admin';
 
   // Query para estadisticas generales (sin filtro de campeonato)
   const { data: allStats, isLoading: isLoadingAll } = useQuery({
@@ -66,6 +79,40 @@ export function PlayerDetailPage() {
     queryKey: ['playerStatistics', id, selectedChampionshipId],
     queryFn: () => statisticsApi.getPlayerStatistics(id!, selectedChampionshipId!),
     enabled: !!id && !!selectedChampionshipId,
+  });
+
+  // Query para obtener datos del jugador (para edición)
+  const { data: playerData } = useQuery({
+    queryKey: ['player', id],
+    queryFn: () => playersApi.getById(id!),
+    enabled: !!id && isEditModalOpen,
+  });
+
+  // Queries para el modal de edición
+  const { data: teams } = useQuery({
+    queryKey: ['teams', 'all'],
+    queryFn: () => teamsApi.getAll({ pageSize: 100 }),
+    enabled: isEditModalOpen,
+  });
+
+  const { data: countries } = useQuery({
+    queryKey: ['countries', 'all'],
+    queryFn: () => countriesApi.getAll({ pageSize: 200 }),
+    enabled: isEditModalOpen,
+  });
+
+  // Mutation para actualizar jugador
+  const updateMutation = useMutation({
+    mutationFn: (data: CreatePlayerRequest & { isActive: boolean }) =>
+      playersApi.update(id!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['playerStatistics', id] });
+      queryClient.invalidateQueries({ queryKey: ['player', id] });
+      queryClient.invalidateQueries({ queryKey: ['players'] });
+      setIsEditModalOpen(false);
+      setModalError(null);
+    },
+    onError: (err) => setModalError(getErrorMessage(err)),
   });
 
   const championships = allStats?.championshipStats || [];
@@ -164,6 +211,15 @@ export function PlayerDetailPage() {
                 </h1>
                 {allStats.number && (
                   <span className="text-xl sm:text-2xl font-bold text-gray-400">#{allStats.number}</span>
+                )}
+                {isAdmin && (
+                  <button
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors"
+                  >
+                    <Pencil className="h-4 w-4" />
+                    Editar
+                  </button>
                 )}
               </div>
 
@@ -469,8 +525,37 @@ export function PlayerDetailPage() {
           <p className="text-gray-500">No hay partidos registrados</p>
         </div>
       )}
+
+      {/* Modal de Edición */}
+      {isEditModalOpen && playerData && (
+        <PlayerEditModal
+          player={playerData}
+          teams={teams?.items || []}
+          countries={countries?.items || []}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setModalError(null);
+          }}
+          onSave={(data) => updateMutation.mutate(data)}
+          isLoading={updateMutation.isPending}
+          error={modalError}
+        />
+      )}
     </div>
   );
+}
+
+function getErrorMessage(err: unknown): string {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const axiosError = err as any;
+  if (axiosError.response?.data?.errors) {
+    const errors = axiosError.response.data.errors;
+    return Object.values(errors).flat().join(', ');
+  }
+  if (axiosError.response?.data?.message) {
+    return axiosError.response.data.message;
+  }
+  return 'Error al realizar la operacion';
 }
 
 import type { PlayerStatisticsResponse, PlayerMatch } from '@/api/types/statistics.types';
@@ -773,6 +858,197 @@ function EnhancedStatCard({
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function PlayerEditModal({
+  player,
+  teams,
+  countries,
+  onClose,
+  onSave,
+  isLoading,
+  error,
+}: {
+  player: Player;
+  teams: { id: string; name: string }[];
+  countries: Country[];
+  onClose: () => void;
+  onSave: (data: CreatePlayerRequest & { isActive: boolean }) => void;
+  isLoading: boolean;
+  error: string | null;
+}) {
+  const [firstName, setFirstName] = useState(player.firstName);
+  const [lastName, setLastName] = useState(player.lastName);
+  const [number, setNumber] = useState(player.number?.toString() || '');
+  const [position, setPosition] = useState(String(player.position));
+  const [teamId, setTeamId] = useState(player.teamId);
+  const [countryId, setCountryId] = useState(player.countryId || '');
+  const [birthDate, setBirthDate] = useState(player.birthDate?.split('T')[0] || '');
+  const [photoUrl, setPhotoUrl] = useState(player.photoUrl || '');
+  const [isActive, setIsActive] = useState(player.isActive);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave({
+      firstName,
+      lastName,
+      number: number ? parseInt(number) : null,
+      position: parseInt(position) as typeof PlayerPosition[keyof typeof PlayerPosition],
+      teamId,
+      countryId: countryId || undefined,
+      birthDate: birthDate || undefined,
+      photoUrl: photoUrl || undefined,
+      isActive,
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <form onSubmit={handleSubmit}>
+          <div className="px-4 sm:px-6 py-4 border-b">
+            <h3 className="text-lg font-medium text-gray-900">Editar Jugador</h3>
+          </div>
+          <div className="px-4 sm:px-6 py-4 space-y-4">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                {error}
+              </div>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Nombre</label>
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 text-sm border px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Apellido</label>
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 text-sm border px-3 py-2"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Equipo</label>
+              <select
+                value={teamId}
+                onChange={(e) => setTeamId(e.target.value)}
+                required
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 text-sm border px-3 py-2"
+              >
+                <option value="">Seleccionar equipo</option>
+                {teams.map((team) => (
+                  <option key={team.id} value={team.id}>{team.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Numero (opcional)</label>
+                <input
+                  type="number"
+                  value={number}
+                  onChange={(e) => setNumber(e.target.value)}
+                  placeholder="-"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 text-sm border px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Posicion</label>
+                <select
+                  value={position}
+                  onChange={(e) => setPosition(e.target.value)}
+                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 text-sm border px-3 py-2"
+                >
+                  <option value="0">Portero</option>
+                  <option value="1">Defensa</option>
+                  <option value="2">Mediocampista</option>
+                  <option value="3">Delantero</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Pais</label>
+              <div className="mt-1 flex items-center gap-2">
+                {countryId && countries.find(c => c.id === countryId)?.flagUrl && (
+                  <img
+                    src={countries.find(c => c.id === countryId)?.flagUrl}
+                    alt=""
+                    className="h-6 w-8 object-cover rounded shadow-sm"
+                  />
+                )}
+                <select
+                  value={countryId}
+                  onChange={(e) => setCountryId(e.target.value)}
+                  className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 text-sm border px-3 py-2"
+                >
+                  <option value="">Seleccionar pais</option>
+                  {countries.map((country) => (
+                    <option key={country.id} value={country.id}>{country.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Fecha de nacimiento</label>
+              <input
+                type="date"
+                value={birthDate}
+                onChange={(e) => setBirthDate(e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 text-sm border px-3 py-2"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">URL de la foto</label>
+              <input
+                type="url"
+                value={photoUrl}
+                onChange={(e) => setPhotoUrl(e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 text-sm border px-3 py-2"
+              />
+            </div>
+            <div>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={isActive}
+                  onChange={(e) => setIsActive(e.target.checked)}
+                  className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                />
+                <span className="ml-2 text-sm text-gray-700">Jugador activo</span>
+              </label>
+            </div>
+          </div>
+          <div className="px-4 sm:px-6 py-4 border-t flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-md hover:bg-purple-700 disabled:opacity-50"
+            >
+              {isLoading ? 'Guardando...' : 'Guardar'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
