@@ -201,7 +201,7 @@ export function PlayersPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {data?.items?.map((player) => (
                   <tr key={player.id} className="hover:bg-gray-50 group/row">
-                    <td className="sticky left-0 z-10 bg-white group-hover/row:bg-gray-50 px-3 sm:px-4 py-3 whitespace-nowrap shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                    <td className="sticky left-0 z-10 bg-white group-hover/row:bg-gray-50 px-3 sm:px-4 py-3 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                       <Link to={`/players/${player.id}`} className="flex items-center group">
                         {player.photoUrl ? (
                           <img src={player.photoUrl} alt={player.fullName} className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover flex-shrink-0" />
@@ -211,7 +211,7 @@ export function PlayersPage() {
                           </div>
                         )}
                         <div className="ml-2 sm:ml-3 min-w-0">
-                          <p className="font-medium text-gray-900 group-hover:text-purple-600 text-sm sm:text-base truncate max-w-[120px] sm:max-w-[180px]">{player.fullName}</p>
+                          <p className="font-medium text-gray-900 group-hover:text-purple-600 text-sm sm:text-base">{player.fullName}</p>
                           <p className="text-xs text-gray-500 flex items-center gap-1">
                             {player.countryFlagUrl && (
                               <img src={player.countryFlagUrl} alt="" className="h-3 w-4 object-cover rounded-sm" />

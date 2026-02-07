@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import { Plus, Play, Pause, StopCircle, Eye, Pencil, Trash2 } from 'lucide-react';
 import { matchesApi } from '@/api/endpoints/matches.api';
 import { championshipsApi } from '@/api/endpoints/championships.api';
-import { teamsApi } from '@/api/endpoints/teams.api';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Match, CreateMatchRequest, UpdateMatchRequest } from '@/api/types/match.types';
 import { MatchStatus } from '@/api/types/common.types';
@@ -418,10 +417,13 @@ function CreateMatchModal({
   const [stadium, setStadium] = useState('');
   const [matchday, setMatchday] = useState('1');
 
-  const { data: teams } = useQuery({
-    queryKey: ['teams', 'all'],
-    queryFn: () => teamsApi.getAll({ pageSize: 100 }),
+  const { data: championshipDetail } = useQuery({
+    queryKey: ['championship', championshipId],
+    queryFn: () => championshipsApi.getById(championshipId),
+    enabled: !!championshipId,
   });
+
+  const championshipTeams = championshipDetail?.teams || [];
 
   const getErrorMessage = (): string | null => {
     if (!error) return null;
@@ -469,7 +471,11 @@ function CreateMatchModal({
               <label className="block text-sm font-medium text-gray-700">Campeonato</label>
               <select
                 value={championshipId}
-                onChange={(e) => setChampionshipId(e.target.value)}
+                onChange={(e) => {
+                  setChampionshipId(e.target.value);
+                  setHomeTeamId('');
+                  setAwayTeamId('');
+                }}
                 required
                 className="mt-1 block w-full rounded-md border px-3 py-2"
               >
@@ -486,11 +492,12 @@ function CreateMatchModal({
                   value={homeTeamId}
                   onChange={(e) => setHomeTeamId(e.target.value)}
                   required
-                  className="mt-1 block w-full rounded-md border px-3 py-2"
+                  disabled={!championshipId}
+                  className="mt-1 block w-full rounded-md border px-3 py-2 disabled:bg-gray-100"
                 >
-                  <option value="">Seleccionar</option>
-                  {teams?.items?.map((t) => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
+                  <option value="">{championshipId ? 'Seleccionar' : 'Seleccione campeonato primero'}</option>
+                  {[...championshipTeams].sort((a, b) => a.teamName.localeCompare(b.teamName)).map((t) => (
+                    <option key={t.teamId} value={t.teamId}>{t.teamName}</option>
                   ))}
                 </select>
               </div>
@@ -500,11 +507,12 @@ function CreateMatchModal({
                   value={awayTeamId}
                   onChange={(e) => setAwayTeamId(e.target.value)}
                   required
-                  className="mt-1 block w-full rounded-md border px-3 py-2"
+                  disabled={!championshipId}
+                  className="mt-1 block w-full rounded-md border px-3 py-2 disabled:bg-gray-100"
                 >
-                  <option value="">Seleccionar</option>
-                  {teams?.items?.filter(t => t.id !== homeTeamId).map((t) => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
+                  <option value="">{championshipId ? 'Seleccionar' : 'Seleccione campeonato primero'}</option>
+                  {[...championshipTeams].filter(t => t.teamId !== homeTeamId).sort((a, b) => a.teamName.localeCompare(b.teamName)).map((t) => (
+                    <option key={t.teamId} value={t.teamId}>{t.teamName}</option>
                   ))}
                 </select>
               </div>
