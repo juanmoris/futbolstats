@@ -367,7 +367,7 @@ export function CoachDetailPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {stats.teamStats.map((team) => (
                   <tr
-                    key={`${team.teamId}-${team.startDate}`}
+                    key={`${team.teamId}-${team.firstMatchDate}`}
                     className={team.isCurrent ? 'bg-green-50' : 'hover:bg-gray-50'}
                   >
                     <td className="px-4 py-3 whitespace-nowrap">
@@ -395,7 +395,7 @@ export function CoachDetailPage() {
                       </Link>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(team.startDate)} - {team.endDate ? formatDate(team.endDate) : 'Presente'}
+                      {formatDate(team.firstMatchDate)} - {team.isCurrent ? 'Presente' : formatDate(team.lastMatchDate)}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-medium text-gray-900">
                       {team.matches}

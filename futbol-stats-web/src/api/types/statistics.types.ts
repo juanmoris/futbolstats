@@ -223,8 +223,8 @@ export interface CoachTeamStats {
   teamId: string;
   teamName: string;
   teamLogo: string | null;
-  startDate: string;
-  endDate: string | null;
+  firstMatchDate: string | null;
+  lastMatchDate: string | null;
   isCurrent: boolean;
   matches: number;
   wins: number;

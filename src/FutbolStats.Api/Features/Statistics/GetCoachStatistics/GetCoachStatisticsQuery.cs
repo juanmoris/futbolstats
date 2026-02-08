@@ -46,8 +46,8 @@ public record CoachTeamStatsDto(
     Guid TeamId,
     string TeamName,
     string? TeamLogo,
-    DateOnly StartDate,
-    DateOnly? EndDate,
+    DateTime? FirstMatchDate,
+    DateTime? LastMatchDate,
     bool IsCurrent,
     int Matches,
     int Wins,
@@ -224,18 +224,20 @@ public class GetCoachStatisticsQueryHandler : IRequestHandler<GetCoachStatistics
             var points = wins * 3 + draws;
             var pointsPercentage = matchCount > 0 ? Math.Round((decimal)points / (matchCount * 3) * 100, 1) : 0;
 
-            // Get assignment info for dates (if exists)
-            var assignment = coach.TeamAssignments.FirstOrDefault(ta => ta.TeamId == teamId);
-            var firstMatchDate = teamMatches.OrderBy(m => m.MatchDate).First().MatchDate;
-            var lastMatchDate = teamMatches.OrderByDescending(m => m.MatchDate).First().MatchDate;
+            // Get dates from actual matches (same logic as GetTeamStatisticsQuery)
+            var firstMatchDate = teamMatches.OrderBy(m => m.MatchDate).FirstOrDefault()?.MatchDate;
+            var lastMatchDate = teamMatches.OrderByDescending(m => m.MatchDate).FirstOrDefault()?.MatchDate;
+
+            // Check if coach is currently assigned to this team
+            var isCurrent = coach.TeamAssignments.Any(ta => ta.TeamId == teamId && ta.EndDate == null);
 
             teamStats.Add(new CoachTeamStatsDto(
                 teamId,
                 team.Name,
                 team.LogoUrl,
-                assignment?.StartDate ?? DateOnly.FromDateTime(firstMatchDate),
-                assignment?.EndDate,
-                assignment?.EndDate == null,
+                firstMatchDate,
+                lastMatchDate,
+                isCurrent,
                 matchCount,
                 wins,
                 draws,
