@@ -196,11 +196,11 @@ public class GetCoachStatisticsQueryHandler : IRequestHandler<GetCoachStatistics
             if (!teamsData.TryGetValue(teamId, out var team)) continue;
 
             var teamMatches = matches.Where(m =>
-            {
-                bool isHome = m.HomeTeamId == teamId;
-                var coachId = isHome ? m.HomeCoachId : m.AwayCoachId;
-                return coachId == request.CoachId;
-            }).ToList();
+                // El entrenador dirige a este equipo como local
+                (m.HomeTeamId == teamId && m.HomeCoachId == request.CoachId) ||
+                // El entrenador dirige a este equipo como visitante
+                (m.AwayTeamId == teamId && m.AwayCoachId == request.CoachId)
+            ).ToList();
 
             if (teamMatches.Count == 0) continue;
 
