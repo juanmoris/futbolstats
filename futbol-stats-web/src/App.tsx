@@ -13,6 +13,7 @@ import { MatchesPage } from '@/pages/MatchesPage';
 import { MatchDetailPage } from '@/pages/MatchDetailPage';
 import { TeamDetailPage } from '@/pages/TeamDetailPage';
 import { CoachesPage } from '@/pages/CoachesPage';
+import { CoachDetailPage } from '@/pages/CoachDetailPage';
 import { StatisticsPage } from '@/pages/StatisticsPage';
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
               <Route path="/matches" element={<MatchesPage />} />
               <Route path="/matches/:id" element={<MatchDetailPage />} />
               <Route path="/coaches" element={<CoachesPage />} />
+              <Route path="/coaches/:id" element={<CoachDetailPage />} />
               <Route path="/statistics" element={<StatisticsPage />} />
             </Route>
           </Routes>

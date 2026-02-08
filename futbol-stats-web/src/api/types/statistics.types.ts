@@ -184,3 +184,54 @@ export interface ChampionshipSummary {
   goalsAgainst: number;
   coaches: CoachSummary[];
 }
+
+export interface CoachStatisticsResponse {
+  coachId: string;
+  coachName: string;
+  photoUrl: string | null;
+  countryName: string | null;
+  countryFlagUrl: string | null;
+  birthDate: string | null;
+  currentTeamName: string | null;
+  currentTeamLogo: string | null;
+  totalMatches: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  winPercentage: number;
+  championshipStats: CoachChampionshipStats[] | null;
+  teamStats: CoachTeamStats[] | null;
+}
+
+export interface CoachChampionshipStats {
+  championshipId: string;
+  championshipName: string;
+  season: string;
+  matches: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  points: number;
+  winPercentage: number;
+}
+
+export interface CoachTeamStats {
+  teamId: string;
+  teamName: string;
+  teamLogo: string | null;
+  startDate: string;
+  endDate: string | null;
+  isCurrent: boolean;
+  matches: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  points: number;
+  winPercentage: number;
+}

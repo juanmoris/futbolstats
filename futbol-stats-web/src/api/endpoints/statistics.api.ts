@@ -4,6 +4,7 @@ import type {
   TopScorersResponse,
   PlayerStatisticsResponse,
   TeamStatisticsResponse,
+  CoachStatisticsResponse,
 } from '../types/statistics.types';
 
 export const statisticsApi = {
@@ -34,6 +35,13 @@ export const statisticsApi = {
 
   getTeamStatistics: async (teamId: string, championshipId?: string): Promise<TeamStatisticsResponse> => {
     const response = await apiClient.get(`/statistics/teams/${teamId}`, {
+      params: { championshipId },
+    });
+    return response.data;
+  },
+
+  getCoachStatistics: async (coachId: string, championshipId?: string): Promise<CoachStatisticsResponse> => {
+    const response = await apiClient.get(`/statistics/coaches/${coachId}`, {
       params: { championshipId },
     });
     return response.data;

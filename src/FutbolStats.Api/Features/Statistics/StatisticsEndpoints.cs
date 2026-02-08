@@ -1,4 +1,5 @@
 using FutbolStats.Api.Features.Championships.GetStandings;
+using FutbolStats.Api.Features.Statistics.GetCoachStatistics;
 using FutbolStats.Api.Features.Statistics.GetPlayerStatistics;
 using FutbolStats.Api.Features.Statistics.GetTeamStatistics;
 using FutbolStats.Api.Features.Statistics.GetTopScorers;
@@ -23,6 +24,18 @@ public static class StatisticsEndpoints
             return Results.Ok(result);
         })
         .WithName("GetPlayerStatistics")
+        .WithOpenApi();
+
+        // GET /api/statistics/coaches/{id}
+        group.MapGet("/coaches/{id:guid}", async (
+            Guid id,
+            IMediator mediator,
+            Guid? championshipId = null) =>
+        {
+            var result = await mediator.Send(new GetCoachStatisticsQuery(id, championshipId));
+            return Results.Ok(result);
+        })
+        .WithName("GetCoachStatistics")
         .WithOpenApi();
 
         // GET /api/statistics/teams/{id}

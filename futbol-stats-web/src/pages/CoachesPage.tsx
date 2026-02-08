@@ -149,12 +149,12 @@ export function CoachesPage() {
                           </div>
                         )}
                         <div className="ml-2 sm:ml-3">
-                          <button
-                            onClick={() => setViewingCoach(coach.id)}
-                            className="font-medium text-gray-900 hover:text-blue-600 text-sm sm:text-base truncate max-w-[100px] sm:max-w-none block"
+                          <Link
+                            to={`/coaches/${coach.id}`}
+                            className="font-medium text-gray-900 hover:text-green-600 text-sm sm:text-base"
                           >
                             {coach.fullName}
-                          </button>
+                          </Link>
                           {coach.birthDate && (
                             <p className="text-xs text-gray-500">
                               {new Date(coach.birthDate + 'T12:00:00').toLocaleDateString()}
