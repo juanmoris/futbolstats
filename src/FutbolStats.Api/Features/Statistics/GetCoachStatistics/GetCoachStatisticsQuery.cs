@@ -118,7 +118,8 @@ public class GetCoachStatisticsQueryHandler : IRequestHandler<GetCoachStatistics
         }
 
         var totalMatches = matches.Count;
-        var totalWinPercentage = totalMatches > 0 ? Math.Round((decimal)totalWins / totalMatches * 100, 1) : 0;
+        var totalPoints = totalWins * 3 + totalDraws;
+        var totalPointsPercentage = totalMatches > 0 ? Math.Round((decimal)totalPoints / (totalMatches * 3) * 100, 1) : 0;
 
         List<CoachChampionshipStatsDto>? championshipStats = null;
         List<CoachTeamStatsDto>? teamStats = null;
@@ -147,7 +148,8 @@ public class GetCoachStatisticsQueryHandler : IRequestHandler<GetCoachStatistics
                     }
 
                     var matchCount = g.Count();
-                    var winPercentage = matchCount > 0 ? Math.Round((decimal)wins / matchCount * 100, 1) : 0;
+                    var points = wins * 3 + draws;
+                    var pointsPercentage = matchCount > 0 ? Math.Round((decimal)points / (matchCount * 3) * 100, 1) : 0;
 
                     return new
                     {
@@ -161,8 +163,8 @@ public class GetCoachStatisticsQueryHandler : IRequestHandler<GetCoachStatistics
                             losses,
                             goalsFor,
                             goalsAgainst,
-                            wins * 3 + draws,
-                            winPercentage
+                            points,
+                            pointsPercentage
                         ),
                         Status = g.Key.Status
                     };
@@ -219,7 +221,8 @@ public class GetCoachStatisticsQueryHandler : IRequestHandler<GetCoachStatistics
             }
 
             var matchCount = teamMatches.Count;
-            var winPercentage = matchCount > 0 ? Math.Round((decimal)wins / matchCount * 100, 1) : 0;
+            var points = wins * 3 + draws;
+            var pointsPercentage = matchCount > 0 ? Math.Round((decimal)points / (matchCount * 3) * 100, 1) : 0;
 
             // Get assignment info for dates (if exists)
             var assignment = coach.TeamAssignments.FirstOrDefault(ta => ta.TeamId == teamId);
@@ -239,8 +242,8 @@ public class GetCoachStatisticsQueryHandler : IRequestHandler<GetCoachStatistics
                 losses,
                 goalsFor,
                 goalsAgainst,
-                wins * 3 + draws,
-                winPercentage
+                points,
+                pointsPercentage
             ));
         }
 
@@ -262,7 +265,7 @@ public class GetCoachStatisticsQueryHandler : IRequestHandler<GetCoachStatistics
             totalLosses,
             totalGoalsFor,
             totalGoalsAgainst,
-            totalWinPercentage,
+            totalPointsPercentage,
             championshipStats,
             teamStats
         );

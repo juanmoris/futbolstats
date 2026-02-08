@@ -182,7 +182,7 @@ export function CoachDetailPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-green-600">{stats.winPercentage}%</p>
-                <p className="text-xs text-gray-500 uppercase">% Victoria</p>
+                <p className="text-xs text-gray-500 uppercase">% Puntos</p>
               </div>
             </div>
           </div>
@@ -260,7 +260,7 @@ export function CoachDetailPage() {
                     Pts
                   </th>
                   <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    %V
+                    %Pts
                   </th>
                 </tr>
               </thead>
@@ -360,7 +360,7 @@ export function CoachDetailPage() {
                     Pts
                   </th>
                   <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    %V
+                    %Pts
                   </th>
                 </tr>
               </thead>
