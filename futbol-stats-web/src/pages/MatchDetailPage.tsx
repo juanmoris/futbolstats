@@ -280,12 +280,15 @@ export function MatchDetailPage() {
             <div className="order-2 md:order-1">
               <p className="text-lg md:text-xl font-bold text-gray-900">{match.homeTeamName}</p>
               {match.homeCoachName && (
-                <p className="text-xs sm:text-sm text-gray-500">
+                <p className="text-xs sm:text-sm text-gray-500 flex items-center justify-center md:justify-end gap-1">
                   DT: {match.homeCoachId ? (
                     <Link to={`/coaches/${match.homeCoachId}`} className="hover:text-blue-600 transition-colors">
                       {match.homeCoachName}
                     </Link>
                   ) : match.homeCoachName}
+                  {match.homeCoachCountryFlagUrl && (
+                    <img src={match.homeCoachCountryFlagUrl} alt="" className="h-3 w-4 object-cover rounded-sm" />
+                  )}
                 </p>
               )}
             </div>
@@ -340,12 +343,15 @@ export function MatchDetailPage() {
             <div>
               <p className="text-lg md:text-xl font-bold text-gray-900">{match.awayTeamName}</p>
               {match.awayCoachName && (
-                <p className="text-xs sm:text-sm text-gray-500">
+                <p className="text-xs sm:text-sm text-gray-500 flex items-center justify-center md:justify-start gap-1">
                   DT: {match.awayCoachId ? (
                     <Link to={`/coaches/${match.awayCoachId}`} className="hover:text-blue-600 transition-colors">
                       {match.awayCoachName}
                     </Link>
                   ) : match.awayCoachName}
+                  {match.awayCoachCountryFlagUrl && (
+                    <img src={match.awayCoachCountryFlagUrl} alt="" className="h-3 w-4 object-cover rounded-sm" />
+                  )}
                 </p>
               )}
             </div>
@@ -538,8 +544,11 @@ export function MatchDetailPage() {
                       <span className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-medium text-blue-800">
                         {player.jerseyNumber}
                       </span>
-                      <Link to={`/players/${player.playerId}`} className="font-medium hover:text-blue-600 transition-colors">
+                      <Link to={`/players/${player.playerId}`} className="font-medium hover:text-blue-600 transition-colors flex items-center gap-1.5">
                         {player.playerName}
+                        {player.countryFlagUrl && (
+                          <img src={player.countryFlagUrl} alt="" className="h-3 w-4 object-cover rounded-sm" />
+                        )}
                       </Link>
                     </div>
                     <PlayerEventIcons playerId={player.playerId} events={match.events} />
@@ -556,8 +565,11 @@ export function MatchDetailPage() {
                           <span className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-600">
                             {player.jerseyNumber}
                           </span>
-                          <Link to={`/players/${player.playerId}`} className="text-gray-500 hover:text-blue-600 transition-colors">
+                          <Link to={`/players/${player.playerId}`} className="text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-1.5">
                             {player.playerName}
+                            {player.countryFlagUrl && (
+                              <img src={player.countryFlagUrl} alt="" className="h-3 w-4 object-cover rounded-sm" />
+                            )}
                           </Link>
                         </div>
                         <PlayerEventIcons playerId={player.playerId} events={match.events} />
@@ -604,8 +616,11 @@ export function MatchDetailPage() {
                       <span className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-800">
                         {player.jerseyNumber}
                       </span>
-                      <Link to={`/players/${player.playerId}`} className="font-medium hover:text-blue-600 transition-colors">
+                      <Link to={`/players/${player.playerId}`} className="font-medium hover:text-blue-600 transition-colors flex items-center gap-1.5">
                         {player.playerName}
+                        {player.countryFlagUrl && (
+                          <img src={player.countryFlagUrl} alt="" className="h-3 w-4 object-cover rounded-sm" />
+                        )}
                       </Link>
                     </div>
                     <PlayerEventIcons playerId={player.playerId} events={match.events} />
@@ -622,8 +637,11 @@ export function MatchDetailPage() {
                           <span className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-600">
                             {player.jerseyNumber}
                           </span>
-                          <Link to={`/players/${player.playerId}`} className="text-gray-500 hover:text-blue-600 transition-colors">
+                          <Link to={`/players/${player.playerId}`} className="text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-1.5">
                             {player.playerName}
+                            {player.countryFlagUrl && (
+                              <img src={player.countryFlagUrl} alt="" className="h-3 w-4 object-cover rounded-sm" />
+                            )}
                           </Link>
                         </div>
                         <PlayerEventIcons playerId={player.playerId} events={match.events} />

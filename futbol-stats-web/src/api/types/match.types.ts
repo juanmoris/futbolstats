@@ -12,8 +12,10 @@ export interface Match {
   awayTeamLogo: string | null;
   homeCoachId: string | null;
   homeCoachName: string | null;
+  homeCoachCountryFlagUrl: string | null;
   awayCoachId: string | null;
   awayCoachName: string | null;
+  awayCoachCountryFlagUrl: string | null;
   matchDate: string;
   stadium: string | null;
   status: MatchStatus;
@@ -45,6 +47,7 @@ export interface MatchEvent {
 export interface LineupPlayer {
   playerId: string;
   playerName: string;
+  countryFlagUrl: string | null;
   jerseyNumber: number | null;
   position: string;
   isStarter: boolean;

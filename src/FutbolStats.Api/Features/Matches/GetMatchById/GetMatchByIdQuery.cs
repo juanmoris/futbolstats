@@ -23,8 +23,10 @@ public record MatchDetailDto(
     string? AwayTeamLogo,
     Guid? HomeCoachId,
     string? HomeCoachName,
+    string? HomeCoachCountryFlagUrl,
     Guid? AwayCoachId,
     string? AwayCoachName,
+    string? AwayCoachCountryFlagUrl,
     DateTime MatchDate,
     string? Stadium,
     MatchStatus Status,
@@ -42,6 +44,7 @@ public record MatchDetailDto(
 public record MatchLineupDto(
     Guid PlayerId,
     string PlayerName,
+    string? CountryFlagUrl,
     int JerseyNumber,
     string? Position,
     bool IsStarter
@@ -75,9 +78,12 @@ public class GetMatchByIdHandler(FutbolDbContext db)
             .Include(m => m.HomeTeam)
             .Include(m => m.AwayTeam)
             .Include(m => m.HomeCoach)
+                .ThenInclude(c => c!.Country)
             .Include(m => m.AwayCoach)
+                .ThenInclude(c => c!.Country)
             .Include(m => m.Lineups)
                 .ThenInclude(l => l.Player)
+                    .ThenInclude(p => p.Country)
             .Include(m => m.Events)
                 .ThenInclude(e => e.Player)
             .Include(m => m.Events)
@@ -96,6 +102,7 @@ public class GetMatchByIdHandler(FutbolDbContext db)
             .Select(l => new MatchLineupDto(
                 l.PlayerId,
                 $"{l.Player.FirstName} {l.Player.LastName}",
+                l.Player.Country?.FlagUrl,
                 l.JerseyNumber,
                 l.Position,
                 l.IsStarter
@@ -109,6 +116,7 @@ public class GetMatchByIdHandler(FutbolDbContext db)
             .Select(l => new MatchLineupDto(
                 l.PlayerId,
                 $"{l.Player.FirstName} {l.Player.LastName}",
+                l.Player.Country?.FlagUrl,
                 l.JerseyNumber,
                 l.Position,
                 l.IsStarter
@@ -150,8 +158,10 @@ public class GetMatchByIdHandler(FutbolDbContext db)
             match.AwayTeam.LogoUrl,
             match.HomeCoachId,
             match.HomeCoach?.FullName,
+            match.HomeCoach?.Country?.FlagUrl,
             match.AwayCoachId,
             match.AwayCoach?.FullName,
+            match.AwayCoach?.Country?.FlagUrl,
             match.MatchDate,
             match.Stadium,
             match.Status,
