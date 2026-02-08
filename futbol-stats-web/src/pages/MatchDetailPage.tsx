@@ -278,7 +278,9 @@ export function MatchDetailPage() {
           {/* Home Team */}
           <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 md:flex-1 md:justify-end text-center md:text-right order-1 md:order-1">
             <div className="order-2 md:order-1">
-              <p className="text-lg md:text-xl font-bold text-gray-900">{match.homeTeamName}</p>
+              <Link to={`/teams/${match.homeTeamId}`} className="text-lg md:text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
+                {match.homeTeamName}
+              </Link>
               {match.homeCoachName && (
                 <p className="text-xs sm:text-sm text-gray-500 flex items-center justify-center md:justify-end gap-1">
                   DT: {match.homeCoachId ? (
@@ -341,7 +343,9 @@ export function MatchDetailPage() {
               </div>
             )}
             <div>
-              <p className="text-lg md:text-xl font-bold text-gray-900">{match.awayTeamName}</p>
+              <Link to={`/teams/${match.awayTeamId}`} className="text-lg md:text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
+                {match.awayTeamName}
+              </Link>
               {match.awayCoachName && (
                 <p className="text-xs sm:text-sm text-gray-500 flex items-center justify-center md:justify-start gap-1">
                   DT: {match.awayCoachId ? (
@@ -521,7 +525,9 @@ export function MatchDetailPage() {
                   <Shield className="h-4 w-4 text-blue-600" />
                 </div>
               )}
-              <h3 className="text-lg font-medium text-gray-900">{match.homeTeamName}</h3>
+              <Link to={`/teams/${match.homeTeamId}`} className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
+                {match.homeTeamName}
+              </Link>
             </div>
             {canEditLineup && (
               <button
@@ -593,7 +599,9 @@ export function MatchDetailPage() {
                   <Shield className="h-4 w-4 text-blue-600" />
                 </div>
               )}
-              <h3 className="text-lg font-medium text-gray-900">{match.awayTeamName}</h3>
+              <Link to={`/teams/${match.awayTeamId}`} className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors">
+                {match.awayTeamName}
+              </Link>
             </div>
             {canEditLineup && (
               <button
