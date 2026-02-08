@@ -280,7 +280,13 @@ export function MatchDetailPage() {
             <div className="order-2 md:order-1">
               <p className="text-lg md:text-xl font-bold text-gray-900">{match.homeTeamName}</p>
               {match.homeCoachName && (
-                <p className="text-xs sm:text-sm text-gray-500">DT: {match.homeCoachName}</p>
+                <p className="text-xs sm:text-sm text-gray-500">
+                  DT: {match.homeCoachId ? (
+                    <Link to={`/coaches/${match.homeCoachId}`} className="hover:text-blue-600 transition-colors">
+                      {match.homeCoachName}
+                    </Link>
+                  ) : match.homeCoachName}
+                </p>
               )}
             </div>
             {match.homeTeamLogo ? (
@@ -334,7 +340,13 @@ export function MatchDetailPage() {
             <div>
               <p className="text-lg md:text-xl font-bold text-gray-900">{match.awayTeamName}</p>
               {match.awayCoachName && (
-                <p className="text-xs sm:text-sm text-gray-500">DT: {match.awayCoachName}</p>
+                <p className="text-xs sm:text-sm text-gray-500">
+                  DT: {match.awayCoachId ? (
+                    <Link to={`/coaches/${match.awayCoachId}`} className="hover:text-blue-600 transition-colors">
+                      {match.awayCoachName}
+                    </Link>
+                  ) : match.awayCoachName}
+                </p>
               )}
             </div>
           </div>
@@ -526,7 +538,9 @@ export function MatchDetailPage() {
                       <span className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-medium text-blue-800">
                         {player.jerseyNumber}
                       </span>
-                      <span className="font-medium">{player.playerName}</span>
+                      <Link to={`/players/${player.playerId}`} className="font-medium hover:text-blue-600 transition-colors">
+                        {player.playerName}
+                      </Link>
                     </div>
                     <PlayerEventIcons playerId={player.playerId} events={match.events} />
                   </div>
@@ -542,7 +556,9 @@ export function MatchDetailPage() {
                           <span className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-600">
                             {player.jerseyNumber}
                           </span>
-                          <span className="text-gray-500">{player.playerName}</span>
+                          <Link to={`/players/${player.playerId}`} className="text-gray-500 hover:text-blue-600 transition-colors">
+                            {player.playerName}
+                          </Link>
                         </div>
                         <PlayerEventIcons playerId={player.playerId} events={match.events} />
                       </div>
@@ -588,7 +604,9 @@ export function MatchDetailPage() {
                       <span className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-800">
                         {player.jerseyNumber}
                       </span>
-                      <span className="font-medium">{player.playerName}</span>
+                      <Link to={`/players/${player.playerId}`} className="font-medium hover:text-blue-600 transition-colors">
+                        {player.playerName}
+                      </Link>
                     </div>
                     <PlayerEventIcons playerId={player.playerId} events={match.events} />
                   </div>
@@ -604,7 +622,9 @@ export function MatchDetailPage() {
                           <span className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-600">
                             {player.jerseyNumber}
                           </span>
-                          <span className="text-gray-500">{player.playerName}</span>
+                          <Link to={`/players/${player.playerId}`} className="text-gray-500 hover:text-blue-600 transition-colors">
+                            {player.playerName}
+                          </Link>
                         </div>
                         <PlayerEventIcons playerId={player.playerId} events={match.events} />
                       </div>
