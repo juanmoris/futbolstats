@@ -349,7 +349,12 @@ export function TeamDetailPage() {
                             </div>
                           )}
                           <div className="min-w-0 flex-1">
-                            <div className="font-semibold text-gray-900 truncate">{coach.coachName}</div>
+                            <Link
+                              to={`/coaches/${coach.coachId}`}
+                              className="font-semibold text-gray-900 truncate hover:text-blue-600 transition-colors block"
+                            >
+                              {coach.coachName}
+                            </Link>
                             {coach.countryName && (
                               <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-0.5">
                                 {coach.countryFlagUrl && (
@@ -459,7 +464,12 @@ export function TeamDetailPage() {
                           </div>
                         )}
                         <div className="min-w-0 flex-1">
-                          <div className="font-semibold text-gray-900 truncate">{coach.coachName}</div>
+                          <Link
+                            to={`/coaches/${coach.coachId}`}
+                            className="font-semibold text-gray-900 truncate hover:text-blue-600 transition-colors block"
+                          >
+                            {coach.coachName}
+                          </Link>
                           {coach.countryName && (
                             <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-0.5">
                               {coach.countryFlagUrl && (
