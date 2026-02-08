@@ -168,6 +168,7 @@ export interface CoachSummary {
   firstMatchDate: string | null;
   lastMatchDate: string | null;
   isCurrentCoach: boolean;
+  pointsPercentage: number;
 }
 
 export interface ChampionshipSummary {

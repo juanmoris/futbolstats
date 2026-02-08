@@ -327,9 +327,6 @@ export function TeamDetailPage() {
               championships.filter(c => c.championshipId === selectedChampionshipId).map((championship) => (
                 <div key={championship.championshipId} className="inline-flex gap-4">
                   {championship.coaches?.map((coach) => {
-                    const winRate = coach.matchesManaged > 0
-                      ? ((coach.wins / coach.matchesManaged) * 100).toFixed(0)
-                      : '0';
                     const goalDiff = coach.goalsFor - coach.goalsAgainst;
                     return (
                       <div
@@ -404,7 +401,7 @@ export function TeamDetailPage() {
                             </span>
                           </div>
                           <div className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">
-                            {winRate}% efect.
+                            {coach.pointsPercentage}% pts.
                           </div>
                         </div>
                         {coach.firstMatchDate && (
@@ -442,10 +439,10 @@ export function TeamDetailPage() {
               // Mostrar entrenadores agregados (todos los campeonatos)
               <div className="inline-flex gap-4">
                 {aggregatedCoaches?.map((coach) => {
-                  const winRate = coach.matchesManaged > 0
-                    ? ((coach.wins / coach.matchesManaged) * 100).toFixed(0)
-                    : '0';
                   const goalDiff = coach.goalsFor - coach.goalsAgainst;
+                  const pointsPercentage = coach.matchesManaged > 0
+                    ? ((coach.points / (coach.matchesManaged * 3)) * 100).toFixed(1)
+                    : '0';
                   return (
                     <div
                       key={coach.coachId}
@@ -519,7 +516,7 @@ export function TeamDetailPage() {
                           </span>
                         </div>
                         <div className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">
-                          {winRate}% efect.
+                          {pointsPercentage}% pts.
                         </div>
                       </div>
                       {coach.firstMatchDate && (

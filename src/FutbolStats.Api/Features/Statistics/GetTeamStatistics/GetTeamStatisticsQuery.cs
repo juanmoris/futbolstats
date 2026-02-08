@@ -77,7 +77,8 @@ public record CoachSummaryDto(
     int GoalsAgainst,
     DateTime? FirstMatchDate,
     DateTime? LastMatchDate,
-    bool IsCurrentCoach
+    bool IsCurrentCoach,
+    decimal PointsPercentage
 );
 
 public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQuery, TeamStatisticsResponse>
@@ -294,6 +295,10 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
                         .Any(a => a.TeamId == request.TeamId && a.EndDate == null);
 
                     var coachPoints = coachWins * 3 + coachDraws;
+                    var coachMatchCount = coachMatches.Count;
+                    var pointsPercentage = coachMatchCount > 0
+                        ? Math.Round((decimal)coachPoints / (coachMatchCount * 3) * 100, 1)
+                        : 0;
 
                     coaches.Add(new CoachSummaryDto(
                         coach.Id,
@@ -301,7 +306,7 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
                         coach.PhotoUrl,
                         coach.Country?.Name,
                         coach.Country?.FlagUrl,
-                        coachMatches.Count,
+                        coachMatchCount,
                         coachWins,
                         coachDraws,
                         coachLosses,
@@ -310,7 +315,8 @@ public class GetTeamStatisticsQueryHandler : IRequestHandler<GetTeamStatisticsQu
                         coachGA,
                         firstMatchDate,
                         lastMatchDate,
-                        isCurrentCoach
+                        isCurrentCoach,
+                        pointsPercentage
                     ));
                 }
 
