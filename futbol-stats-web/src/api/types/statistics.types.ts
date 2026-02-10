@@ -100,6 +100,7 @@ export interface TeamStats {
 export interface PlayerMatch {
   matchId: string;
   matchDate: string;
+  championshipId: string;
   championshipName: string;
   teamName: string;
   opponentName: string;

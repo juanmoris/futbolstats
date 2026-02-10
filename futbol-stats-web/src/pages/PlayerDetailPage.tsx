@@ -156,26 +156,44 @@ export function PlayerDetailPage() {
     ? `${selectedChampionship.championshipName} ${selectedChampionship.season}`
     : null;
 
-  // Filtrar partidos por campeonato seleccionado
-  const filteredMatches = selectedChampionshipId && allStats.recentMatches
-    ? allStats.recentMatches.filter(m => m.championshipName === selectedChampionship?.championshipName)
-    : allStats.recentMatches;
+  // Usar partidos del backend filtrado cuando están disponibles
+  const filteredMatches = displayStats.recentMatches ?? allStats.recentMatches;
 
   // Calcular goles encajados para porteros
   const isGoalkeeper = allStats.position === 'Goalkeeper';
   const goalsConceded = filteredMatches?.reduce((total, match) => total + match.opponentScore, 0) || 0;
 
   // Calcular goles encajados por equipo (para porteros)
-  const goalsConcededByTeam = allStats.recentMatches?.reduce((acc, match) => {
+  const goalsConcededByTeam = filteredMatches?.reduce((acc, match) => {
     acc[match.teamName] = (acc[match.teamName] || 0) + match.opponentScore;
     return acc;
   }, {} as Record<string, number>) || {};
 
   // Calcular goles encajados por campeonato (para porteros)
-  const goalsConcededByChampionship = allStats.recentMatches?.reduce((acc, match) => {
-    acc[match.championshipName] = (acc[match.championshipName] || 0) + match.opponentScore;
+  const goalsConcededByChampionship = filteredMatches?.reduce((acc, match) => {
+    acc[match.championshipId] = (acc[match.championshipId] || 0) + match.opponentScore;
     return acc;
   }, {} as Record<string, number>) || {};
+
+  // Calcular stats por equipo desde partidos filtrados cuando hay campeonato seleccionado
+  const displayTeamStats = selectedChampionshipId && filteredMatches
+    ? (allStats.teamStats || [])
+        .map(ts => {
+          const teamMatches = filteredMatches.filter(m => m.teamName === ts.teamName);
+          if (teamMatches.length === 0) return null;
+          return {
+            ...ts,
+            matchesPlayed: teamMatches.length,
+            matchesStarted: teamMatches.filter(m => m.isStarter).length,
+            matchesAsSub: teamMatches.filter(m => !m.isStarter).length,
+            goals: teamMatches.reduce((sum, m) => sum + m.goals, 0),
+            assists: teamMatches.reduce((sum, m) => sum + m.assists, 0),
+            yellowCards: teamMatches.reduce((sum, m) => sum + m.yellowCards, 0),
+            redCards: teamMatches.reduce((sum, m) => sum + m.redCards, 0),
+          };
+        })
+        .filter((ts): ts is NonNullable<typeof ts> => ts !== null)
+    : allStats.teamStats;
 
   return (
     <div>
@@ -311,7 +329,7 @@ export function PlayerDetailPage() {
       {/* Estadisticas por Equipo y por Campeonato */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         {/* Estadisticas por Equipo */}
-        {allStats.teamStats && allStats.teamStats.length > 0 && (
+        {displayTeamStats && displayTeamStats.length > 0 && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-100">
             <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -320,10 +338,10 @@ export function PlayerDetailPage() {
                 </div>
                 <h2 className="text-sm font-semibold text-gray-900">Por Equipo</h2>
               </div>
-              <span className="text-xs text-gray-400">{allStats.teamStats.length} equipos</span>
+              <span className="text-xs text-gray-400">{displayTeamStats.length} equipos</span>
             </div>
             <div className="divide-y divide-gray-50 overflow-y-auto max-h-64">
-              {allStats.teamStats.map((ts) => (
+              {displayTeamStats.map((ts) => (
                 <Link
                   key={ts.teamId}
                   to={`/teams/${ts.teamId}`}
@@ -350,6 +368,11 @@ export function PlayerDetailPage() {
                         <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${isGoalkeeper ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
                           {isGoalkeeper ? (goalsConcededByTeam[ts.teamName] || 0) : ts.goals} {isGoalkeeper ? 'enc' : 'gol'}
                         </span>
+                        {isGoalkeeper && ts.goals > 0 && (
+                          <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-green-50 text-green-600">
+                            {ts.goals} gol
+                          </span>
+                        )}
                         <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-purple-50 text-purple-600">
                           {ts.assists} ast
                         </span>
@@ -398,8 +421,13 @@ export function PlayerDetailPage() {
                         <span className="text-xs text-gray-400">{cs.season}</span>
                         <span className="text-gray-300">·</span>
                         <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${isGoalkeeper ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-                          {isGoalkeeper ? (goalsConcededByChampionship[cs.championshipName] || 0) : cs.goals} {isGoalkeeper ? 'enc' : 'gol'}
+                          {isGoalkeeper ? (goalsConcededByChampionship[cs.championshipId] || 0) : cs.goals} {isGoalkeeper ? 'enc' : 'gol'}
                         </span>
+                        {isGoalkeeper && cs.goals > 0 && (
+                          <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-green-50 text-green-600">
+                            {cs.goals} gol
+                          </span>
+                        )}
                         <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-purple-50 text-purple-600">
                           {cs.assists} ast
                         </span>
@@ -630,7 +658,8 @@ function GeneralStatsGrid({
   if (isGoalkeeper) {
     // Vista para porteros
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="overflow-x-auto">
+      <div className={`grid grid-cols-2 md:grid-cols-3 gap-3 ${stats.goals > 0 ? 'lg:grid-cols-7 lg:min-w-[117%]' : 'lg:grid-cols-6'}`}>
         {/* Partidos */}
         <EnhancedStatCard
           icon={<Shirt className="h-5 w-5" />}
@@ -661,6 +690,18 @@ function GeneralStatsGrid({
           colorScheme="green"
         />
 
+        {/* Goles convertidos (si el portero tiene alguno) */}
+        {stats.goals > 0 && (
+          <EnhancedStatCard
+            icon={<Target className="h-5 w-5" />}
+            label="Goles"
+            value={stats.goals}
+            ratio={`${metrics.goalsPerMatch} por PJ`}
+            progress={metrics.goalsProgress}
+            colorScheme="cyan"
+          />
+        )}
+
         {/* Asistencias (porteros tambien pueden asistir) */}
         <EnhancedStatCard
           icon={<Target className="h-5 w-5" />}
@@ -690,6 +731,7 @@ function GeneralStatsGrid({
           progress={metrics.cardsProgress}
           colorScheme="yellow"
         />
+      </div>
       </div>
     );
   }

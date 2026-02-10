@@ -61,6 +61,7 @@ public record TeamStatsDto(
 public record PlayerMatchDto(
     Guid MatchId,
     DateTime MatchDate,
+    Guid ChampionshipId,
     string ChampionshipName,
     string TeamName,
     string OpponentName,
@@ -199,38 +200,39 @@ public class GetPlayerStatisticsQueryHandler : IRequestHandler<GetPlayerStatisti
                 .ToList();
 
             teamStats = teams;
-
-            // Build recent matches list
-            recentMatches = lineups
-                .OrderByDescending(l => l.Match.MatchDate)
-                .Take(50)
-                .Select(l =>
-                {
-                    var isHome = l.TeamId == l.Match.HomeTeamId;
-                    var opponent = isHome ? l.Match.AwayTeam : l.Match.HomeTeam;
-                    var teamScore = isHome ? l.Match.HomeScore : l.Match.AwayScore;
-                    var opponentScore = isHome ? l.Match.AwayScore : l.Match.HomeScore;
-                    var matchEvents = events.Where(e => e.MatchId == l.MatchId).ToList();
-
-                    return new PlayerMatchDto(
-                        l.MatchId,
-                        l.Match.MatchDate,
-                        l.Match.Championship.Name,
-                        l.Team.Name,
-                        opponent.Name,
-                        opponent.LogoUrl,
-                        isHome,
-                        teamScore,
-                        opponentScore,
-                        l.IsStarter,
-                        matchEvents.Count(e => e.EventType == EventType.Goal || e.EventType == EventType.PenaltyScored),
-                        matchEvents.Count(e => e.EventType == EventType.Assist),
-                        matchEvents.Count(e => e.EventType == EventType.YellowCard || e.EventType == EventType.SecondYellow),
-                        matchEvents.Count(e => e.EventType == EventType.RedCard || e.EventType == EventType.SecondYellow)
-                    );
-                })
-                .ToList();
         }
+
+        // Build recent matches list
+        recentMatches = lineups
+            .OrderByDescending(l => l.Match.MatchDate)
+            .Take(50)
+            .Select(l =>
+            {
+                var isHome = l.TeamId == l.Match.HomeTeamId;
+                var opponent = isHome ? l.Match.AwayTeam : l.Match.HomeTeam;
+                var teamScore = isHome ? l.Match.HomeScore : l.Match.AwayScore;
+                var opponentScore = isHome ? l.Match.AwayScore : l.Match.HomeScore;
+                var matchEvents = events.Where(e => e.MatchId == l.MatchId).ToList();
+
+                return new PlayerMatchDto(
+                    l.MatchId,
+                    l.Match.MatchDate,
+                    l.Match.ChampionshipId,
+                    l.Match.Championship.Name,
+                    l.Team.Name,
+                    opponent.Name,
+                    opponent.LogoUrl,
+                    isHome,
+                    teamScore,
+                    opponentScore,
+                    l.IsStarter,
+                    matchEvents.Count(e => e.EventType == EventType.Goal || e.EventType == EventType.PenaltyScored),
+                    matchEvents.Count(e => e.EventType == EventType.Assist),
+                    matchEvents.Count(e => e.EventType == EventType.YellowCard || e.EventType == EventType.SecondYellow),
+                    matchEvents.Count(e => e.EventType == EventType.RedCard || e.EventType == EventType.SecondYellow)
+                );
+            })
+            .ToList();
 
         return new PlayerStatisticsResponse(
             player.Id,
