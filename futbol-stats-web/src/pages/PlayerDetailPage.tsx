@@ -175,6 +175,22 @@ export function PlayerDetailPage() {
     return acc;
   }, {} as Record<string, number>) || {};
 
+  // Calcular vallas invictas por equipo (para porteros)
+  const cleanSheetsByTeam = filteredMatches?.reduce((acc, match) => {
+    if (match.opponentScore === 0) {
+      acc[match.teamName] = (acc[match.teamName] || 0) + 1;
+    }
+    return acc;
+  }, {} as Record<string, number>) || {};
+
+  // Calcular vallas invictas por campeonato (para porteros)
+  const cleanSheetsByChampionship = filteredMatches?.reduce((acc, match) => {
+    if (match.opponentScore === 0) {
+      acc[match.championshipId] = (acc[match.championshipId] || 0) + 1;
+    }
+    return acc;
+  }, {} as Record<string, number>) || {};
+
   // Calcular stats por equipo desde partidos filtrados cuando hay campeonato seleccionado
   const displayTeamStats = selectedChampionshipId && filteredMatches
     ? (allStats.teamStats || [])
@@ -298,9 +314,27 @@ export function PlayerDetailPage() {
 
         {/* Indicador de campeonato seleccionado */}
         {selectedChampionshipLabel && (
-          <div className="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-yellow-50 border border-yellow-200 rounded-full text-sm text-yellow-800">
-            <Trophy className="h-4 w-4" />
-            <span>Mostrando estadisticas de: <strong>{selectedChampionshipLabel}</strong></span>
+          <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-yellow-50 border border-yellow-200 rounded-full text-sm text-yellow-800 flex-wrap">
+            <Trophy className="h-4 w-4 shrink-0" />
+            <strong>{selectedChampionshipLabel}</strong>
+            {displayTeamStats && displayTeamStats.length > 0 && (
+              <>
+                <span className="text-yellow-300">·</span>
+                {displayTeamStats.map((ts, idx) => (
+                  <span key={ts.teamId} className="inline-flex items-center gap-1.5">
+                    {idx > 0 && <span className="text-yellow-300 mr-1">·</span>}
+                    {ts.teamLogoUrl ? (
+                      <img src={ts.teamLogoUrl} alt={ts.teamName} className="h-5 w-5 rounded-full object-cover border border-yellow-200" />
+                    ) : (
+                      <Users className="h-4 w-4 text-yellow-600" />
+                    )}
+                    <Link to={`/teams/${ts.teamId}`} className="font-medium hover:underline">
+                      {ts.teamName}
+                    </Link>
+                  </span>
+                ))}
+              </>
+            )}
           </div>
         )}
       </div>
@@ -327,9 +361,9 @@ export function PlayerDetailPage() {
       </div>
 
       {/* Estadisticas por Equipo y por Campeonato */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        {/* Estadisticas por Equipo */}
-        {displayTeamStats && displayTeamStats.length > 0 && (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 items-start">
+        {/* Estadisticas por Equipo - solo en modo "Todos los campeonatos" */}
+        {!selectedChampionshipId && displayTeamStats && displayTeamStats.length > 0 && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-100">
             <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -340,49 +374,63 @@ export function PlayerDetailPage() {
               </div>
               <span className="text-xs text-gray-400">{displayTeamStats.length} equipos</span>
             </div>
+            {/* Cabecera de columnas */}
+            <div className="px-4 py-1.5 flex items-center gap-3 border-b border-gray-100 bg-gray-50/80">
+              <div className="w-7 shrink-0" />
+              <div className="flex-1 min-w-0" />
+              <div className="flex items-center shrink-0">
+                <span className="w-8 text-center text-[10px] uppercase tracking-wide font-semibold text-gray-400">PJ</span>
+                {isGoalkeeper ? (
+                  <>
+                    <span className="w-8 text-center text-[10px] uppercase tracking-wide font-semibold text-gray-400">ENC</span>
+                    <span className="w-8 text-center text-[10px] uppercase tracking-wide font-semibold text-gray-400">VI</span>
+                    <span className="w-8 text-center text-[10px] uppercase tracking-wide font-semibold text-gray-400">GOL</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="w-8 text-center text-[10px] uppercase tracking-wide font-semibold text-gray-400">GOL</span>
+                    <span className="w-8 text-center text-[10px] uppercase tracking-wide font-semibold text-gray-400">AST</span>
+                  </>
+                )}
+                <span className="w-8 text-center text-[10px] uppercase tracking-wide font-semibold text-gray-400">TA</span>
+                <span className="w-8 text-center text-[10px] uppercase tracking-wide font-semibold text-gray-400">TR</span>
+              </div>
+            </div>
             <div className="divide-y divide-gray-50 overflow-y-auto max-h-64">
               {displayTeamStats.map((ts) => (
                 <Link
                   key={ts.teamId}
                   to={`/teams/${ts.teamId}`}
-                  className="block px-4 py-2.5 hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors"
                 >
-                  <div className="flex items-center gap-3">
-                    {ts.teamLogoUrl ? (
-                      <img
-                        src={ts.teamLogoUrl}
-                        alt={ts.teamName}
-                        className="h-8 w-8 rounded-full object-cover shrink-0 border border-gray-200"
-                      />
-                    ) : (
-                      <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-                        <Users className="h-4 w-4 text-blue-400" />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-gray-900 text-sm truncate hover:text-blue-600">{ts.teamName}</span>
-                        <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{ts.matchesPlayed} PJ</span>
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${isGoalkeeper ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-                          {isGoalkeeper ? (goalsConcededByTeam[ts.teamName] || 0) : ts.goals} {isGoalkeeper ? 'enc' : 'gol'}
-                        </span>
-                        {isGoalkeeper && ts.goals > 0 && (
-                          <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-green-50 text-green-600">
-                            {ts.goals} gol
-                          </span>
-                        )}
-                        <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-purple-50 text-purple-600">
-                          {ts.assists} ast
-                        </span>
-                        {(ts.yellowCards > 0 || ts.redCards > 0) && (
-                          <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-yellow-50 text-yellow-700">
-                            {ts.yellowCards}/{ts.redCards}
-                          </span>
-                        )}
-                      </div>
+                  {ts.teamLogoUrl ? (
+                    <img
+                      src={ts.teamLogoUrl}
+                      alt={ts.teamName}
+                      className="h-7 w-7 rounded-full object-cover shrink-0 border border-gray-200"
+                    />
+                  ) : (
+                    <div className="h-7 w-7 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                      <Users className="h-4 w-4 text-blue-400" />
                     </div>
+                  )}
+                  <span className="flex-1 min-w-0 font-medium text-gray-900 text-sm truncate hover:text-blue-600">{ts.teamName}</span>
+                  <div className="flex items-center shrink-0 text-xs text-gray-600">
+                    <span className="w-8 text-center font-semibold">{ts.matchesPlayed}</span>
+                    {isGoalkeeper ? (
+                      <>
+                        <span className="w-8 text-center">{goalsConcededByTeam[ts.teamName] || 0}</span>
+                        <span className="w-8 text-center">{cleanSheetsByTeam[ts.teamName] || 0}</span>
+                        <span className="w-8 text-center">{ts.goals}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="w-8 text-center">{ts.goals}</span>
+                        <span className="w-8 text-center">{ts.assists}</span>
+                      </>
+                    )}
+                    <span className="w-8 text-center">{ts.yellowCards}</span>
+                    <span className="w-8 text-center">{ts.redCards}</span>
                   </div>
                 </Link>
               ))}
@@ -390,8 +438,8 @@ export function PlayerDetailPage() {
           </div>
         )}
 
-        {/* Estadisticas por Campeonato */}
-        {championships.length > 0 && (
+        {/* Estadisticas por Campeonato - solo en modo "Todos los campeonatos" */}
+        {!selectedChampionshipId && championships.length > 0 && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-100">
             <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -402,44 +450,60 @@ export function PlayerDetailPage() {
               </div>
               <span className="text-xs text-gray-400">{championships.length} camp.</span>
             </div>
+            {/* Cabecera de columnas */}
+            <div className="px-4 py-1.5 flex items-center gap-3 border-b border-gray-100 bg-gray-50/80">
+              <div className="w-7 shrink-0" />
+              <div className="flex-1 min-w-0" />
+              <div className="flex items-center shrink-0">
+                <span className="w-8 text-center text-[10px] uppercase tracking-wide font-semibold text-gray-400">PJ</span>
+                {isGoalkeeper ? (
+                  <>
+                    <span className="w-8 text-center text-[10px] uppercase tracking-wide font-semibold text-gray-400">ENC</span>
+                    <span className="w-8 text-center text-[10px] uppercase tracking-wide font-semibold text-gray-400">VI</span>
+                    <span className="w-8 text-center text-[10px] uppercase tracking-wide font-semibold text-gray-400">GOL</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="w-8 text-center text-[10px] uppercase tracking-wide font-semibold text-gray-400">GOL</span>
+                    <span className="w-8 text-center text-[10px] uppercase tracking-wide font-semibold text-gray-400">AST</span>
+                  </>
+                )}
+                <span className="w-8 text-center text-[10px] uppercase tracking-wide font-semibold text-gray-400">TA</span>
+                <span className="w-8 text-center text-[10px] uppercase tracking-wide font-semibold text-gray-400">TR</span>
+              </div>
+            </div>
             <div className="divide-y divide-gray-50 overflow-y-auto max-h-64">
-              {(selectedChampionshipId
-                ? championships.filter(c => c.championshipId === selectedChampionshipId)
-                : championships
-              ).map((cs) => (
-                <div key={cs.championshipId} className="px-4 py-2.5 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full bg-yellow-50 flex items-center justify-center shrink-0">
-                      <Trophy className="h-4 w-4 text-yellow-500" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-gray-900 text-sm truncate">{cs.championshipName}</span>
-                        <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{cs.matchesPlayed} PJ</span>
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-gray-400">{cs.season}</span>
-                        <span className="text-gray-300">·</span>
-                        <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${isGoalkeeper ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-                          {isGoalkeeper ? (goalsConcededByChampionship[cs.championshipId] || 0) : cs.goals} {isGoalkeeper ? 'enc' : 'gol'}
-                        </span>
-                        {isGoalkeeper && cs.goals > 0 && (
-                          <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-green-50 text-green-600">
-                            {cs.goals} gol
-                          </span>
-                        )}
-                        <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-purple-50 text-purple-600">
-                          {cs.assists} ast
-                        </span>
-                        {(cs.yellowCards > 0 || cs.redCards > 0) && (
-                          <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-yellow-50 text-yellow-700">
-                            {cs.yellowCards}/{cs.redCards}
-                          </span>
-                        )}
-                      </div>
-                    </div>
+              {championships.map((cs) => (
+                <button
+                  key={cs.championshipId}
+                  onClick={() => setSelectedChampionshipId(cs.championshipId)}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="h-7 w-7 rounded-full bg-yellow-50 flex items-center justify-center shrink-0">
+                    <Trophy className="h-4 w-4 text-yellow-500" />
                   </div>
-                </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <span className="font-medium text-gray-900 text-sm truncate block">{cs.championshipName}</span>
+                    <span className="text-xs text-gray-400">{cs.season}</span>
+                  </div>
+                  <div className="flex items-center shrink-0 text-xs text-gray-600">
+                    <span className="w-8 text-center font-semibold">{cs.matchesPlayed}</span>
+                    {isGoalkeeper ? (
+                      <>
+                        <span className="w-8 text-center">{goalsConcededByChampionship[cs.championshipId] || 0}</span>
+                        <span className="w-8 text-center">{cleanSheetsByChampionship[cs.championshipId] || 0}</span>
+                        <span className="w-8 text-center">{cs.goals}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="w-8 text-center">{cs.goals}</span>
+                        <span className="w-8 text-center">{cs.assists}</span>
+                      </>
+                    )}
+                    <span className="w-8 text-center">{cs.yellowCards}</span>
+                    <span className="w-8 text-center">{cs.redCards}</span>
+                  </div>
+                </button>
               ))}
             </div>
           </div>
