@@ -11,6 +11,7 @@ import type {
   RecordSubstitutionRequest,
   RecordPenaltyMissedRequest,
   RecordCoachCardRequest,
+  HeadToHeadResponse,
 } from '../types/match.types';
 
 export const matchesApi = {
@@ -91,5 +92,12 @@ export const matchesApi = {
 
   setCoaches: async (matchId: string, homeCoachId: string | null, awayCoachId: string | null): Promise<void> => {
     await apiClient.put(`/matches/${matchId}/coaches`, { homeCoachId, awayCoachId });
+  },
+
+  getHeadToHead: async (teamAId: string, teamBId: string, excludeMatchId?: string, limit?: number): Promise<HeadToHeadResponse> => {
+    const response = await apiClient.get('/matches/head-to-head', {
+      params: { teamAId, teamBId, excludeMatchId, limit },
+    });
+    return response.data;
   },
 };

@@ -2,6 +2,7 @@ using FutbolStats.Api.Common;
 using FutbolStats.Api.Features.Matches.CreateMatch;
 using FutbolStats.Api.Features.Matches.DeleteMatch;
 using FutbolStats.Api.Features.Matches.EndMatch;
+using FutbolStats.Api.Features.Matches.GetHeadToHead;
 using FutbolStats.Api.Features.Matches.GetMatchById;
 using FutbolStats.Api.Features.Matches.GetMatches;
 using FutbolStats.Api.Features.Matches.GetLiveMatches;
@@ -45,6 +46,21 @@ public static class MatchesEndpoints
             return Results.Ok(result);
         })
         .WithName("GetLiveMatches")
+        .WithOpenApi();
+
+        // GET /api/matches/head-to-head
+        group.MapGet("/head-to-head", async (
+            Guid teamAId,
+            Guid teamBId,
+            IMediator mediator,
+            Guid? excludeMatchId = null,
+            int limit = 10) =>
+        {
+            var result = await mediator.Send(new GetHeadToHeadQuery(
+                teamAId, teamBId, excludeMatchId, limit));
+            return Results.Ok(result);
+        })
+        .WithName("GetHeadToHead")
         .WithOpenApi();
 
         // GET /api/matches/{id}

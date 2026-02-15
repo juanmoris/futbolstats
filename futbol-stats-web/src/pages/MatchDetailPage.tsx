@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Clock, Play, Pause, StopCircle, Users, X, ArrowUpRight, ArrowDownRight, UserCog, Shield } from 'lucide-react';
+import { ArrowLeft, Clock, Play, Pause, StopCircle, Users, X, ArrowUpRight, ArrowDownRight, UserCog, Shield, Swords } from 'lucide-react';
 import { matchesApi } from '@/api/endpoints/matches.api';
 import { playersApi } from '@/api/endpoints/players.api';
 import { coachesApi } from '@/api/endpoints/coaches.api';
@@ -126,6 +126,12 @@ export function MatchDetailPage() {
       const data = query.state.data;
       return data?.status === MatchStatus.Live || data?.status === MatchStatus.HalfTime ? 10000 : false;
     },
+  });
+
+  const { data: headToHead, isLoading: isLoadingH2H } = useQuery({
+    queryKey: ['head-to-head', match?.homeTeamId, match?.awayTeamId],
+    queryFn: () => matchesApi.getHeadToHead(match!.homeTeamId, match!.awayTeamId, match!.id),
+    enabled: !!match,
   });
 
   const startMutation = useMutation({
@@ -662,6 +668,141 @@ export function MatchDetailPage() {
             <p className="text-gray-500">Sin alineacion registrada</p>
           )}
         </div>
+      </div>
+
+      {/* Head to Head */}
+      <div className="bg-white rounded-lg shadow p-6 mt-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+          <Swords className="h-5 w-5 text-gray-600" />
+          Ultimos Enfrentamientos
+        </h3>
+
+        {isLoadingH2H ? (
+          <p className="text-gray-500 text-center py-4">Cargando...</p>
+        ) : headToHead && headToHead.totalMatches > 0 ? (
+          <div>
+            {/* Summary Bar */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2 min-w-0">
+                {headToHead.teamALogo ? (
+                  <img src={headToHead.teamALogo} alt={headToHead.teamAName} className="h-6 w-6 rounded-full object-cover flex-shrink-0" />
+                ) : (
+                  <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <Shield className="h-3 w-3 text-blue-600" />
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <span className="text-sm font-medium truncate block">{headToHead.teamAName}</span>
+                  <span className="text-xs text-gray-500">{headToHead.teamAGoals} goles</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 text-center px-4">
+                <div className="text-center">
+                  <span className={`text-lg font-bold block ${headToHead.teamAWins >= headToHead.teamBWins ? 'text-green-600' : 'text-amber-600'}`}>{headToHead.teamAWins}</span>
+                  <span className="text-xs text-gray-500">{headToHead.teamAWins === 1 ? 'victoria' : 'victorias'}</span>
+                </div>
+                <div className="text-center">
+                  <span className="text-lg font-bold block text-gray-400">{headToHead.draws}</span>
+                  <span className="text-xs text-gray-500">{headToHead.draws === 1 ? 'empate' : 'empates'}</span>
+                </div>
+                <div className="text-center">
+                  <span className={`text-lg font-bold block ${headToHead.teamBWins >= headToHead.teamAWins ? 'text-green-600' : 'text-amber-600'}`}>{headToHead.teamBWins}</span>
+                  <span className="text-xs text-gray-500">{headToHead.teamBWins === 1 ? 'victoria' : 'victorias'}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 min-w-0 justify-end">
+                <div className="min-w-0 text-right">
+                  <span className="text-sm font-medium truncate block">{headToHead.teamBName}</span>
+                  <span className="text-xs text-gray-500">{headToHead.teamBGoals} goles</span>
+                </div>
+                {headToHead.teamBLogo ? (
+                  <img src={headToHead.teamBLogo} alt={headToHead.teamBName} className="h-6 w-6 rounded-full object-cover flex-shrink-0" />
+                ) : (
+                  <div className="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <Shield className="h-3 w-3 text-blue-600" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            {headToHead.totalMatches > 0 && (
+              <div className="w-full h-3 rounded-full overflow-hidden flex mb-2">
+                <div
+                  className={`${headToHead.teamAWins >= headToHead.teamBWins ? 'bg-green-500' : 'bg-amber-500'} h-full`}
+                  style={{ width: `${(headToHead.teamAWins / headToHead.totalMatches) * 100}%` }}
+                />
+                <div
+                  className="bg-gray-300 h-full"
+                  style={{ width: `${(headToHead.draws / headToHead.totalMatches) * 100}%` }}
+                />
+                <div
+                  className={`${headToHead.teamBWins >= headToHead.teamAWins ? 'bg-green-500' : 'bg-amber-500'} h-full`}
+                  style={{ width: `${(headToHead.teamBWins / headToHead.totalMatches) * 100}%` }}
+                />
+              </div>
+            )}
+
+            <p className="text-xs text-gray-500 text-center mb-6">
+              {headToHead.totalMatches} {headToHead.totalMatches === 1 ? 'partido' : 'partidos'}
+            </p>
+
+            {/* Match List */}
+            <div className="space-y-0 border rounded-lg overflow-hidden">
+              {headToHead.matches.map((h2hMatch, index) => (
+                <Link
+                  key={h2hMatch.id}
+                  to={`/matches/${h2hMatch.id}`}
+                  className={`block p-3 hover:bg-blue-50 transition-colors ${index % 2 === 1 ? 'bg-gray-50' : ''}`}
+                >
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-xs text-gray-400">{h2hMatch.championshipName} - {h2hMatch.season}</span>
+                    <span className="text-xs text-gray-400">
+                      {new Date(h2hMatch.matchDate).toLocaleDateString('es', { timeZone: 'UTC', day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      {h2hMatch.homeTeamLogo ? (
+                        <img src={h2hMatch.homeTeamLogo} alt="" className="h-5 w-5 rounded-full object-cover flex-shrink-0" />
+                      ) : (
+                        <div className="h-5 w-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                          <Shield className="h-3 w-3 text-blue-600" />
+                        </div>
+                      )}
+                      <span className={`text-sm truncate ${h2hMatch.homeScore > h2hMatch.awayScore ? 'font-bold' : ''}`}>
+                        {h2hMatch.homeTeamName}
+                      </span>
+                    </div>
+                    <div className="px-4 text-center flex-shrink-0">
+                      <span className={`text-sm ${h2hMatch.homeScore > h2hMatch.awayScore ? 'font-bold' : ''}`}>
+                        {h2hMatch.homeScore}
+                      </span>
+                      <span className="text-sm text-gray-400 mx-1">-</span>
+                      <span className={`text-sm ${h2hMatch.awayScore > h2hMatch.homeScore ? 'font-bold' : ''}`}>
+                        {h2hMatch.awayScore}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
+                      <span className={`text-sm truncate ${h2hMatch.awayScore > h2hMatch.homeScore ? 'font-bold' : ''}`}>
+                        {h2hMatch.awayTeamName}
+                      </span>
+                      {h2hMatch.awayTeamLogo ? (
+                        <img src={h2hMatch.awayTeamLogo} alt="" className="h-5 w-5 rounded-full object-cover flex-shrink-0" />
+                      ) : (
+                        <div className="h-5 w-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                          <Shield className="h-3 w-3 text-blue-600" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p className="text-gray-500 text-center py-4">No hay enfrentamientos previos entre estos equipos</p>
+        )}
       </div>
 
       {/* Modals */}

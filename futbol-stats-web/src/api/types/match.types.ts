@@ -123,3 +123,36 @@ export interface LineupPlayerRequest {
   position?: string;
   jerseyNumber: number | null;
 }
+
+export interface HeadToHeadResponse {
+  totalMatches: number;
+  teamAWins: number;
+  teamBWins: number;
+  draws: number;
+  teamAGoals: number;
+  teamBGoals: number;
+  teamAId: string;
+  teamAName: string;
+  teamALogo: string | null;
+  teamBId: string;
+  teamBName: string;
+  teamBLogo: string | null;
+  matches: HeadToHeadMatch[];
+}
+
+export interface HeadToHeadMatch {
+  id: string;
+  championshipId: string;
+  championshipName: string;
+  season: string;
+  homeTeamId: string;
+  homeTeamName: string;
+  homeTeamLogo: string | null;
+  awayTeamId: string;
+  awayTeamName: string;
+  awayTeamLogo: string | null;
+  homeScore: number;
+  awayScore: number;
+  matchDate: string;
+  matchday: number;
+}
