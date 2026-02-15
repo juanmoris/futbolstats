@@ -129,7 +129,7 @@ export function MatchDetailPage() {
   });
 
   const { data: headToHead, isLoading: isLoadingH2H } = useQuery({
-    queryKey: ['head-to-head', match?.homeTeamId, match?.awayTeamId],
+    queryKey: ['head-to-head', match?.homeTeamId, match?.awayTeamId, id],
     queryFn: () => matchesApi.getHeadToHead(match!.homeTeamId, match!.awayTeamId, match!.id),
     enabled: !!match,
   });
