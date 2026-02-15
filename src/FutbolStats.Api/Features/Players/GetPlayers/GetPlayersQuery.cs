@@ -62,7 +62,8 @@ public class GetPlayersHandler(FutbolDbContext db)
             var search = request.Search.ToLower();
             query = query.Where(p =>
                 p.FirstName.ToLower().Contains(search) ||
-                p.LastName.ToLower().Contains(search));
+                p.LastName.ToLower().Contains(search) ||
+                (p.FirstName.ToLower() + " " + p.LastName.ToLower()).Contains(search));
         }
 
         var totalCount = await query.CountAsync(cancellationToken);
