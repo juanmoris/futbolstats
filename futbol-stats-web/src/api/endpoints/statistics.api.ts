@@ -5,6 +5,9 @@ import type {
   PlayerStatisticsResponse,
   TeamStatisticsResponse,
   CoachStatisticsResponse,
+  HistoricalTeamRankingsResponse,
+  HistoricalTopScorersResponse,
+  HistoricalMostAppearancesResponse,
 } from '../types/statistics.types';
 
 export const statisticsApi = {
@@ -43,6 +46,37 @@ export const statisticsApi = {
   getCoachStatistics: async (coachId: string, championshipId?: string): Promise<CoachStatisticsResponse> => {
     const response = await apiClient.get(`/statistics/coaches/${coachId}`, {
       params: { championshipId },
+    });
+    return response.data;
+  },
+
+  getHistoricalTeamRankings: async (search?: string): Promise<HistoricalTeamRankingsResponse> => {
+    const response = await apiClient.get('/statistics/historical/team-rankings', {
+      params: { search },
+    });
+    return response.data;
+  },
+
+  getHistoricalTopScorers: async (
+    page: number = 1,
+    pageSize: number = 20,
+    countryId?: string,
+    search?: string
+  ): Promise<HistoricalTopScorersResponse> => {
+    const response = await apiClient.get('/statistics/historical/top-scorers', {
+      params: { page, pageSize, countryId, search },
+    });
+    return response.data;
+  },
+
+  getHistoricalMostAppearances: async (
+    page: number = 1,
+    pageSize: number = 20,
+    countryId?: string,
+    search?: string
+  ): Promise<HistoricalMostAppearancesResponse> => {
+    const response = await apiClient.get('/statistics/historical/most-appearances', {
+      params: { page, pageSize, countryId, search },
     });
     return response.data;
   },

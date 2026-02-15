@@ -15,6 +15,7 @@ import { TeamDetailPage } from '@/pages/TeamDetailPage';
 import { CoachesPage } from '@/pages/CoachesPage';
 import { CoachDetailPage } from '@/pages/CoachDetailPage';
 import { StatisticsPage } from '@/pages/StatisticsPage';
+import { HistoricalStatisticsPage } from '@/pages/HistoricalStatisticsPage';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
               <Route path="/coaches" element={<CoachesPage />} />
               <Route path="/coaches/:id" element={<CoachDetailPage />} />
               <Route path="/statistics" element={<StatisticsPage />} />
+              <Route path="/historical-statistics" element={<HistoricalStatisticsPage />} />
             </Route>
           </Routes>
         </BrowserRouter>

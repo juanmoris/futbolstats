@@ -1,5 +1,8 @@
 using FutbolStats.Api.Features.Championships.GetStandings;
 using FutbolStats.Api.Features.Statistics.GetCoachStatistics;
+using FutbolStats.Api.Features.Statistics.GetHistoricalMostAppearances;
+using FutbolStats.Api.Features.Statistics.GetHistoricalTeamRankings;
+using FutbolStats.Api.Features.Statistics.GetHistoricalTopScorers;
 using FutbolStats.Api.Features.Statistics.GetPlayerStatistics;
 using FutbolStats.Api.Features.Statistics.GetTeamStatistics;
 using FutbolStats.Api.Features.Statistics.GetTopScorers;
@@ -72,6 +75,45 @@ public static class StatisticsEndpoints
             return Results.Ok(result);
         })
         .WithName("GetTopScorers")
+        .WithOpenApi();
+
+        // GET /api/statistics/historical/team-rankings
+        group.MapGet("/historical/team-rankings", async (
+            IMediator mediator,
+            string? search = null) =>
+        {
+            var result = await mediator.Send(new GetHistoricalTeamRankingsQuery(search));
+            return Results.Ok(result);
+        })
+        .WithName("GetHistoricalTeamRankings")
+        .WithOpenApi();
+
+        // GET /api/statistics/historical/top-scorers
+        group.MapGet("/historical/top-scorers", async (
+            IMediator mediator,
+            int page = 1,
+            int pageSize = 20,
+            Guid? countryId = null,
+            string? search = null) =>
+        {
+            var result = await mediator.Send(new GetHistoricalTopScorersQuery(page, pageSize, countryId, search));
+            return Results.Ok(result);
+        })
+        .WithName("GetHistoricalTopScorers")
+        .WithOpenApi();
+
+        // GET /api/statistics/historical/most-appearances
+        group.MapGet("/historical/most-appearances", async (
+            IMediator mediator,
+            int page = 1,
+            int pageSize = 20,
+            Guid? countryId = null,
+            string? search = null) =>
+        {
+            var result = await mediator.Send(new GetHistoricalMostAppearancesQuery(page, pageSize, countryId, search));
+            return Results.Ok(result);
+        })
+        .WithName("GetHistoricalMostAppearances")
         .WithOpenApi();
     }
 }

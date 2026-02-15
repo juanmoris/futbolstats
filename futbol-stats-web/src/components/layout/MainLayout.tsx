@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Trophy, Users, User, UserCog, Calendar, BarChart3, LogOut, Menu, X } from 'lucide-react';
+import { Trophy, Users, User, UserCog, Calendar, BarChart3, History, LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const navigation = [
@@ -10,6 +10,7 @@ const navigation = [
   { name: 'Entrenadores', href: '/coaches', icon: UserCog },
   { name: 'Partidos', href: '/matches', icon: Calendar },
   { name: 'Estadisticas', href: '/statistics', icon: BarChart3 },
+  { name: 'Historico', href: '/historical-statistics', icon: History },
 ];
 
 export function MainLayout() {

@@ -237,3 +237,91 @@ export interface CoachTeamStats {
   points: number;
   winPercentage: number;
 }
+
+export interface HistoricalTeamRankingsResponse {
+  rankings: HistoricalTeamRanking[];
+}
+
+export interface HistoricalTeamRanking {
+  rank: number;
+  teamId: string;
+  teamName: string;
+  logoUrl: string | null;
+  championshipsPlayed: number;
+  gamesPlayed: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  points: number;
+}
+
+export interface HistoricalTopScorersResponse {
+  scorers: HistoricalScorer[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  hasNextPage: boolean;
+}
+
+export interface HistoricalScorer {
+  rank: number;
+  playerId: string;
+  playerName: string;
+  photoUrl: string | null;
+  countryName: string | null;
+  countryFlagUrl: string | null;
+  teamId: string;
+  teamName: string;
+  teamLogoUrl: string | null;
+  goals: number;
+  penaltyGoals: number;
+  assists: number;
+  matchesPlayed: number;
+  teamBreakdowns: ScorerTeamBreakdown[];
+}
+
+export interface ScorerTeamBreakdown {
+  teamId: string;
+  teamName: string;
+  teamLogoUrl: string | null;
+  goals: number;
+  penaltyGoals: number;
+  assists: number;
+  matchesPlayed: number;
+}
+
+export interface HistoricalMostAppearancesResponse {
+  players: HistoricalAppearance[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  hasNextPage: boolean;
+}
+
+export interface HistoricalAppearance {
+  rank: number;
+  playerId: string;
+  playerName: string;
+  photoUrl: string | null;
+  countryName: string | null;
+  countryFlagUrl: string | null;
+  teamId: string;
+  teamName: string;
+  teamLogoUrl: string | null;
+  matchesPlayed: number;
+  matchesAsStarter: number;
+  matchesAsSub: number;
+  teamBreakdowns: AppearanceTeamBreakdown[];
+}
+
+export interface AppearanceTeamBreakdown {
+  teamId: string;
+  teamName: string;
+  teamLogoUrl: string | null;
+  matchesPlayed: number;
+  matchesAsStarter: number;
+  matchesAsSub: number;
+}
