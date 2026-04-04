@@ -5,6 +5,65 @@ import { ArrowLeft, Users, Trophy, Target, Shield, Award, Calendar, User } from 
 import { statisticsApi } from '@/api/endpoints/statistics.api';
 import { teamsApi } from '@/api/endpoints/teams.api';
 
+type CoachPeriod = { firstMatchDate: string | null; lastMatchDate: string | null };
+
+/**
+ * Fusiona los periodos de un entrenador que son continuos (sin otro entrenador en el medio).
+ *
+ * Cada campeonato genera un periodo con firstMatchDate/lastMatchDate. Si el entrenador
+ * participó en varios campeonatos consecutivos sin ser reemplazado, esos periodos se
+ * fusionan en uno solo. Solo se mantienen separados cuando otro entrenador dirigió
+ * al equipo entre los dos periodos, lo que indica una interrupción real.
+ */
+function mergeCoachPeriods(
+  periods: CoachPeriod[],
+  coachId: string,
+  allCoachEntries: { coachId: string; firstMatchDate: string | null; lastMatchDate: string | null }[],
+): CoachPeriod[] {
+  const sorted = [...periods].sort((a, b) => {
+    if (a.firstMatchDate && b.firstMatchDate) {
+      return new Date(a.firstMatchDate).getTime() - new Date(b.firstMatchDate).getTime();
+    }
+    if (a.firstMatchDate) return -1;
+    if (b.firstMatchDate) return 1;
+    return 0;
+  });
+
+  const merged: CoachPeriod[] = [];
+  for (const period of sorted) {
+    const last = merged[merged.length - 1];
+    if (last && last.lastMatchDate && period.firstMatchDate) {
+      const gapStart = new Date(last.lastMatchDate).getTime();
+      const gapEnd = new Date(period.firstMatchDate).getTime();
+
+      const anotherCoachInGap = allCoachEntries.some(entry => {
+        if (entry.coachId === coachId) return false;
+        if (entry.firstMatchDate) {
+          const d = new Date(entry.firstMatchDate).getTime();
+          if (d > gapStart && d < gapEnd) return true;
+        }
+        if (entry.lastMatchDate) {
+          const d = new Date(entry.lastMatchDate).getTime();
+          if (d > gapStart && d < gapEnd) return true;
+        }
+        return false;
+      });
+
+      if (!anotherCoachInGap) {
+        if (period.lastMatchDate) {
+          last.lastMatchDate = new Date(period.lastMatchDate) > new Date(last.lastMatchDate)
+            ? period.lastMatchDate : last.lastMatchDate;
+        } else {
+          last.lastMatchDate = null;
+        }
+        continue;
+      }
+    }
+    merged.push({ ...period });
+  }
+  return merged;
+}
+
 export function TeamDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [selectedChampionshipId, setSelectedChampionshipId] = useState<string | null>(null);
@@ -94,6 +153,7 @@ export function TeamDetailPage() {
       firstMatchDate: string | null;
       lastMatchDate: string | null;
       isCurrentCoach: boolean;
+      periods: { firstMatchDate: string | null; lastMatchDate: string | null }[];
     }>();
 
     championships.forEach(champ => {
@@ -107,11 +167,13 @@ export function TeamDetailPage() {
           existing.points += coach.points;
           existing.goalsFor += coach.goalsFor;
           existing.goalsAgainst += coach.goalsAgainst;
-          // Actualizar primera fecha si es anterior
+          // Agregar periodo del campeonato actual
+          existing.periods.push({ firstMatchDate: coach.firstMatchDate, lastMatchDate: coach.lastMatchDate });
+          // Actualizar primera fecha global si es anterior
           if (coach.firstMatchDate && (!existing.firstMatchDate || new Date(coach.firstMatchDate) < new Date(existing.firstMatchDate))) {
             existing.firstMatchDate = coach.firstMatchDate;
           }
-          // Actualizar última fecha si es posterior
+          // Actualizar última fecha global si es posterior
           if (coach.lastMatchDate && (!existing.lastMatchDate || new Date(coach.lastMatchDate) > new Date(existing.lastMatchDate))) {
             existing.lastMatchDate = coach.lastMatchDate;
           }
@@ -120,9 +182,24 @@ export function TeamDetailPage() {
             existing.isCurrentCoach = true;
           }
         } else {
-          coachMap.set(coach.coachId, { ...coach });
+          coachMap.set(coach.coachId, {
+            ...coach,
+            periods: [{ firstMatchDate: coach.firstMatchDate, lastMatchDate: coach.lastMatchDate }],
+          });
         }
       });
+    });
+
+    // Recopilar todas las entradas de entrenadores para detectar interrupciones
+    const allCoachEntries: { coachId: string; firstMatchDate: string | null; lastMatchDate: string | null }[] = [];
+    championships.forEach(champ => {
+      champ.coaches?.forEach(c => {
+        allCoachEntries.push({ coachId: c.coachId, firstMatchDate: c.firstMatchDate, lastMatchDate: c.lastMatchDate });
+      });
+    });
+
+    coachMap.forEach(coach => {
+      coach.periods = mergeCoachPeriods(coach.periods, coach.coachId, allCoachEntries);
     });
 
     return Array.from(coachMap.values()).sort((a, b) => {
@@ -519,28 +596,60 @@ export function TeamDetailPage() {
                           {pointsPercentage}% pts.
                         </div>
                       </div>
-                      {coach.firstMatchDate && (
+                      {coach.periods.some(p => p.firstMatchDate) && (
                         <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
-                          {coach.isCurrentCoach ? (
-                            <span>
-                              Desde: <span className="font-medium text-gray-700">
-                                {new Date(coach.firstMatchDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
-                              </span>
-                            </span>
-                          ) : (
-                            <div className="flex items-center justify-between">
+                          {coach.periods.length === 1 ? (
+                            // Un solo periodo: mostrar igual que antes
+                            coach.isCurrentCoach ? (
                               <span>
-                                Inicio: <span className="font-medium text-gray-700">
-                                  {new Date(coach.firstMatchDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                Desde: <span className="font-medium text-gray-700">
+                                  {new Date(coach.periods[0].firstMatchDate!).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
                                 </span>
                               </span>
-                              {coach.lastMatchDate && (
+                            ) : (
+                              <div className="flex items-center justify-between">
                                 <span>
-                                  Fin: <span className="font-medium text-gray-700">
-                                    {new Date(coach.lastMatchDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                  Inicio: <span className="font-medium text-gray-700">
+                                    {new Date(coach.periods[0].firstMatchDate!).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
                                   </span>
                                 </span>
-                              )}
+                                {coach.periods[0].lastMatchDate && (
+                                  <span>
+                                    Fin: <span className="font-medium text-gray-700">
+                                      {new Date(coach.periods[0].lastMatchDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                    </span>
+                                  </span>
+                                )}
+                              </div>
+                            )
+                          ) : (
+                            // Múltiples periodos: mostrar cada uno en línea con etiqueta en el centro
+                            <div className="space-y-1">
+                              {coach.periods.map((period, idx) => {
+                                if (!period.firstMatchDate) return null;
+                                const isLastPeriod = idx === coach.periods.length - 1;
+                                const isCurrentPeriod = isLastPeriod && coach.isCurrentCoach;
+                                const periodLabel = idx === 0 ? '1er periodo' : `${idx + 1}do periodo`;
+                                return (
+                                  <div key={idx} className="flex items-center justify-between">
+                                    <span>
+                                      Inicio: <span className="font-medium text-gray-700">
+                                        {new Date(period.firstMatchDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                      </span>
+                                    </span>
+                                    <span className="text-gray-400">{periodLabel}</span>
+                                    {isCurrentPeriod ? (
+                                      <span className="text-gray-400 italic">Actual</span>
+                                    ) : period.lastMatchDate ? (
+                                      <span>
+                                        Fin: <span className="font-medium text-gray-700">
+                                          {new Date(period.lastMatchDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                        </span>
+                                      </span>
+                                    ) : <span />}
+                                  </div>
+                                );
+                              })}
                             </div>
                           )}
                         </div>
